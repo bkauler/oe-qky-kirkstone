@@ -1,0 +1,9 @@
+oe-qky-kirkstone
+----------------
+
+This is based on the Kirkstone release of OpenEmbedded/Yocto, with packages and scripts, including meta-quirky layer, to compile all packages required to build EasyOS or other Linux distribution.
+
+oe-qky-kirkstone is the successor to oe-qky-dunfell. Look at the oe-qky-dunfell readme for background explanation:
+
+https://github.com/bkauler/oe-qky-dunfell/blob/main/readme
+
