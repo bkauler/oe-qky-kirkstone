@@ -1,0 +1,37 @@
+diff -Naur bacon-4.5.0.2ORIG/bacon.bac bacon-4.5.0.2/bacon.bac
+--- bacon-4.5.0.2ORIG/bacon.bac	2022-09-02 22:24:54.000000000 +0800
++++ bacon-4.5.0.2/bacon.bac	2022-09-03 22:29:17.017320405 +0800
+@@ -8787,7 +8787,15 @@
+ 
+ 	PRINT "Creating lexical analyzer using ", g_LEX$, "... ";
+ 	SYSTEM g_LEX$ & " -o " & g_BACONLEXER$ & ".c " & g_BACONLEXER$
+-	SYSTEM g_CCNAME$ & " " & g_BACONLEXER$ & ".c -o " & g_BACONLEXER$ & ".exe"
++	'BK in OE compile lexer exe so will run in host system...
++	BUILD_CC$ = GETENVIRON$("BUILD_CC")
++	BUILD_CFLAGS$ = GETENVIRON$("BUILD_CFLAGS")
++	BUILD_LDFLAGS$ = GETENVIRON$("BUILD_LDFLAGS")
++	IF BUILD_CC$ == "" THEN
++		SYSTEM g_CCNAME$ & " " & g_BACONLEXER$ & ".c -o " & g_BACONLEXER$ & ".exe"
++	ELSE
++		SYSTEM BUILD_CC$ & " " & BUILD_CFLAGS$ & " " & g_BACONLEXER$ & ".c -o " & g_BACONLEXER$ & ".exe " & BUILD_LDFLAGS$
++	END IF
+ 	PRINT "done."
+ 
+ 	' Create list of required functions
+diff -Naur bacon-4.5.0.2ORIG/bacon.sh bacon-4.5.0.2/bacon.sh
+--- bacon-4.5.0.2ORIG/bacon.sh	2022-09-02 22:24:54.000000000 +0800
++++ bacon-4.5.0.2/bacon.sh	2022-09-03 22:31:17.500657202 +0800
+@@ -9216,7 +9216,12 @@
+ 
+     echo -n "Creating lexical analyzer using ${LEX}... "
+     ${LEX} -o ${g_BACONLEXER}.c ${g_BACONLEXER}
+-    ${g_CCNAME} ${g_BACONLEXER}.c -o ${g_BACONLEXER}.exe
++    #BK in OE compile exe so will run in host system...
++    if [ "$BUILD_CC" == "" ];then
++        ${g_CCNAME} ${g_BACONLEXER}.c -o ${g_BACONLEXER}.exe
++    else
++        ${BUILD_CC} ${BUILD_CFLAGS} ${g_BACONLEXER}.c -o ${g_BACONLEXER}.exe ${BUILD_LDFLAGS}
++    fi
+     echo "done."
+ 
+     # Create list of required functions

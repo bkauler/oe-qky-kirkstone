@@ -1,0 +1,4 @@
+
+20221217
+defconfig from 5.15.79 as used in easyos 4.5.3
+has vmd.ko builtin.

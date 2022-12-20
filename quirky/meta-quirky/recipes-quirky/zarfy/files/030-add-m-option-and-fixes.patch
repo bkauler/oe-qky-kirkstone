@@ -1,0 +1,159 @@
+diff -Naur zarfy-0.1.0TWENTY/src/callbacks.c zarfy-0.1.0/src/callbacks.c
+--- zarfy-0.1.0TWENTY/src/callbacks.c	2008-09-13 21:05:04.000000000 +0800
++++ zarfy-0.1.0/src/callbacks.c	2020-12-29 18:00:05.440090239 +0800
+@@ -123,7 +123,10 @@
+ map_click()
+ {
+ 	int x, y;
+-	double scale= ( double )maxheight / ( double )map_da->allocation.height;
++	double scale = 1/map_scale;
++
++	if (scale == 0)
++		scale= (double)maxheight / (double)(map_da->allocation.height);
+ 
+ 	if ( selected.crtc == NULL ) return FALSE;
+ 
+diff -Naur zarfy-0.1.0TWENTY/src/draw.c zarfy-0.1.0/src/draw.c
+--- zarfy-0.1.0TWENTY/src/draw.c	2008-09-13 21:05:04.000000000 +0800
++++ zarfy-0.1.0/src/draw.c	2020-12-29 17:59:12.190088687 +0800
+@@ -88,9 +88,8 @@
+ 	                                       w, IMAGE_HEIGHT, FALSE, NULL);
+ 	clear_window(mntrs[idx], mntr_pms[idx]);
+ 
+-/* thumbnail x offset into monitor image */
++	/* thumbnail x offset into monitor image */
+ 	thumb[idx].offset = (mntrs[idx]->allocation.width - gdk_pixbuf_get_width(pb))/2;
+-	
+ 	gdk_draw_pixbuf(mntr_pms[idx], draw_gc, pb,
+ 	                  0, 0, thumb[idx].offset, 0,
+ 	                  gdk_pixbuf_get_width(pb), gdk_pixbuf_get_height(pb),
+@@ -127,29 +126,37 @@
+ 												
+ 	thm[0] = ss;
+ 
+-	if ( ci->rotation & RR_Reflect_X )
+-		thm[r+1] = gdk_pixbuf_flip(thm[r++], TRUE);
++	if ( ci->rotation & RR_Reflect_X ) {
++		thm[r+1] = gdk_pixbuf_flip(thm[r], TRUE);
++		r++;
++	}
+ 
+-	if ( ci->rotation & RR_Reflect_Y )
+-		thm[r+1] = gdk_pixbuf_flip(thm[r++], FALSE);
++	if ( ci->rotation & RR_Reflect_Y ) {
++		thm[r+1] = gdk_pixbuf_flip(thm[r], FALSE);
++		r++;
++	}
+ 
+ 	switch ( ci->rotation & 0xf )
+ 	{
+ 		case RR_Rotate_90:
+-			thm[r+1] = gdk_pixbuf_rotate_simple(thm[r++],
++			thm[r+1] = gdk_pixbuf_rotate_simple(thm[r],
+ 							GDK_PIXBUF_ROTATE_COUNTERCLOCKWISE);
++			r++;
+ 			break;
+ 		case RR_Rotate_180:
+-			thm[r+1] = gdk_pixbuf_rotate_simple(thm[r++],
++			thm[r+1] = gdk_pixbuf_rotate_simple(thm[r],
+ 							GDK_PIXBUF_ROTATE_UPSIDEDOWN);
++			r++;
+ 			break;
+ 		case RR_Rotate_270:
+-			thm[r+1] = gdk_pixbuf_rotate_simple(thm[r++],
++			thm[r+1] = gdk_pixbuf_rotate_simple(thm[r],
+ 							GDK_PIXBUF_ROTATE_CLOCKWISE);
++			r++;
+ 	}
+ 
+-	thm[r+1] = gdk_pixbuf_scale_simple(thm[r++], thumb[idx].width, IMAGE_HEIGHT-HEIGHT_ADJUST,
++	thm[r+1] = gdk_pixbuf_scale_simple(thm[r], thumb[idx].width, IMAGE_HEIGHT-HEIGHT_ADJUST,
+ 							GDK_INTERP_BILINEAR);
++	r++;
+ 
+ 	gdk_pixbuf_render_to_drawable(thm[r], mntr_pms[idx], draw_gc, 0, 0,
+ 								FRAME_X+thumb[idx].offset, FRAME_Y,
+@@ -165,9 +172,12 @@
+ {
+ 	GdkPixbuf *screenshot, *ss_scaled;
+ 	GdkColor white = WHITE;
+-	double scale= (double)(map_da->allocation.height) / (double)maxheight;
++	double scale = map_scale;
+ 	int  i;
+ 
++	if (scale == 0)
++		scale= (double)(map_da->allocation.height) / (double)maxheight;
++
+ 	clear_window(map_da, map_pm);
+ 
+ 	/*  max screen area */
+diff -Naur zarfy-0.1.0TWENTY/src/zarfy.c zarfy-0.1.0/src/zarfy.c
+--- zarfy-0.1.0TWENTY/src/zarfy.c	2008-09-13 21:05:04.000000000 +0800
++++ zarfy-0.1.0/src/zarfy.c	2020-12-29 17:54:22.543413614 +0800
+@@ -20,6 +20,8 @@
+ 
+ #include "zarfy.h"
+ 
++double map_scale = DEFAULT_MAP_SCALE;
++
+ void
+ bail (char *format, ...)
+ {
+@@ -195,7 +197,7 @@
+ 	gdkptr = gdk_cursor_new(GDK_LEFT_PTR);
+ 	gdkhand = gdk_cursor_new(GDK_HAND2);
+ 
+-	sprintf( buf, "ZARFY\n\nVersion %s", VERSION );
++	sprintf( buf, "ZARFY\n\nVersion %s", VERSION_STRING);
+ 	gtk_label_set_text ( about_lbl, buf );
+ 
+ 	sprintf( buf, "Author %s\n%s", PACKAGE_AUTHOR, PACKAGE_BUGREPORT );
+@@ -236,7 +238,7 @@
+ void
+ usage()
+ {
+-	printf("Usage: zarfy [-l | -s] [-d display]\n");
++	printf("Usage: zarfy [-l | -s] [-d display] [-m [scale]]\n");
+ 	exit(1);
+ }
+ 
+@@ -262,6 +264,12 @@
+ 			else
+ 				usage();
+ 		}
++		else if ( !strcmp(argv[i], "-m") ) {
++			map_scale = 0; // use actual
++			i++;
++			if (i < argc)
++				sscanf(argv[i],"%lf",&map_scale);
++		}
+ 		else
+ 			usage();
+ 	}
+diff -Naur zarfy-0.1.0TWENTY/src/zarfy.h zarfy-0.1.0/src/zarfy.h
+--- zarfy-0.1.0TWENTY/src/zarfy.h	2020-12-29 17:47:18.870068061 +0800
++++ zarfy-0.1.0/src/zarfy.h	2020-12-29 17:53:24.320078600 +0800
+@@ -46,6 +46,7 @@
+ #include <signal.h>
+ 
+ #define PACKAGE_AUTHOR "J.S. Allingham"
++#define VERSION_STRING (VERSION "-2019.02-james")
+ 
+ #define MON_PIXMAP 			DATA_DIR "/monitor.png"
+ #define MON_SEL_PIXMAP 		DATA_DIR "/monitor_s.png"
+@@ -61,6 +62,7 @@
+ #define SCREEN_WIDTH 62
+ #define WIDTH_ADJUST 7
+ #define MAP_HEIGHT 300
++#define DEFAULT_MAP_SCALE 0.1
+ 
+ #define ROTATE_MASK (RR_Rotate_0 | RR_Rotate_90 | RR_Rotate_180 | RR_Rotate_270)
+ #define REFLECT_MASK (RR_Reflect_X | RR_Reflect_Y)
+@@ -163,6 +165,7 @@
+ void 				init_display(void);
+ void 				init_globals(void);
+ void				xsetup(void);
++extern double		map_scale;
+ 
+ /* xrr.c */
+ void				apply(void);

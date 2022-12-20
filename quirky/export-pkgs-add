@@ -1,0 +1,282 @@
+#!/bin/bash
+#(c) Copyright 2023 Barry Kauler.
+#license GPLv3+
+#20221218 based on 0pre-oe in woofQ.
+
+export LANG=C #faster.
+
+if [ ! $1 ];then
+ echo 'Please specify the architecture to be exported.
+ex: "amd64" as in folder "build-amd64"'
+ exit
+fi
+if [ ! -d build-${1} ];then
+ echo 'Please specify the architecture to be exported.
+ex: "amd64" as in folder "build-amd64"'
+ exit
+fi
+BUILDFOLDER="build-${1}"
+OEPATH="$(pwd)"
+
+if [ "$(whoami)" != "root" ];then
+ echo "Must run as root."
+ exit
+fi
+
+#temp folder...
+rm -rf /tmp/0pre-oe-add 2>/dev/null
+mkdir /tmp/0pre-oe-add
+
+if [ ! -e find_cat ];then
+ mkdir /tmp/0pre-oe-add/build
+ #note: bacon 3.9.3 required...
+ bacon -a -d /tmp/0pre-oe-add/build find_cat.bac
+ if [ ! -e /tmp/0pre-oe-add/build/find_cat ];then
+  echo "Error compiling find_cat.bac"
+  exit
+ fi
+ cp -a /tmp/0pre-oe-add/build/find_cat ./
+ strip --strip-unneeded find_cat
+fi
+FIND_CAT="./find_cat"
+
+#EasyOS will already have this. The pups will also, but may be different...
+mkdir -p /usr/local/petget
+cp -f categories.dat /usr/local/petget/
+
+DISTRO_COMPAT_VERSION=kirkstone
+WOOF_TARGETARCH="${1}"
+
+#this is where binary packages will be placed...
+if [ ! -d ../packages-oe-${DISTRO_COMPAT_VERSION} ];then
+ echo "../packages-oe-${DISTRO_COMPAT_VERSION} must already exist, created by export-pkgs"
+ exit
+fi
+if [ ! -f ../Packages-oe-${DISTRO_COMPAT_VERSION}-official ];then
+ echo "../Packages-oe-${DISTRO_COMPAT_VERSION}-official must already exist, created by export-pkgs"
+ exit
+fi
+PKGLISTS_COMPAT="../Packages-oe-${DISTRO_COMPAT_VERSION}-official"
+
+echo
+echo "Script 'export-pkgs' has to run beforehand, once. Script"
+echo "'export-pkgs-add' is for extracting one (or more) binary package(s) from OE."
+echo "The scenario is where you have compiled an extra package in OE. The new"
+echo "pkg will be inserted into folder ../packages-oe-${DISTRO_COMPAT_VERSION}"
+echo "and db entry into ../Packages-oe-${DISTRO_COMPAT_VERSION}-official"
+echo "This script will also detect, and offer to delete, old packages."
+
+#find the cross-build 'strip' executable in oe... (for aarch64 build it will be aarch64-poky-linux-strip)
+CROSS_STRIP_FND="$(find ${OEPATH}/${BUILDFOLDER}/tmp/sysroots-components -type f -name '*-strip' | grep '/binutils\-cross\-' | head -n 1)"
+if [ "$CROSS_STRIP_FND" ];then
+ CROSSSTRIP="$(basename $CROSS_STRIP_FND)"
+ if [ ! -e ./${CROSSSTRIP} ];then
+  cp -a -f ${CROSS_STRIP_FND} ./
+ fi
+else
+ echo "ERROR: unable to find the cross-strip executable in OE, aborting"
+ exit 2
+fi
+
+#.bb recipe files may have "DEPENDS =" value over multiple lines...
+expand_lines_func() {
+ #pass in name of file to process
+ NEW="$(cat ${1} | sed -e 's%|%ZZZZZZ%g' | tr '\n' '|' | sed -e 's%\\|%%g' | sed -e 's%|%\n%g' | sed -e 's%ZZZZZZ%|%g')"
+ echo "$NEW" > ${1}
+}
+
+#get list of all binary pkgs already exported:
+CURRBINS="$(find ../packages-oe-${DISTRO_COMPAT_VERSION}/ -mindepth 1 -maxdepth 1 -type f -name '*.xz' | rev | cut -f 1 -d '/' | rev | sort)"
+echo "$CURRBINS" > /tmp/0pre-oe-add/0pre-add1-currbins
+
+#get list of binary pkgs in oe:
+echo 'please wait, scanning...'
+echo -n '' > /tmp/0pre-oe-add/0pre-oe-add-nameverarch
+echo -n '' > /tmp/0pre-oe-add/0pre-oe-add-fullpkgs
+OEIMAGES="$(find ${OEPATH}/${BUILDFOLDER}/tmp/work/*-*-linux/*/*/ -mindepth 1 -maxdepth 1 -type d -name image)"
+#...ex: /mnt/nvme0n1p6/oe-kirkstone/oe-quirky/build-amd64/tmp/work/nocona-64-poky-linux/zlib/1.2.11-r0/image
+
+#fix cutting depth...
+DEPTHoe=`echo -n "${OEPATH}/${BUILDFOLDER}/" | sed -e 's%[^/]%%g' | wc -m` #6
+DEPTHarch=$((DEPTHoe+3))
+DEPTHname=$(($DEPTHoe+4))
+DEPTHver=$(($DEPTHoe+5))
+
+for aIMAGE in $OEIMAGES
+do
+ [ ! "$aIMAGE" ] && continue
+ aNAME="$(echo -n "$aIMAGE" | cut -f ${DEPTHname} -d '/')"
+ [ "$(echo -n "$aNAME" | cut -f 1 -d '-')" == "packagegroup" ] && continue #ignore pkgs named packagegroup-*
+ aVER="$(echo -n "$aIMAGE" | cut -f ${DEPTHver} -d '/')"
+ aARCH="$(echo -n "$aIMAGE" | cut -f ${DEPTHarch} -d '/' | sed -e 's%\-oe\-linux.*%%' | sed -e 's%\-poky\-linux.*%%')"
+ [[ $aNAME == *-native ]] && continue
+ [[ $aNAME == *-cross ]] && continue
+ echo "${aNAME}-${aVER}-${aARCH}.tar.xz ${aNAME} ${aVER} ${aARCH}" >> /tmp/0pre-oe-add/0pre-oe-add-nameverarch
+ echo "${aNAME}-${aVER}-${aARCH}.tar.xz" >> /tmp/0pre-oe-add/0pre-oe-add-fullpkgs
+done
+OEBINS="$(sort /tmp/0pre-oe-add/0pre-oe-add-fullpkgs)"
+
+echo "$OEBINS" > /tmp/0pre-oe-add/0pre-add1-oebins
+
+OECOMPARE="$(diff /tmp/0pre-oe-add/0pre-add1-currbins /tmp/0pre-oe-add/0pre-add1-oebins)"
+
+OEDUMPED="$(echo "$OECOMPARE" | grep '^< ' | cut -f 2 -d ' ')"
+OENEW="$(echo "$OECOMPARE" | grep '^> ' | cut -f 2 -d ' ')"
+
+if [ "$OEDUMPED" ];then
+ echo
+ echo "These local binary packages, in folder ../packages-oe-${DISTRO_COMPAT_VERSION}"
+ echo "are no longer in the OE build:"
+ echo "$OEDUMPED"
+ echo
+ echo "Suggest they be deleted."
+ echo -n "Press ENTER only to delete them, any other key to keep:"
+ read oldoekeep
+ if [ "$oldoekeep" = "" ];then
+  for aoldoe in `echo "$OEDUMPED" | tr '\n' ' '`
+  do
+   echo "Removing ${aoldoe}"
+   rm -f ../packages-oe-${DISTRO_COMPAT_VERSION}/${aoldoe}
+   aPTN="|${aoldoe}|"
+   grep -v "$aPTN" ${ONE_PKGLISTS_COMPAT} > /tmp/0pre-oe-add/0pre-add1-dbrem #ex: remove entry from Packages-oe-pyro-official
+   mv -f /tmp/0pre-oe-add/0pre-add1-dbrem ${ONE_PKGLISTS_COMPAT}
+  done
+ fi
+fi
+
+if [ "$OENEW" ];then
+ echo
+ echo "These OE packages are not in local folder ../packages-oe-${DISTRO_COMPAT_VERSION}:"
+ echo "$OENEW"
+ echo
+ echo "Suggest they be added."
+ echo -n "Press ENTER only to add them, any other key to not:"
+ read oldoekeep
+ if [ "$oldoekeep" = "" ];then
+  for aoldoe in `echo "$OENEW" | tr '\n' ' '`
+  do
+   echo "Adding ${aoldoe}" #ex: aoldoe=cairo-1.14.8-r0-nocona-64.tar.xz
+   aNAME="$(grep "^${aoldoe} " /tmp/0pre-oe-add/0pre-oe-add-nameverarch | cut -f 2 -d ' ')"
+   aVER="$(grep "^${aoldoe} " /tmp/0pre-oe-add/0pre-oe-add-nameverarch | cut -f 3 -d ' ')"
+   aARCH="$(grep "^${aoldoe} " /tmp/0pre-oe-add/0pre-oe-add-nameverarch | cut -f 4 -d ' ')"
+   aIMG="$(find ${OEPATH}/${BUILDFOLDER}/tmp/work/${aARCH}-*-linux*/${aNAME}/${aVER}/ -mindepth 1 -maxdepth 1 -type d -name image)" #170601
+   [ ! "$aIMG" ] && continue #precaution
+   echo "Found path: ${aIMG}"
+   #have full path to the 'image' folder. now create db-entry, then tarball...
+   
+   DB_pkgname="${aNAME}-${aVER}"
+   DB_nameonly="${aNAME}"
+   DB_version="${aVER}"
+   DB_fullfilename="${aNAME}-${aVER}-${aARCH}.tar.xz"
+   DB_path="${DISTRO_COMPAT_VERSION}"
+   
+   #find description...
+   aRECIPE="$(grep "^\"${DB_nameonly}\.do_install.*label=" ${OEPATH}/${BUILDFOLDER}/task-depends.dot  | grep -o "${OEPATH}/.*" | cut -f 1 -d '"' | head -n 1)"
+   if [ ! "$aRECIPE" ];then
+    echo "Error: the .bb recipe file for '${DB_nameonly}' was not found."
+    echo "Most likely did a build in OE with drivename different from now,"
+    echo "or did not run 'bitbake -g core-image-minimal'"
+    echo "Looked in this file:
+  ${OEPATH}/${BUILDFOLDER}/task-depends.dot"
+    echo "Aborting"
+    exit
+   fi
+   echo "Found recipe: ${aRECIPE}"
+   DB_description="$(grep "^SUMMARY = " $aRECIPE | cut -f 2 -d '"' | sed -e 's%[^a-zA-Z0-9_. -]%%g')"
+   
+   #find dependencies...
+   DB_dependencies=''; DEPENDS0=''
+   #task-depends.dot may give an incomplete deps list (leaves out RDEPENDS). copy code from export-pkgs...
+   cp -f ${aRECIPE} /tmp/0pre-oe-add/0pre-oe-add-bb2
+   expand_lines_func /tmp/0pre-oe-add/0pre-oe-add-bb2
+   BB2='/tmp/0pre-oe-add/0pre-oe-add-bb2'
+   AGENNAME="$(basename "$aRECIPE" .bb)"
+   BBPATH="$(dirname "$aRECIPE")"
+   INC="$(find ${BBPATH} -mindepth 1 -maxdepth 1 -type f -name "${AGENNAME}*.inc" | head -n 1)"
+   if [ "$INC" ];then
+    #convert multilines to single line...
+    cp -f $INC /tmp/0pre-oe-add/0pre-oe-add-inc
+    expand_lines_func /tmp/0pre-oe-add/0pre-oe-add-inc
+    INC='/tmp/0pre-oe-add/0pre-oe-add-inc'
+   fi
+   #extended reg-exp needs these escaped: $ +
+   #also include RDEPENDS...
+   ADEPENDS="$(grep -E '^DEPENDS = |^DEPENDS \+= |^DEPENDS_\${PN} = |^DEPENDS_\${PN} \+= |^RDEPENDS = |^RDEPENDS \+= |^RDEPENDS_\${PN} = |^RDEPENDS_\${PN} \+= ' ${BB2} ${INC} | cut -f 2 -d '"' | tr '\t' ' ' | tr '\n' ' ' | tr -s ' ')"
+   if [ "$ADEPENDS" ];then
+    DEPENDSx="$(echo -n "$ADEPENDS" | sed -e 's%{[^}]*}%%g' | tr -d "'" | tr -s ' ' | tr ' ' '\n' | grep -v -E ',|\$|\)|}|\(' | rev | cut -f 1 -d '/' | rev | grep -v -E '\-native$|\-cross$|packagegroup\-' | sort -u | tr '\n' ' ' | tr -s ' ')" #'
+   else
+    DEPENDSx=''
+   fi
+   
+   if [ "$DEPENDSx" ];then
+    DEPENDS0="$(echo "$DEPENDSx" | tr '\n' ' ' | tr -s ' ' | sed -e 's% $%%')"
+   else
+    #fallback...
+    DEPENDSx="$(grep "^\"${DB_nameonly}\.do_prepare_recipe_sysroot" ${OEPATH}/${BUILDFOLDER}/task-depends.dot | cut -f 4 -d '"' | cut -f 1 -d '.' | grep -vE "^${DB_nameonly}$|^${DB_nameonly} |\-native|\-cross|packagegroup" | sort -u)"
+    if [ "$DEPENDSx" ];then
+     DEPENDS0="$(echo "$DEPENDSx" | tr '\n' ' ' | tr -s ' ' | sed -e 's% $%%')"
+    else
+     DEPENDS0=""
+    fi
+   fi
+   
+   if [ "$DEPENDS0" ];then
+    DB_dependencies="$(echo -n "$DEPENDS0" | sed -e 's%^%+%' -e 's% %,+%g' -e 's%,$%%' | sed -e 's% %%g' -e 's%,$%%' -e 's%+$%%')"
+   fi
+   
+   xDB_description="$DB_description"
+   [ "$DB_description" = "" ] && xDB_description="nothing"
+   DB_category="$(${FIND_CAT} $DB_nameonly "$xDB_description")"
+
+   DB_homepage="$(grep "^HOMEPAGE = " $aRECIPE | cut -f 2 -d '"')"
+   [ "$DB_homepage" ] && echo "${DB_nameonly} ${DB_homepage}" >> ../PKGS_HOMEPAGES
+   
+   #strip the files...
+   echo "Stripping files..."
+   [ -d ${aIMG}XXX ] && rm -rf ${aIMG}XXX
+   cp -a ${aIMG} ${aIMG}XXX
+   
+   #need to cast the net wider...
+   find ${aIMG}XXX -mindepth 2 -type f 2>/dev/null |
+   while read ONEFILE
+   do
+    [ "$ONEFILE" == "" ] && continue
+    ONENOT="$(echo "${ONEFILE/*imageXXX/}" | grep -E 'firmware|/share/|/doc/|/include/|/man/|/var/|/root/|/dev/|/font/')" #20201014
+    [ "$ONENOT" ] && continue
+    ONEBASE="`basename "$ONEFILE"`"
+    [ "$ONEBASE" == "e3" ] && continue #cannot be stripped.
+    [ "$ONEBASE" == "QtWeb" ] && continue #cannot be stripped.
+    if [ "$(file "$ONEFILE" | grep 'ELF' | grep -E 'executable|shared')" != "" ];then
+     echo -n " ${ONEBASE}"
+     ./${CROSSSTRIP} --strip-unneeded "$ONEFILE"
+    fi
+   done
+   sync
+   
+   #this has to be done after stripping...
+   DB_size="$(du -s -k ${aIMG}XXX | cut -f 1)K"
+   DBENTRY="$DB_pkgname|$DB_nameonly|$DB_version|$DB_pkgrelease|$DB_category|${DB_size}|$DB_path|$DB_fullfilename|$DB_dependencies|$DB_description|oe|$DISTRO_COMPAT_VERSION||"
+   echo "$DBENTRY" >> $PKGLISTS_COMPAT
+  
+   sync
+   echo ; echo '...done'
+  
+   #export the package...
+   echo "${DBENTRY}${aARCH}|${DB_homepage}|" > ${aIMG}XXX/pkg.specs #maybe useful to have in the pkg.
+   cd ${aIMG}XXX
+   tar -c -f  ${OEPATH}/../packages-oe-${DISTRO_COMPAT_VERSION}/${DB_pkgname}-${aARCH}.tar *
+   cd "$OEPATH"
+   cd ../packages-oe-${DISTRO_COMPAT_VERSION}
+   xz ${DB_pkgname}-${aARCH}.tar
+   cd "$OEPATH"
+   sync
+  done
+  #sort db entries...
+  sort --key=1,1 --field-separator='|' $PKGLISTS_COMPAT > /tmp/0pre-oe-add/PKGLISTS_COMPAT
+  mv -f /tmp/0pre-oe-add/PKGLISTS_COMPAT $PKGLISTS_COMPAT
+ fi
+fi
+
+echo
+echo '...finished'
+###end###

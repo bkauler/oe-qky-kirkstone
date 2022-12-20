@@ -1,0 +1,15 @@
+---
+ prog/detect/sensors-detect |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/prog/detect/sensors-detect
++++ b/prog/detect/sensors-detect
+@@ -3298,7 +3298,7 @@
+ # udev may take some time to create device nodes when loading modules
+ sub udev_settle
+ {
+-	if (!(-x "/sbin/udevadm" && system("/sbin/udevadm settle") == 0)
++	if (!(-x "/usr/bin/udevadm" && system("/usr/bin/udevadm settle") == 0)
+ 	 && !(-x "/sbin/udevsettle" && system("/sbin/udevsettle") == 0)) {
+ 		sleep(1);
+ 	}

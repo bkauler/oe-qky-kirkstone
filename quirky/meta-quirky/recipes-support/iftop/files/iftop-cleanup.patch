@@ -1,0 +1,23 @@
+From: Markus Koschany <apo@debian.org>
+Date: Tue, 3 Jan 2017 23:13:11 +0100
+Subject: iftop cleanup
+
+Bug-Debian: https://bugs.debian.org/850040
+Forwarded: yes
+---
+ iftop.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/iftop.c b/iftop.c
+index 883782e..3422120 100644
+--- a/iftop.c
++++ b/iftop.c
+@@ -839,6 +839,8 @@ int main(int argc, char **argv) {
+     }
+ 
+     pthread_cancel(thread);
++    pthread_join(thread, NULL);
++    pcap_close(pd);
+ 
+     ui_finish();
+     

@@ -1,0 +1,12 @@
+diff -Naur zarfy-0.1.0TEN/src/zarfy.h zarfy-0.1.0/src/zarfy.h
+--- zarfy-0.1.0TEN/src/zarfy.h	2008-09-13 21:05:04.000000000 +0800
++++ zarfy-0.1.0/src/zarfy.h	2020-12-29 17:47:18.870068061 +0800
+@@ -53,7 +53,7 @@
+ #define GLADE_XML_ZARFY 	DATA_DIR "/zarfy.glade"
+ #define ZARFY_ICON			DATA_DIR "/zarfy.png"
+ 
+-#define MAXCRTC	4
++#define MAXCRTC	32
+ #define MAXOUTPUT 10
+ #define IMAGE_WIDTH 70
+ #define IMAGE_HEIGHT 70

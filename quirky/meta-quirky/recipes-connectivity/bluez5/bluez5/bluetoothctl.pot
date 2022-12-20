@@ -1,0 +1,681 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2021-10-27 08:54+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: main.c:307
+#, c-format
+msgid "%s%s has unsupported type\n"
+msgstr ""
+
+#: gatt.c:1020
+#, c-format
+msgid "AcquireNotify success: fd %d MTU %u\n"
+msgstr ""
+
+#: gatt.c:939
+#, c-format
+msgid "AcquireWrite success: fd %d MTU %u\n"
+msgstr ""
+
+#: advertising.c:514
+msgid "Advertisement is already registered\n"
+msgstr ""
+
+#: advertising.c:208
+msgid "Advertising object registered\n"
+msgstr ""
+
+#: advertising.c:554
+msgid "Advertising object unregistered\n"
+msgstr ""
+
+#: advertising.c:91
+msgid "Advertising released\n"
+msgstr ""
+
+#: agent.c:329
+msgid "Agent is already registered\n"
+msgstr ""
+
+#: agent.c:313
+msgid "Agent registered\n"
+msgstr ""
+
+#: main.c:1279
+msgid "Agent registration disabled\n"
+msgstr ""
+
+#: main.c:1271
+msgid "Agent registration enabled\n"
+msgstr ""
+
+#: agent.c:114
+msgid "Agent released\n"
+msgstr ""
+
+#: agent.c:368 agent.c:384
+msgid "Agent unregistered\n"
+msgstr ""
+
+#: advertising.c:183 advertising.c:929
+#, c-format
+msgid "Appearance: %s\n"
+msgstr ""
+
+#: advertising.c:179 advertising.c:925
+#, c-format
+msgid "Appearance: %s (0x%04x)\n"
+msgstr ""
+
+#: gatt.c:1144
+msgid "Application registered\n"
+msgstr ""
+
+#: gatt.c:1253
+msgid "Application unregistered\n"
+msgstr ""
+
+#: main.c:2084
+#, c-format
+msgid "Attempting to connect to %s\n"
+msgstr ""
+
+#: main.c:2122
+#, c-format
+msgid "Attempting to disconnect from %s\n"
+msgstr ""
+
+#: main.c:1843
+#, c-format
+msgid "Attempting to pair with %s\n"
+msgstr ""
+
+#: gatt.c:653
+#, c-format
+msgid "Attempting to read %s\n"
+msgstr ""
+
+#: gatt.c:766
+#, c-format
+msgid "Attempting to write %s\n"
+msgstr ""
+
+#: gatt.c:751
+#, c-format
+msgid "Attempting to write fd %d\n"
+msgstr ""
+
+#: gatt.c:2507
+#, c-format
+msgid "Attribute %s (%s) indication confirm received"
+msgstr ""
+
+#: main.c:2200
+#, c-format
+msgid "Attribute %s not available\n"
+msgstr ""
+
+#: agent.c:241
+msgid "Authorize service\n"
+msgstr ""
+
+#: main.c:1106
+#, c-format
+msgid "Changing %s succeeded\n"
+msgstr ""
+
+#: main.c:2059
+msgid "Connection successful\n"
+msgstr ""
+
+#: main.c:983 main.c:1043
+#, c-format
+msgid "Controller %s not available\n"
+msgstr ""
+
+#: advertising.c:167
+#, c-format
+msgid "Data Type: 0x%02x\n"
+msgstr ""
+
+#: agent.c:418
+msgid "Default agent request successful\n"
+msgstr ""
+
+#: main.c:1764
+#, c-format
+msgid "Device %s\n"
+msgstr ""
+
+#: main.c:1762
+#, c-format
+msgid "Device %s (%s)\n"
+msgstr ""
+
+#: main.c:1733 main.c:2038 main.c:2074
+#, c-format
+msgid "Device %s not available\n"
+msgstr ""
+
+#: main.c:1987
+msgid "Device has been removed\n"
+msgstr ""
+
+#: main.c:1562 advertising.c:186 advertising.c:808
+#, c-format
+msgid "Discoverable: %s\n"
+msgstr ""
+
+#: main.c:1230
+#, c-format
+msgid "DiscoverableTimeout: %d seconds\n"
+msgstr ""
+
+#: main.c:1323
+#, c-format
+msgid "Discovery %s\n"
+msgstr ""
+
+#: advertising.c:189 advertising.c:949
+#, c-format
+msgid "Duration: %u sec\n"
+msgstr ""
+
+#: gatt.c:1233
+msgid "Failed register application\n"
+msgstr ""
+
+#: main.c:1444
+#, c-format
+msgid "Failed to %s discovery\n"
+msgstr ""
+
+#: main.c:1317
+#, c-format
+msgid "Failed to %s discovery: %s\n"
+msgstr ""
+
+#: gatt.c:1090
+#, c-format
+msgid "Failed to %s notify\n"
+msgstr ""
+
+#: gatt.c:1068
+#, c-format
+msgid "Failed to %s notify: %s\n"
+msgstr ""
+
+#: gatt.c:2413
+#, c-format
+msgid "Failed to %s: %s\n"
+msgstr ""
+
+#: gatt.c:1041
+msgid "Failed to AcquireNotify\n"
+msgstr ""
+
+#: gatt.c:973
+msgid "Failed to AcquireWrite\n"
+msgstr ""
+
+#: gatt.c:1000
+#, c-format
+msgid "Failed to acquire notify: %s\n"
+msgstr ""
+
+#: gatt.c:923
+#, c-format
+msgid "Failed to acquire write: %s\n"
+msgstr ""
+
+#: agent.c:434
+msgid "Failed to call RequestDefaultAgent method\n"
+msgstr ""
+
+#: agent.c:346
+msgid "Failed to call register agent method\n"
+msgstr ""
+
+#: agent.c:393
+msgid "Failed to call unregister agent method\n"
+msgstr ""
+
+#: main.c:2080
+msgid "Failed to connect\n"
+msgstr ""
+
+#: main.c:2053
+#, c-format
+msgid "Failed to connect: %s %s\n"
+msgstr ""
+
+#: main.c:2118
+msgid "Failed to disconnect\n"
+msgstr ""
+
+#: main.c:2095
+#, c-format
+msgid "Failed to disconnect: %s\n"
+msgstr ""
+
+#: gatt.c:1580
+msgid "Failed to find  service object\n"
+msgstr ""
+
+#: gatt.c:1608
+msgid "Failed to find include service object\n"
+msgstr ""
+
+#: main.c:1839
+msgid "Failed to pair\n"
+msgstr ""
+
+#: main.c:1806
+#, c-format
+msgid "Failed to pair: %s\n"
+msgstr ""
+
+#: main.c:1470 advertising.c:604
+msgid "Failed to parse input\n"
+msgstr ""
+
+#: gatt.c:649 gatt.c:2019
+msgid "Failed to read\n"
+msgstr ""
+
+#: gatt.c:603 gatt.c:1954
+#, c-format
+msgid "Failed to read: %s\n"
+msgstr ""
+
+#: advertising.c:212
+#, c-format
+msgid "Failed to register advertisement: %s\n"
+msgstr ""
+
+#: advertising.c:533
+msgid "Failed to register advertising\n"
+msgstr ""
+
+#: advertising.c:526
+msgid "Failed to register advertising object\n"
+msgstr ""
+
+#: agent.c:338
+msgid "Failed to register agent object\n"
+msgstr ""
+
+#: agent.c:315
+#, c-format
+msgid "Failed to register agent: %s\n"
+msgstr ""
+
+#: gatt.c:1224
+msgid "Failed to register application object\n"
+msgstr ""
+
+#: gatt.c:1138
+#, c-format
+msgid "Failed to register application: %s\n"
+msgstr ""
+
+#: gatt.c:2585 gatt.c:3006
+msgid "Failed to register characteristic object\n"
+msgstr ""
+
+#: gatt.c:2862
+msgid "Failed to register descriptor object\n"
+msgstr ""
+
+#: gatt.c:1495 gatt.c:3064
+msgid "Failed to register service object\n"
+msgstr ""
+
+#: main.c:2011
+msgid "Failed to remove device\n"
+msgstr ""
+
+#: main.c:1982
+#, c-format
+msgid "Failed to remove device: %s\n"
+msgstr ""
+
+#: agent.c:412
+#, c-format
+msgid "Failed to request default agent: %s\n"
+msgstr ""
+
+#: main.c:1103
+#, c-format
+msgid "Failed to set %s: %s\n"
+msgstr ""
+
+#: main.c:1417
+msgid "Failed to set discovery filter\n"
+msgstr ""
+
+#: advertising.c:581
+msgid "Failed to unregister advertisement method\n"
+msgstr ""
+
+#: advertising.c:560
+#, c-format
+msgid "Failed to unregister advertisement: %s\n"
+msgstr ""
+
+#: advertising.c:217 advertising.c:557
+msgid "Failed to unregister advertising object\n"
+msgstr ""
+
+#: agent.c:320
+msgid "Failed to unregister agent object\n"
+msgstr ""
+
+#: agent.c:371
+#, c-format
+msgid "Failed to unregister agent: %s\n"
+msgstr ""
+
+#: gatt.c:1247
+#, c-format
+msgid "Failed to unregister application: %s\n"
+msgstr ""
+
+#: gatt.c:2631
+msgid "Failed to unregister characteristic object\n"
+msgstr ""
+
+#: gatt.c:2913
+msgid "Failed to unregister descriptor object\n"
+msgstr ""
+
+#: gatt.c:1602
+msgid "Failed to unregister include service object\n"
+msgstr ""
+
+#: gatt.c:1536
+msgid "Failed to unregister service object\n"
+msgstr ""
+
+#: gatt.c:762 gatt.c:2213
+msgid "Failed to write\n"
+msgstr ""
+
+#: gatt.c:754
+#, c-format
+msgid "Failed to write: %s"
+msgstr ""
+
+#: gatt.c:684 gatt.c:2185
+#, c-format
+msgid "Failed to write: %s\n"
+msgstr ""
+
+#: gatt.c:1287
+msgid "Failed unregister profile\n"
+msgstr ""
+
+#: advertising.c:195
+#, c-format
+msgid "Interval: %u-%u msec\n"
+msgstr ""
+
+#: gatt.c:1016
+msgid "Invalid AcquireNotify response\n"
+msgstr ""
+
+#: gatt.c:935
+msgid "Invalid AcquireWrite response\n"
+msgstr ""
+
+#: main.c:1237 main.c:2595 main.c:2659 main.c:2678 main.c:2697
+msgid "Invalid argument\n"
+msgstr ""
+
+#: main.c:953 main.c:1691
+#, c-format
+msgid "Invalid argument %s\n"
+msgstr ""
+
+#: advertising.c:725
+msgid "Invalid manufacture id\n"
+msgstr ""
+
+#: main.c:1549 main.c:1572 gatt.c:1467 gatt.c:3100 gatt.c:3114
+#, c-format
+msgid "Invalid option: %s\n"
+msgstr ""
+
+#: gatt.c:611 gatt.c:1964
+msgid "Invalid response to read\n"
+msgstr ""
+
+#: advertising.c:778
+msgid "Invalid type\n"
+msgstr ""
+
+#: gatt.c:790 advertising.c:651
+#, c-format
+msgid "Invalid value at index %d\n"
+msgstr ""
+
+#: main.c:88
+#, c-format
+msgid "Leaking proxy %p\n"
+msgstr ""
+
+#: advertising.c:174 advertising.c:881
+#, c-format
+msgid "LocalName: %s\n"
+msgstr ""
+
+#: advertising.c:161 advertising.c:714
+#, c-format
+msgid "Manufacturer: %u\n"
+msgstr ""
+
+#: main.c:2194
+msgid "Missing attribute argument\n"
+msgstr ""
+
+#: main.c:1724
+msgid "Missing device address argument\n"
+msgstr ""
+
+#: advertising.c:176 advertising.c:883
+#, c-format
+msgid "Name: %s\n"
+msgstr ""
+
+#: agent.c:379 agent.c:426
+msgid "No agent is registered\n"
+msgstr ""
+
+#: main.c:2258 main.c:2268 main.c:2278 main.c:2288 main.c:2298 main.c:2308
+#: main.c:2323
+msgid "No attribute selected\n"
+msgstr ""
+
+#: gatt.c:2845
+msgid "No characteristic registered\n"
+msgstr ""
+
+#: main.c:913
+msgid "No default controller available\n"
+msgstr ""
+
+#: main.c:2153 main.c:2174
+msgid "No device connected\n"
+msgstr ""
+
+#: gatt.c:1571 gatt.c:2565 gatt.c:2838
+msgid "No service registered\n"
+msgstr ""
+
+#: main.c:2336
+msgid "Not connected\n"
+msgstr ""
+
+#: gatt.c:1074
+#, c-format
+msgid "Notify %s\n"
+msgstr ""
+
+#: gatt.c:1051
+msgid "Notify not acquired\n"
+msgstr ""
+
+#: main.c:1811
+msgid "Pairing successful\n"
+msgstr ""
+
+#: agent.c:126
+msgid "Request PIN code\n"
+msgstr ""
+
+#: agent.c:222
+msgid "Request authorization\n"
+msgstr ""
+
+#: agent.c:258
+msgid "Request canceled\n"
+msgstr ""
+
+#: agent.c:203
+msgid "Request confirmation\n"
+msgstr ""
+
+#: agent.c:158
+msgid "Request passkey\n"
+msgstr ""
+
+#: advertising.c:985
+#, c-format
+msgid "Secondary Channel: %s\n"
+msgstr ""
+
+#: main.c:1393
+#, c-format
+msgid "SetDiscoveryFilter failed: %s\n"
+msgstr ""
+
+#: main.c:1400
+msgid "SetDiscoveryFilter success\n"
+msgstr ""
+
+#: main.c:2100
+msgid "Successful disconnected\n"
+msgstr ""
+
+#: advertising.c:192 advertising.c:827 advertising.c:967
+#, c-format
+msgid "Timeout: %u sec\n"
+msgstr ""
+
+#: gatt.c:784 advertising.c:645
+msgid "Too much data\n"
+msgstr ""
+
+#: advertising.c:171 advertising.c:846
+#, c-format
+msgid "Tx Power: %s\n"
+msgstr ""
+
+#: advertising.c:769
+#, c-format
+msgid "Type: 0x%02x\n"
+msgstr ""
+
+#: gatt.c:1034
+#, c-format
+msgid "Unable to acquire notify: %s not a characteristic\n"
+msgstr ""
+
+#: gatt.c:966
+#, c-format
+msgid "Unable to acquire write: %s not a characteristic\n"
+msgstr ""
+
+#: gatt.c:1212 gatt.c:1279
+msgid "Unable to find GattManager proxy\n"
+msgstr ""
+
+#: gatt.c:3155
+#, c-format
+msgid "Unable to find attribute %s\n"
+msgstr ""
+
+#: main.c:1224
+msgid "Unable to get DiscoverableTimeout\n"
+msgstr ""
+
+#: gatt.c:1108
+#, c-format
+msgid "Unable to notify attribute %s\n"
+msgstr ""
+
+#: gatt.c:619 gatt.c:1974
+msgid "Unable to parse value\n"
+msgstr ""
+
+#: gatt.c:672
+#, c-format
+msgid "Unable to read attribute %s\n"
+msgstr ""
+
+#: gatt.c:824
+#, c-format
+msgid "Unable to write attribute %s\n"
+msgstr ""
+
+#: gatt.c:983
+msgid "Write not acquired\n"
+msgstr ""
+
+#: main.c:1241
+#, c-format
+msgid "discoverable-timeout %d"
+msgstr ""
+
+#: main.c:1563 advertising.c:171 advertising.c:176 advertising.c:184
+#: advertising.c:186 advertising.c:809 advertising.c:846 advertising.c:883
+#: advertising.c:930
+msgid "off"
+msgstr ""
+
+#: main.c:1563 advertising.c:171 advertising.c:176 advertising.c:184
+#: advertising.c:186 advertising.c:809 advertising.c:846 advertising.c:883
+#: advertising.c:930
+msgid "on"
+msgstr ""
+
+#: main.c:1318 main.c:1445 gatt.c:1069 gatt.c:1091
+msgid "start"
+msgstr ""
+
+#: main.c:1323 gatt.c:1074
+msgid "started"
+msgstr ""
+
+#: main.c:1318 main.c:1445 gatt.c:1069 gatt.c:1091
+msgid "stop"
+msgstr ""
+
+#: main.c:1323 gatt.c:1074
+msgid "stopped"
+msgstr ""

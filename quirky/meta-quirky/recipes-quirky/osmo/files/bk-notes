@@ -1,0 +1,19 @@
+2021-04-07:
+those patches 0XX-*.patch, I created from here:
+https://github.com/wdlkmpx/osmo/commits/master
+my local work is at /mnt/sda1/downloads/downloads2/input570/0-osmo/0-source
+have not yet applied these to the recipe.
+
+note, osmo was crashing when create a new contact, see my blog post:
+https://bkhome.org/news/202104/osmo-crash-fixed.html
+however, wdlkmpx determined that crash is due to libgtkhtml, see patch
+I have added to that recipe.
+ref: https://github.com/wdlkmpx/libgtkhtml2/commits/master
+
+20220116
+--------
+i see sourceforge has 0.2.14:
+https://sourceforge.net/projects/osmo-pim/files/osmo-pim/osmo-0.2.14/
+...no, needs libwebkit
+
+now have patch to restore libgtkhtml in version 0.2.14

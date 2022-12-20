@@ -1,0 +1,3 @@
+
+# 2020-09-16 gtk+3 wants 'xinput-native'...
+BBCLASSEXTEND = "native"

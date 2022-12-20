@@ -1,0 +1,31 @@
+From: Boyuan Yang <byang@debian.org>
+Date: Fri, 19 Apr 2019 12:27:33 -0400
+Subject: Fix double-free crashing in wifi-dialog
+
+The nm-applet tool would crash every time a Wi-Fi connection
+is created manually. This patch fixes this problem.
+
+This issue will be fixed in the upcoming network-manager-applet
+1.8.22 release.
+
+Applied-Upstream: https://gitlab.gnome.org/GNOME/network-manager-applet/commit/b4c365b136e25e69c3550a9984f8f3cbec4bc073
+Forwarded: https://gitlab.gnome.org/GNOME/network-manager-applet/issues/43
+Bug-Debian: https://bugs.debian.org/926328
+Signed-off-by: Boyuan Yang <byang@debian.org>
+---
+ src/libnma/nma-wifi-dialog.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/libnma/nma-wifi-dialog.c b/src/libnma/nma-wifi-dialog.c
+index 009bf44..a90b20d 100644
+--- a/src/libnma/nma-wifi-dialog.c
++++ b/src/libnma/nma-wifi-dialog.c
+@@ -1260,7 +1260,7 @@ nma_wifi_dialog_get_connection (NMAWifiDialog *self,
+ 		s_wireless = (NMSettingWireless *) nm_setting_wireless_new ();
+ 		ssid = validate_dialog_ssid (self);
+ 		g_object_set (s_wireless, NM_SETTING_WIRELESS_SSID, ssid, NULL);
+-		g_free (ssid);
++		g_bytes_unref (ssid);
+ 
+ 		if (priv->operation == OP_CREATE_ADHOC) {
+ 			NMSetting *s_ip4;

@@ -1,0 +1,25 @@
+Description: Fixed format specifiers for printf()
+Author: Miriam Ruiz <little_miry@yahoo.es>
+Origin: Debian
+Forwarded: https://github.com/unicap/unicap/pull/6
+Last-Update: 2020-07-27
+--- unicap.orig/src/unicap_helpers.c
++++ unicap/src/unicap_helpers.c
+@@ -283,7 +283,7 @@
+ 		 "range: min: %g\n"\
+ 		 "       max: %g\n"\
+ 		 "stepping: %g\n"\
+-		 "property data size: %d\n",
++		 "property data size: %ld\n",
+ 		 property->identifier,
+ 		 property->category,
+ 		 property->unit,
+@@ -291,7 +291,7 @@
+ 		 property->range.min,
+ 		 property->range.max,
+ 		 property->stepping,
+-		 property->property_data_size );
++		 (long int)property->property_data_size );
+ 	
+ 	strncpy( buffer, tmp_buffer, *buffer_size );
+ 	

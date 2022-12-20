@@ -1,0 +1,28 @@
+From 97cb7eaa45c08a9b9850200e10ab5668df324ec3 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Andreas=20M=C3=BCller?= <schnitzeltony@gmail.com>
+Date: Fri, 2 Aug 2019 16:45:27 +0200
+Subject: [PATCH] configure.ac: remove fixed paths causing trouble when cross
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Andreas Müller <schnitzeltony@gmail.com>
+---
+ configure.ac | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/configure.ac b/configure.ac
+index 7d06139..d3ad7fc 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -23,7 +23,6 @@ AC_SUBST(MISCDIR)
+ AC_SUBST(QUICKCHECKDIR)
+ 
+ CPPFLAGS="$CPPFLAGS -Wall -O2 -g -pedantic-errors"
+-CPPFLAGS="$CPPFLAGS -I/usr/include -I/usr/local/include"
+ CXXFLAGS="$CXXFLAGS -Wshadow -std=c++11"
+ 
+ AC_ARG_ENABLE(debug-stdcxx,
+-- 
+2.21.0
+

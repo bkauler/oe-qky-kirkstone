@@ -1,0 +1,1 @@
+-lncursesw -ltinfow -static

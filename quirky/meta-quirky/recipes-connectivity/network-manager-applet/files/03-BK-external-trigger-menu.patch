@@ -1,0 +1,59 @@
+diff -Naur network-manager-applet-1.8.20DIFF02/src/applet.c network-manager-applet-1.8.20/src/applet.c
+--- network-manager-applet-1.8.20DIFF02/src/applet.c	2019-09-21 20:53:37.976691310 +0800
++++ network-manager-applet-1.8.20/src/applet.c	2019-09-21 21:13:40.010066476 +0800
+@@ -26,6 +26,7 @@
+  *
+  * Copyright 2001, 2002 Free Software Foundation
+  */
++/*190921 BK: trigger popup externally*/
+ 
+ #include "nm-default.h"
+ 
+@@ -3189,6 +3190,35 @@
+ 			button, activate_time);
+ }
+ 
++/* BK */
++gboolean easyos_popup_func(gpointer ptr);
++NMApplet *bkapplet;
++GtkStatusIcon *bkicon;
++guint bkid;
++gboolean easyos_popup_func(gpointer ptr) {
++	FILE *file;
++	
++	if (( file = fopen("/tmp/easyos-trigger-nm-applet", "r"))) {
++		fclose(file);
++		remove("/tmp/easyos-trigger-nm-applet");
++		/*this brings up the menu, as though had clicked on the icon...*/
++		status_icon_activate_cb (bkicon, bkapplet);
++	}
++	else if (( file = fopen("/tmp/easyos-trigger-nm-applet-status", "r"))) {
++		fclose(file);
++		remove("/tmp/easyos-trigger-nm-applet-status");
++		/*this pops up the status menu...*/
++		applet_clear_notify (bkapplet);
++		nma_context_menu_update (bkapplet);
++		gtk_menu_popup (GTK_MENU (bkapplet->context_menu), NULL, NULL,
++			gtk_status_icon_position_menu, bkicon,
++			1, gtk_get_current_event_time ());
++	}
++	
++	return 1; /*must return non-0, otherwise timer stops*/
++}
++
++
+ static gboolean
+ setup_widgets (NMApplet *applet)
+ {
+@@ -3222,6 +3252,11 @@
+ 		g_signal_connect (applet->status_icon, "popup-menu",
+ 				  G_CALLBACK (status_icon_popup_menu_cb), applet);
+ 
++		/* BK want to invoke applet by external signal. 500 millisecond */
++		bkapplet=applet;
++		bkicon=applet->status_icon;
++		bkid=g_timeout_add(500, easyos_popup_func, NULL);
++
+ 		menu = GTK_MENU (gtk_menu_new ());
+ 		nma_context_menu_populate (applet, menu);
+ 		applet->context_menu = GTK_WIDGET (menu);

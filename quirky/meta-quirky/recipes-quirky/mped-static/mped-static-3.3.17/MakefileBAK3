@@ -1,0 +1,136 @@
+# automatically created by config.sh - do not modify
+LANG_MSG_O=mp_lang_m.o
+INSTALL_MSG=
+TARGET=mp
+VERSION=3.3.17
+WINDRES=
+PREFIX=$(DESTDIR)/usr
+APPNAME=mp
+
+# -*- Mode: sh
+
+all: $(TARGET)
+
+PROJ=mp
+DOCS=AUTHORS README COPYING Changelog mprc.sample mprc-win32.sample \
+	README.IRIX README.solaris README.mingw32 README.zaurus \
+	RELEASE_NOTES
+
+OBJS=mp_core.o mp_synhi.o mp_iface.o gnu_regex.o mp_tags.o mp_wordp.o \
+	mp_lang.o mp_conf.o mp_func.o mp_video.o $(LANG_MSG_O) \
+	mpv_unix_common.o mpv_curses.o mpv_gtk.o mpv_win32.o
+
+##################################################################
+
+version:
+	@echo $(VERSION)
+
+ChangeLog:
+	cvs2cl --fsf --stdout > Changelog
+
+.c.o:
+	$(CC) $(CFLAGS) `cat config.cflags` -c $<
+
+dep:
+	gcc -MM *.c > makefile.depend
+
+mp: $(OBJS)
+	$(CC) $(CFLAGS) $(OBJS) `cat config.ldflags` -o $@
+
+mp_res.o: mp_res.rc
+	$(WINDRES) mp_res.rc mp_res.o
+
+mp_lang_m.c:
+	po2c po/*.po > mp_lang_m.c
+
+mp_func_i.h: mp_func.c fngen.pl
+	./fngen.pl < mp_func.c > mp_func_i.h
+
+wmp.exe: $(OBJS) mp_res.o
+	$(CC) $(CFLAGS) $(OBJS) mp_res.o `cat config.ldflags` -o $@
+
+clean:
+	rm -f $(TARGET) $(LIB) $(OBJS) *.o tags *.tar.gz wmp.exe mp_func_i.h
+
+distclean: clean
+	rm -f mp_lang_m.* config.h config.cflags config.ldflags makefile.opts Makefile doc/*.html
+
+docs:
+	mkdir -p doc
+	mp_doccer *.c -o doc/mp_api -f html1 \
+		-t "The Minimum Profit API ($(VERSION))" \
+		-a 'Angel Ortega - angel@triptico.com'
+	grutatxt -m man -t "Minimum Profit" < mp_man.txt > mp.1
+	grutatxt -dl -t "Minimum Profit Man Page" < mp_man.txt > doc/mp_man.html
+
+dist: distclean docs ChangeLog mp_lang_m.c mp_func_i.h po/minimum-profit.pot build-mo
+	cd .. ; ln -s $(PROJ) $(PROJ)-$(VERSION); \
+	tar czvf $(PROJ)-$(VERSION)/$(PROJ)-$(VERSION).tar.gz --exclude=CVS $(PROJ)-$(VERSION)/* ; \
+	rm $(PROJ)-$(VERSION)
+
+midnight: distclean docs ChangeLog mp_lang_m.c mp_func_i.h po/minimum-profit.pot build-mo
+	cd .. ; ln -s $(PROJ) $(PROJ)-$(VERSION); \
+	tar czvf $(PROJ)-$(VERSION)/mp-midnight.tar.gz --exclude=CVS $(PROJ)-$(VERSION)/* ; \
+	rm $(PROJ)-$(VERSION)
+
+win32dist:
+	zip mp33x-win32.zip README COPYING RELEASE_NOTES Changelog mp.reg wmp.exe mprc.sample mprc-win32.sample
+
+install: $(INSTALL_MSG)
+	install $(TARGET) $(PREFIX)/bin/$(APPNAME)
+	./mkinstalldirs $(PREFIX)/share/doc/$(APPNAME)
+	install -m 644 $(DOCS) $(PREFIX)/share/doc/$(APPNAME)
+	./mkinstalldirs $(PREFIX)/share/man/man1
+	install -m 644 mp.1 $(PREFIX)/share/man/man1/$(APPNAME).1
+
+po/minimum-profit.pot:
+	xgettext -o $@ --keyword=L --keyword=LL mp*.c mp_func_i.h
+
+update-po: mp_func_i.h
+	for a in po/*.po ; do \
+		xgettext --omit-header -j -o $$a --keyword=L --keyword=LL mp*.c mp_func_i.h ; \
+		mv $$a $$a.tmp ; \
+		msgconv --to-code=utf-8 $$a.tmp > $$a ; \
+		rm -f $$a.tmp ; \
+	done
+
+.po.mo:
+	msgfmt -o $@ $<
+
+build-mo:
+	for a in po/*.po ; do \
+		B=`basename $$a .po` ; \
+		msgfmt -o po/$$B.mo $$a ; \
+	done
+
+install-mo:
+	for a in po/*.mo ; do \
+		B=`basename $$a .mo` ; \
+		./mkinstalldirs $(PREFIX)/share/locale/$$B/LC_MESSAGES ; \
+		install -m 644 $$a $(PREFIX)/share/locale/$$B/LC_MESSAGES/minimum-profit.mo ; \
+	done
+
+deb:
+	dpkg-buildpackage -rfakeroot -b -uc -us
+
+gnu_regex.o: gnu_regex.c config.h
+mp_conf.o: mp_conf.c config.h mp_core.h mp_video.h mp_conf.h mp_lang.h \
+  mp_func.h mp_iface.h mp_tags.h mp_wordp.h
+mp_core.o: mp_core.c config.h mp_core.h
+mp_func.o: mp_func.c config.h mp_core.h mp_video.h mp_func.h mp_iface.h \
+  mp_synhi.h mp_lang.h mp_conf.h mp_wordp.h mp_func_i.h
+mp_iface.o: mp_iface.c config.h mp_core.h mp_conf.h mp_video.h mp_synhi.h \
+  mp_lang.h mp_func.h mp_iface.h mp_tags.h mp_wordp.h
+mp_lang.o: mp_lang.c config.h mp_core.h mp_lang.h
+mp_synhi.o: mp_synhi.c config.h mp_core.h mp_video.h mp_conf.h mp_synhi.h \
+  mp_tags.h
+mp_tags.o: mp_tags.c config.h mp_core.h mp_iface.h mp_tags.h mp_lang.h \
+  mp_video.h
+mpv_curses.o: mpv_curses.c config.h mp_core.h mp_video.h mp_synhi.h \
+  mp_func.h mp_iface.h mp_lang.h mp_conf.h
+mp_video.o: mp_video.c config.h mp_core.h mp_video.h mp_iface.h mp_func.h \
+  mp_lang.h mp_synhi.h mp_conf.h mp_tags.h
+mpv_unix_common.o: mpv_unix_common.c config.h mp_core.h mp_video.h \
+  mp_iface.h mp_lang.h mp_synhi.h mp_conf.h
+mpv_win32.o: mpv_win32.c config.h mp_core.h mp_video.h
+mp_wordp.o: mp_wordp.c config.h mp_core.h mp_conf.h

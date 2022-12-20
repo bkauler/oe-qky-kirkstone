@@ -1,0 +1,17 @@
+
+20221207
+Jon (scsijon) sent me this link:
+https://dev1galaxy.org/viewtopic.php?id=5060
+and:
+https://www.phoronix.com/news/2021-Retire-Mesa-Classic-Main
+
+kirkstone has mesa 22.0.3, honister has 21.2.4
+(openembedded-core/meta/recipes-graphics/mesa)
+
+Hmmm, mesa 21.3.7 is here:
+http://cgit.openembedded.org/openembedded-core/commit/meta/recipes-graphics/mesa?id=31daf916d218d5e6e95bac857cbeb0d44901e4b3
+d/l link:
+http://cgit.openembedded.org/openembedded-core/snapshot/openembedded-core-31daf916d218d5e6e95bac857cbeb0d44901e4b3.tar.gz
+
+...ok, have copied mesa from that.
+

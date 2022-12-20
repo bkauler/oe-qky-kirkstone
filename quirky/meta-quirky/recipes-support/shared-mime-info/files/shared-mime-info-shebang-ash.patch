@@ -1,0 +1,17 @@
+diff -Naur gitORIG/freedesktop.org.xml.in git/freedesktop.org.xml.in
+--- gitORIG/freedesktop.org.xml.in	2020-09-22 22:37:16.917548058 +0800
++++ git/freedesktop.org.xml.in	2020-09-28 23:05:43.150167189 +0800
+@@ -3591,10 +3591,13 @@
+       <match type="string" value="/bin/sh" offset="2:16"/>
+       <match type="string" value="/bin/ksh" offset="2:16"/>
+       <match type="string" value="/bin/dash" offset="2:16"/>
++      <match type="string" value="/bin/ash" offset="2:16"/>
+       <match type="string" value="/bin/env sh" offset="2:16"/>
+       <match type="string" value="/bin/env bash" offset="2:16"/>
+       <match type="string" value="/bin/env zsh" offset="2:16"/>
+       <match type="string" value="/bin/env ksh" offset="2:16"/>
++      <match type="string" value="/bin/env dash" offset="2:16"/>
++      <match type="string" value="/bin/env ash" offset="2:16"/>
+     </magic>
+     <glob pattern="*.sh"/>
+   </mime-type>

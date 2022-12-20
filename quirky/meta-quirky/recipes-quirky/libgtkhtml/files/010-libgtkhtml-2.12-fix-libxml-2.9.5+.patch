@@ -1,0 +1,16 @@
+diff -Naur libgtkhtml2-d31340d9d826bc3a391023663a1098e5dbaf8d5e/libgtkhtml/dom/core/dom-node.c libgtkhtml2-7269f7f4e10d9ea66a4dccb550b267993698d0aa/libgtkhtml/dom/core/dom-node.c
+--- libgtkhtml2-d31340d9d826bc3a391023663a1098e5dbaf8d5e/libgtkhtml/dom/core/dom-node.c	2019-04-09 00:28:03.000000000 +0800
++++ libgtkhtml2-7269f7f4e10d9ea66a4dccb550b267993698d0aa/libgtkhtml/dom/core/dom-node.c	2019-04-09 00:28:03.000000000 +0800
+@@ -364,7 +364,11 @@
+ DomBoolean
+ dom_Node_hasChildNodes (DomNode *node)
+ {
+-	return (node->xmlnode->children != NULL);
++	// problem with libxml2-2.9.5+ +BUG+
++	if (node) {
++		return (node->xmlnode->children != NULL);
++	}
++	return FALSE;
+ }
+ 
+ /**

@@ -1,0 +1,154 @@
+diff -Naur limine-3.7.3ORIG/common/mm/pmm.s2.c limine-3.7.3/common/mm/pmm.s2.c
+--- limine-3.7.3ORIG/common/mm/pmm.s2.c	2022-06-23 09:06:50.000000000 +0800
++++ limine-3.7.3/common/mm/pmm.s2.c	2022-06-26 16:47:13.329873742 +0800
+@@ -121,6 +121,8 @@
+ 
+ static bool sanitiser_keep_first_page = false;
+ 
++#define MEMMAP_DROP_LATER ((uint32_t)-1)
++
+ static void sanitise_entries(struct e820_entry_t *m, size_t *_count, bool align_entries) {
+     size_t count = *_count;
+ 
+@@ -141,10 +143,18 @@
+             uint64_t res_length = m[j].length;
+             uint64_t res_top    = res_base + res_length;
+ 
+-            // TODO actually handle splitting off usable chunks
+             if ( (res_base >= base && res_base < top)
+               && (res_top  >= base && res_top  < top) ) {
+-                panic(false, "A non-usable e820 entry is inside a usable section.");
++                // Drop the entry entirely if usable
++                if (m[j].type == MEMMAP_USABLE) {
++                    m[j].type = MEMMAP_DROP_LATER;
++                }
++                if (m[j].type == MEMMAP_DROP_LATER) {
++                    continue;
++                }
++
++                // TODO actually handle splitting off usable chunks
++                panic(false, "A non-usable memory map entry is inside a usable section.");
+             }
+ 
+             if (res_base >= base && res_base < top) {
+@@ -167,6 +177,16 @@
+         }
+     }
+ 
++    // Collect "drop later" entries
++    for (size_t i = 0; i < count; i++) {
++        if (m[i].type != MEMMAP_DROP_LATER) {
++            continue;
++        }
++
++        m[i] = m[count - 1];
++        count--; i--;
++    }
++
+     // Remove 0 length usable entries and usable entries below 0x1000
+     for (size_t i = 0; i < count; i++) {
+         if (m[i].type != MEMMAP_USABLE)
+@@ -642,7 +662,7 @@
+     count = ALIGN_UP(count, 4096);
+     if (allocations_disallowed)
+         panic(false, "Memory allocations disallowed");
+-    memmap_alloc_range((uintptr_t)ptr, count, MEMMAP_USABLE, false, false, false, false);
++    memmap_alloc_range((uintptr_t)ptr, count, MEMMAP_USABLE, false, false, false, true);
+ }
+ 
+ void *ext_mem_alloc(size_t count) {
+@@ -736,9 +756,7 @@
+         // Full overlap
+         if (base <= entry_base && top >= entry_top) {
+             // Remove overlapped entry
+-            for (size_t j = i + 1; j < memmap_entries; j++) {
+-                memmap[j - 1] = memmap[j];
+-            }
++            memmap[i] = memmap[memmap_entries - 1];
+             memmap_entries--;
+             i--;
+             continue;
+@@ -787,8 +805,6 @@
+     target->base = base;
+     target->length = length;
+ 
+-    sanitise_entries(memmap, &memmap_entries, false);
+-
+     return true;
+ }
+ 
+@@ -796,6 +812,10 @@
+     if (length == 0)
+         return true;
+ 
++    if (simulation && new_entry) {
++        return true;
++    }
++
+     uint64_t top = base + length;
+ 
+     for (size_t i = 0; i < memmap_entries; i++) {
+@@ -804,52 +824,29 @@
+ 
+         uint64_t entry_base = memmap[i].base;
+         uint64_t entry_top  = memmap[i].base + memmap[i].length;
+-        uint32_t entry_type = memmap[i].type;
+ 
+         if (base >= entry_base && base < entry_top && top <= entry_top) {
+             if (simulation)
+                 return true;
+ 
+-            struct e820_entry_t *target;
+-
+-            memmap[i].length -= entry_top - base;
+-
+-            if (memmap[i].length == 0) {
+-                target = &memmap[i];
+-            } else {
+-                if (memmap_entries >= memmap_max_entries)
+-                    panic(false, "Memory map exhausted.");
+-
+-                target = &memmap[memmap_entries++];
+-            }
+-
+-            target->type   = type;
+-            target->base   = base;
+-            target->length = length;
+-
+-            if (top < entry_top) {
+-                if (memmap_entries >= memmap_max_entries)
+-                    panic(false, "Memory map exhausted.");
+-
+-                target = &memmap[memmap_entries++];
+-
+-                target->type   = entry_type;
+-                target->base   = top;
+-                target->length = entry_top - top;
++            if (pmm_new_entry(base, length, type) == true) {
++                goto success;
+             }
+-
+-            sanitise_entries(memmap, &memmap_entries, false);
+-
+-            return true;
+         }
+     }
+ 
+     if (!new_entry && do_panic)
+         panic(false, "Memory allocation failure.");
+ 
+-    if (new_entry) {
+-        return pmm_new_entry(base, length, type);
++    if (!new_entry) {
++        return false;
+     }
+ 
+-    return false;
++    if (pmm_new_entry(base, length, type) == false) {
++        return false;
++    }
++
++success:
++    sanitise_entries(memmap, &memmap_entries, false);
++    return true;
+ }

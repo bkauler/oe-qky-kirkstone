@@ -1,0 +1,22 @@
+From: =?utf-8?q?Guido_G=C3=BCnther?= <agx@sigxcpu.org>
+Date: Wed, 7 Apr 2021 10:24:02 +0200
+Subject: Disable syntax-checks
+
+This avoids running the syntax checks when building from git
+---
+ build-aux/meson.build | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/build-aux/meson.build b/build-aux/meson.build
+index cc2d746..a9385ab 100644
+--- a/build-aux/meson.build
++++ b/build-aux/meson.build
+@@ -21,7 +21,7 @@ rc = run_command(
+   check: true,
+ )
+ 
+-sc_tests = rc.stdout().strip().split()
++sc_tests = []
+ 
+ 
+ # Skip syntax-check if not building from git because we get the list of files

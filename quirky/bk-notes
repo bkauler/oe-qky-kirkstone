@@ -1,0 +1,25 @@
+
+See the 'docs' folder for more notes.
+
+20221201
+--------
+start of kirkstone
+
+20221212
+attempted to bump rust from 1.59 to 1.65, but python3-cryptography has
+failed:
+
+| copying src/cryptography/hazmat/bindings/_rust/x509.pyi -> build/lib.linux-x86_64-3.10/cryptography/hazmat/bindings/_rust
+| running build_ext
+| running build_rust
+| warning: build_rust: Forced Rust target `x86_64-poky-linux` is not compatible with deduced Rust target `x86_64-unknown-linux-gnu` - the built package  may not import successfully once installed.
+| 
+| error: Error loading target specification: Could not find specification for target "x86_64-poky-linux". Run `rustc --print target-list` for a list of built-in targets
+| 
+
+1.65 is supposed to support rust for the target, but oe-core master has
+not yet got all the bugs out. staying with 1.59 in kirkstone.
+
+20221218
+--------
+'export-pkgs' is based on '0pre-oe' in woofQ.

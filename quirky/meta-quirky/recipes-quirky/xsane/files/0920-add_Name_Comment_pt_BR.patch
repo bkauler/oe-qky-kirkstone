@@ -1,0 +1,25 @@
+Description: Added Name and Comment to pt_BR in xsane.desktop
+Author: Edson Juliano Drosdeck <edson@policorp.com.br>
+Bug-Debian: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=926959
+Forwarded: not-needed
+Last-Update: 2019-07-26
+---
+This patch header follows DEP-3: http://dep.debian.net/deps/dep3/
+Index: trunk/src/xsane.desktop
+===================================================================
+--- trunk.orig/src/xsane.desktop
++++ trunk/src/xsane.desktop
+@@ -6,11 +6,13 @@ GenericName[ru]=Программа дл�
+ GenericName[ca]=Programa d'escaneig d'imatges
+ GenericName[es]=Programa de escaneo de imágenes
+ GenericName[fr]=Programme d'acquisition d'images
++GenericName[pt_BR]=Programa de Digitalização de Imagens XSane
+ Comment=A program to work with scanner. Can be used as a scanning, copier, OCR, fax tools.
+ Comment[ru]=Программа для работы со сканером. Может быть использована в качестве копировального аппарата, факса, и др.
+ Comment[ca]=Un programa per a treballar amb escànners. Es pot utilitzar com una eina d'escanejat, copiat, OCR i fax.
+ Comment[es]=Un programa para trabajar con escáners. Se puede utilizar como una herramienta para escanear, copiar, OCR y fax.
+ Comment[fr]=Un programme d'acquisition d'images pour votre scanner. Peut également photocopier, faxer ou faire de la reconnaissance de caractères.
++Comment[pt_BR]=Um programa para trabalhar com digitalizadores de imagens (scanners). Pode ser utilizado para digitalizar, como ferramenta fax, e para fazer reconhecimento de texto.
+ Exec=xsane
+ Icon=xsane
+ Terminal=false

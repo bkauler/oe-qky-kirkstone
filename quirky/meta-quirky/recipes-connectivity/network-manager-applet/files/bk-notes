@@ -1,0 +1,16 @@
+
+ref:
+https://bkhome.org/news/201909/network-manager-applet-patched-for-easyos.html
+
+these are from debian...
+# patch -p1 < ../patches/00-Allow-creation-of-connections-without-admin-privileges.patch
+# patch -p1 < ../patches/01-Force-online-state-with-unmanaged-devices.patch
+# patch -p1 < ../patches/02-Fix-double-free-crashing-in-wifi-dialog.patch
+
+created by BK...
+# patch -p1 < ../patches/03-external-trigger-menu.patch 
+patch -p1 < ../patches/04-BK-replacement-icons-part1.patch
+patch -p1 < ../patches/05-BK-replacement-icons-part2.patch
+
+
+# ./configure --prefix=/usr --localstatedir=/var --sysconfdir=/etc --build=x86_64-pc-linux-gnu --with-gcr --without-selinux --with-appindicator=no --enable-introspection=no --enable-gtk-doc-html=no --without-wwan

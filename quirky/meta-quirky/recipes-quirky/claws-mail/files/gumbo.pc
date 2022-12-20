@@ -1,0 +1,11 @@
+prefix=/usr
+exec_prefix=${prefix}
+libdir=${prefix}/lib
+includedir=${prefix}/include
+
+Name: Gumbo
+Description: A fully-compliant HTML5 parser.
+Version: 0.10.1
+Libs: -L${libdir} -lgumbo
+Libs.private: 
+Cflags: -I${includedir}

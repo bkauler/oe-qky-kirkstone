@@ -1,0 +1,19 @@
+
+ref:
+https://basic-converter.proboards.com/thread/948/importing-bacon-openembedded
+
+20220824
+--------
+compile issues with bacon 4.x, due to flex.
+have rolled back to 3.9.3
+
+3.9.3 requires this patch:
+https://basic-converter.proboards.com/thread/1183/compile-fail-openembedded-dunfell
+https://chiselapp.com/user/bacon/repository/bacon/info/9be98fc51db4a4fa
+now have patch fix-open-gcc9.patch
+
+20220906
+--------
+bacon 4.5.0.2 works, picscale and pup-tools compile
+-- problem is, popup utility doesn't work properly.
+so, staying with 3.9.3.

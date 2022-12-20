@@ -1,0 +1,175 @@
+diff -Naur jwm-2.4.0ORIG/src/button.c jwm-2.4.0/src/button.c
+--- jwm-2.4.0ORIG/src/button.c	2021-10-06 07:35:04.000000000 +0800
++++ jwm-2.4.0/src/button.c	2021-12-06 07:36:43.306723485 +0800
+@@ -142,16 +142,16 @@
+    iconHeight = 0;
+    if(bp->icon) {
+       if(bp->icon == &emptyIcon) {
+-         iconWidth = Min(width - 4, height - 4);
++         iconWidth = Min(width - BUTTON_BORDER * 2, height - BUTTON_BORDER * 2);
+          iconHeight = iconWidth;
+       } else {
+          const int ratio = (bp->icon->width << 16) / bp->icon->height;
+-         int maxIconWidth = width - 4;
++         int maxIconWidth = width - BUTTON_BORDER * 2;
+          if(bp->text) {
+             /* Showing text, keep the icon square. */
+-            maxIconWidth = Min(width, height) - 4;
++            maxIconWidth = Min(width, height) - BUTTON_BORDER * 2;
+          }
+-         iconHeight = height - 4;
++         iconHeight = height - BUTTON_BORDER * 2;
+          iconWidth = (iconHeight * ratio) >> 16;
+          if(iconWidth > maxIconWidth) {
+             iconWidth = maxIconWidth;
+@@ -164,12 +164,11 @@
+    textWidth = 0;
+    textHeight = 0;
+    if(bp->text && (width > height || !bp->icon)) {
++      const int borderWidth = BUTTON_BORDER * (bp->icon ? 3 : 2);
+       textWidth = GetStringWidth(bp->font, bp->text);
+       textHeight = GetStringHeight(bp->font);
+-      if(iconWidth > 0 && textWidth + iconWidth + 7 > width) {
+-         textWidth = width - iconWidth - 7;
+-      } else if(iconWidth == 0 && textWidth + 5 > width) {
+-         textWidth = width - 5;
++      if(textWidth + iconWidth + borderWidth > width) {
++         textWidth = width - iconWidth - borderWidth;
+       }
+       textWidth = textWidth < 0 ? 0 : textWidth;
+    }
+@@ -181,7 +180,7 @@
+          xoffset = 0;
+       }
+    } else {
+-      xoffset = 2;
++      xoffset = BUTTON_BORDER;
+    }
+ 
+    /* Display the icon. */
+@@ -190,7 +189,7 @@
+       PutIcon(bp->icon, drawable, colors[fg],
+               x + xoffset, y + yoffset,
+               iconWidth, iconHeight);
+-      xoffset += iconWidth + 2;
++      xoffset += iconWidth + BUTTON_BORDER;
+    }
+ 
+    /* Display the label. */
+diff -Naur jwm-2.4.0ORIG/src/button.h jwm-2.4.0/src/button.h
+--- jwm-2.4.0ORIG/src/button.h	2021-10-06 07:35:04.000000000 +0800
++++ jwm-2.4.0/src/button.h	2021-12-06 07:39:18.276727965 +0800
+@@ -13,6 +13,9 @@
+ #include "font.h"
+ #include "settings.h"
+ 
++/** Number of pixels used for a border. */
++#define BUTTON_BORDER 3
++
+ struct IconNode;
+ 
+ /** Button types. */
+diff -Naur jwm-2.4.0ORIG/src/traybutton.c jwm-2.4.0/src/traybutton.c
+--- jwm-2.4.0ORIG/src/traybutton.c	2021-10-06 07:35:04.000000000 +0800
++++ jwm-2.4.0/src/traybutton.c	2021-12-06 07:38:03.240059131 +0800
+@@ -69,9 +69,10 @@
+    TrayButtonType *bp;
+    for(bp = buttons; bp; bp = bp->next) {
+       if(bp->label) {
+-         bp->cp->requestedWidth
+-            = GetStringWidth(FONT_TRAY, bp->label) + 4;
+-         bp->cp->requestedHeight = GetStringHeight(FONT_TRAY);
++         bp->cp->requestedWidth = BUTTON_BORDER * 2;
++         bp->cp->requestedWidth += GetStringWidth(FONT_TRAY, bp->label);
++         bp->cp->requestedHeight = BUTTON_BORDER * 2;
++         bp->cp->requestedHeight += GetStringHeight(FONT_TRAY);
+       } else {
+          bp->cp->requestedWidth = 0;
+          bp->cp->requestedHeight = 0;
+@@ -79,12 +80,13 @@
+       if(bp->iconName) {
+          bp->icon = LoadNamedIcon(bp->iconName, 1, 1);
+          if(JLIKELY(bp->icon)) {
+-            bp->cp->requestedWidth += bp->icon->width + 4;
+-            if(bp->label) {
+-               bp->cp->requestedWidth -= 2;
+-            }
+-            bp->cp->requestedHeight
+-               = Max(bp->icon->height + 4, bp->cp->requestedHeight);
++            bp->cp->requestedWidth = Max(
++              bp->cp->requestedWidth + BUTTON_BORDER,
++              BUTTON_BORDER * 2);
++            bp->cp->requestedWidth += bp->icon->width;
++            bp->cp->requestedHeight = Max(
++              bp->icon->height + BUTTON_BORDER * 2,
++              bp->cp->requestedHeight);
+          } else {
+             Warning(_("could not load tray icon: \"%s\""), bp->iconName);
+          }
+@@ -187,11 +189,15 @@
+    bp = (TrayButtonType*)cp->object;
+ 
+    if(bp->label) {
+-      labelWidth = GetStringWidth(FONT_TRAY, bp->label) + 6;
+-      labelHeight = GetStringHeight(FONT_TRAY) + 6;
++      labelWidth = GetStringWidth(FONT_TRAY, bp->label);
++      labelHeight = GetStringHeight(FONT_TRAY);
++      if(bp->icon) {
++         /* Padding on the left if there is an icon. */
++         labelWidth += BUTTON_BORDER;
++      }
+    } else {
+-      labelWidth = 4;
+-      labelHeight = 4;
++      labelWidth = 0;
++      labelHeight = 0;
+    }
+ 
+    if(bp->icon && bp->icon->width && bp->icon->height) {
+@@ -207,35 +213,35 @@
+       if(width > 0) {
+ 
+          /* Compute height from width. */
+-         iconWidth = width - labelWidth;
++         iconWidth = width - labelWidth - BUTTON_BORDER * 2;
+          iconHeight = (iconWidth << 16) / ratio;
+-         height = Max(labelHeight, iconHeight + 4);
++         height = Max(labelHeight, iconHeight) + BUTTON_BORDER * 2;
+ 
+       } else if(height > 0) {
+ 
+          /* Compute width from height. */
+-         iconHeight = height - 4;
++         iconHeight = height - BUTTON_BORDER * 2;
+          iconWidth = (iconHeight * ratio) >> 16;
+-         width = iconWidth + labelWidth;
++         width = iconWidth + labelWidth + BUTTON_BORDER * 2;
+ 
+       } else {
+ 
+          /* Use best size. */
+-         height = Max(labelHeight, iconHeight + 4);
+-         iconWidth = ((height - 4) * ratio) >> 16;
+-         width = iconWidth + labelWidth;
++         height = Max(labelHeight, iconHeight) + BUTTON_BORDER * 2;
++         iconWidth = ((height - BUTTON_BORDER * 2) * ratio) >> 16;
++         width = iconWidth + labelWidth + BUTTON_BORDER * 2;
+ 
+       }
+ 
+    } else {
+       /* No icon. */
+       if(width > 0) {
+-         height = labelHeight;
++         height = labelHeight + BUTTON_BORDER * 2;
+       } else if(height > 0) {
+-         width = labelWidth;
++         width = labelWidth + BUTTON_BORDER * 2;
+       } else {
+-         height = labelHeight;
+-         width = labelWidth;
++         height = labelHeight + BUTTON_BORDER * 2;
++         width = labelWidth + BUTTON_BORDER * 2;
+       }
+    }
+ 

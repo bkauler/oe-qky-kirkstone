@@ -1,0 +1,20 @@
+Description: add GCC hardening and extra recommended flags to Makefile.
+Author: Joao Eriberto Mota Filho <eriberto@debian.org>
+Last-Update: 2014-09-12
+Index: disktype-9/Makefile
+===================================================================
+--- disktype-9.orig/Makefile
++++ disktype-9/Makefile
+@@ -13,9 +13,9 @@ OBJS   = main.o lib.o \
+ 
+ TARGET = disktype
+ 
+-CPPFLAGS = -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
+-CFLAGS   = -Wall
+-LDFLAGS  =
++CPPFLAGS += -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
++CFLAGS   += -Wall
++LDFLAGS  +=
+ LIBS     =
+ 
+ ifeq ($(NOSYS),)

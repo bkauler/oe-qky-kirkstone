@@ -1,0 +1,678 @@
+diff -Naur osmo-0.2.14ORIG/configure.ac osmo-0.2.14/configure.ac
+--- osmo-0.2.14ORIG/configure.ac	2015-08-08 15:10:12.000000000 +0800
++++ osmo-0.2.14/configure.ac	2022-01-16 20:19:30.127041753 +0800
+@@ -141,6 +141,15 @@
+     AC_DEFINE([TASKS_ENABLED], [1], [Tasks module enabled])
+ fi
+ 
++# Checks for libgtkhtml
++PKG_CHECK_MODULES(LIBGTKHTML, libgtkhtml-2.0 >= 2.2.0, have_libgtkhtml=true,
++    have_libgtkhtml=false)
++if test "x$have_libgtkhtml" = "xtrue"; then
++    libgtkhtml="yes"
++else
++    libgtkhtml="no"
++fi
++
+ # Checks for libwebkit
+ PKG_CHECK_MODULES(LIBWEBKIT, webkit-1.0 >= 1.1.15.0, have_libwebkit=true,
+     have_libwebkit=false)
+@@ -151,16 +160,29 @@
+ fi
+ 
+ contacts="yes"; 
+-htmlrender="no";
++htmlrender="none";
++if test "x$have_libgtkhtml" = "xfalse"; then 
++    contacts="no"; 
++else
++    htmlrender="gtkhtml2";
++fi
+ if test "x$have_libwebkit" = "xfalse"; then 
++    if test "x$htmlrender" = "xnone"; then 
+         contacts="no"; 
++    else
++        AC_DEFINE([HAVE_LIBGTKHTML], [1], [Definded to 1 if compile with libgtkhtml support])
++        AC_DEFINE([HTMLRENDER], ["gtkhtml2"], [HTML render type])
++    fi
+ else
+     htmlrender="webkit";
++    libgtkhtml="no";
+     contacts="yes"; 
+     AC_DEFINE([HAVE_LIBWEBKIT], [1], [Definded to 1 if compile with libwebkit support])
+     AC_DEFINE([HTMLRENDER], ["webkit"], [HTML render type])
+ fi
+ 
++
++AM_CONDITIONAL([HAVE_LIBGTKHTML], test "x$libgtkhtml" = "xyes")
+ AM_CONDITIONAL([HAVE_LIBWEBKIT], test "x$libwebkit" = "xyes")
+ 
+ if test "x$contacts" = "xyes"; then
+@@ -255,7 +277,7 @@
+ 
+     Backup support:     $backup (libgringotts and libarchive are required)
+     Printing support:   $printing
+-    HTML renderer:      $htmlrender
++    HTML renderer:      $htmlrender (webkit, gtkhtml2)
+ 
+ Enabled modules:
+ 
+diff -Naur osmo-0.2.14ORIG/data/osmo.1 osmo-0.2.14/data/osmo.1
+--- osmo-0.2.14ORIG/data/osmo.1	2015-08-08 15:10:12.000000000 +0800
++++ osmo-0.2.14/data/osmo.1	2022-01-16 20:19:30.127041753 +0800
+@@ -23,9 +23,6 @@
+ \fB\-s, \-\-config=PATH\fR
+ Set absolute path for settings and data files
+ .TP 
+-\fB\-q, \-\-mutt-query=STRING\fR
+-Match contacts with given string
+-.TP 
+ \fB\-?, \-\-help\fR
+ Output help information and exit.
+ .SH "FILES"
+diff -Naur osmo-0.2.14ORIG/data/osmo.desktop osmo-0.2.14/data/osmo.desktop
+--- osmo-0.2.14ORIG/data/osmo.desktop	2015-08-08 15:10:12.000000000 +0800
++++ osmo-0.2.14/data/osmo.desktop	2022-01-16 20:19:30.127041753 +0800
+@@ -7,7 +7,6 @@
+ Comment[fr]=Agenda Personnel
+ Comment[pl]=Organizer osobisty
+ Comment[tr]=Kişisel Düzenleyici
+-Comment[de]=Persönlicher Zeitplaner
+ GenericName=Osmo
+ Exec=osmo
+ Icon=osmo
+diff -Naur osmo-0.2.14ORIG/README osmo-0.2.14/README
+--- osmo-0.2.14ORIG/README	2015-08-08 15:11:35.000000000 +0800
++++ osmo-0.2.14/README	2022-01-16 20:19:30.127041753 +0800
+@@ -78,6 +78,7 @@
+ Optional packages:
+ 
+     * Libnotify library, version >= 0.4.4
++    * Libgtkhtml2 library, version >= 2.2.0
+     * Libwebkit library, version >= 1.1.15.0
+     * Libical library, version >= 0.33
+     * Libarchive library, version >= 3.0.0
+diff -Naur osmo-0.2.14ORIG/src/calendar.c osmo-0.2.14/src/calendar.c
+--- osmo-0.2.14ORIG/src/calendar.c	2015-08-08 15:10:12.000000000 +0800
++++ osmo-0.2.14/src/calendar.c	2022-01-16 20:19:30.130375087 +0800
+@@ -568,7 +568,8 @@
+ 
+     current_date = (g_date_get_julian (date) == utl_date_get_current_julian ());
+ 
+-#ifdef HAVE_LIBWEBKIT
++/*#ifdef HAVE_LIBWEBKIT*/
++#if defined(HAVE_LIBWEBKIT) || defined(HAVE_LIBGTKHTML)
+ 
+ gchar *output = g_strdup ("");
+ gchar *icon;
+@@ -677,7 +678,11 @@
+         g_snprintf (tmpbuf, BUFFER_SIZE, "<th>%s:</th><td>", _("Moon phase"));
+         output = utl_strconcat (output, tmpbuf, NULL);
+         g_snprintf (tmpbuf, BUFFER_SIZE, "(%s)", utl_get_moon_phase_name (utl_calc_moon_phase (date)));
++#ifdef HAVE_LIBWEBKIT
++        output = utl_strconcat (output, icon, " ", tmpbuf, "</td>", NULL);
++#else
+         output = utl_strconcat (output, tmpbuf, "</td>", NULL);
++#endif
+     }
+ 
+     output = utl_strconcat (output, "</tr><tr>", NULL);
+@@ -749,9 +754,25 @@
+ 
+     g_free (icon);
+ 
++#ifdef HAVE_LIBWEBKIT
++
+ 	g_object_set (appGUI->cal->webkit_settings, "default-font-size", PANGO_PIXELS(pango_font_description_get_size (appGUI->cal->fd_notes_font)), NULL);
+     webkit_web_view_load_string (WEBKIT_WEB_VIEW (appGUI->cal->html_webkitview), output, "text/html", "UTF-8", "file://");
+ 
++#elif HAVE_LIBGTKHTML
++
++	if (html_document_open_stream (appGUI->cal->html_document, "text/html")) {
++
++		html_view_set_document (HTML_VIEW (appGUI->cal->html_view), NULL);
++		html_document_clear (appGUI->cal->html_document);
++		html_document_write_stream (appGUI->cal->html_document, output, strlen (output));
++		html_view_set_document (HTML_VIEW (appGUI->cal->html_view), appGUI->cal->html_document);
++
++		html_document_close_stream (appGUI->cal->html_document);
++	}
++
++#endif  /* LIBWEBKIT / LIBGTKHTML */
++
+     g_free (output);
+ 
+ #else
+@@ -2351,6 +2372,9 @@
+         gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (appGUI->cal->day_info_scrolledwindow), 
+                                         GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+ 
++/*#ifdef HAVE_LIBWEBKIT*/
++#if defined(HAVE_LIBWEBKIT) || defined(HAVE_LIBGTKHTML)
++
+ #ifdef HAVE_LIBWEBKIT
+         appGUI->cal->webkit_settings = webkit_web_settings_new ();
+ 
+@@ -2373,6 +2397,17 @@
+         gtk_widget_show (GTK_WIDGET(appGUI->cal->html_webkitview));
+         gtk_container_add (GTK_CONTAINER (appGUI->cal->day_info_scrolledwindow), 
+                            GTK_WIDGET(appGUI->cal->html_webkitview));
++#elif HAVE_LIBGTKHTML
++
++		appGUI->cal->html_document = html_document_new ();
++		g_signal_connect (appGUI->cal->html_document, "link-clicked", G_CALLBACK (utl_ghtml_link_clicked), NULL);
++		g_signal_connect (appGUI->cal->html_document, "request-url", G_CALLBACK (utl_ghtml_requested_url), NULL);
++		appGUI->cal->html_view = html_view_new ();
++		html_view_set_document (HTML_VIEW(appGUI->cal->html_view), appGUI->cal->html_document);
++		gtk_widget_show (appGUI->cal->html_view);
++		gtk_container_add (GTK_CONTAINER (appGUI->cal->day_info_scrolledwindow), appGUI->cal->html_view);
++
++#endif  /* LIBWEBKIT / LIBGTKHTML */
+ 
+ #else
+         appGUI->cal->day_desc_textview = gtk_text_view_new ();
+diff -Naur osmo-0.2.14ORIG/src/contacts.c osmo-0.2.14/src/contacts.c
+--- osmo-0.2.14ORIG/src/contacts.c	2015-08-08 15:10:12.000000000 +0800
++++ osmo-0.2.14/src/contacts.c	2022-01-16 20:24:34.447050556 +0800
+@@ -226,6 +226,9 @@
+                 "td.value { width: 70%%; }\n"
+                 ".tag { font-weight: bold; color: %s; }\n"
+                 ".value { color: #000; }\n"
++#ifdef HAVE_LIBGTKHTML
++    ".photo { position: absolute; top: 0; right: 0; width: %dpx; border: 1px solid #000; float: right; }\n"
++#endif  /* HAVE_LIBGTKHTML */
+ #ifdef HAVE_LIBWEBKIT
+                 ".photo { position: absolute; top: 4; right: 4; width: %dpx; border: 1px solid #000; float: right; }\n"
+ #endif  /* HAVE_LIBWEBKIT */
+@@ -255,6 +258,9 @@
+ 
+         /* insert photo */
+         if (text != NULL) {
++#ifdef HAVE_LIBGTKHTML
++        g_snprintf (htmpbuf, BUFFER_SIZE, "<img src=\"%s\" alt=\"\" class=\"photo\">", text);
++#endif  /* HAVE_LIBGTKHTML */
+ #ifdef HAVE_LIBWEBKIT
+             g_snprintf(htmpbuf, BUFFER_SIZE, "<img src=\"file://%s\" alt=\"\" class=\"photo\">", text);
+ #endif  /* HAVE_LIBWEBKIT */
+@@ -371,6 +377,18 @@
+         gtk_widget_set_sensitive(gtk_ui_manager_get_widget(appGUI->cnt->contacts_uim_widget, "/toolbar/delete"), FALSE);
+         gtk_widget_set_sensitive(gtk_ui_manager_get_widget(appGUI->cnt->contacts_uim_widget, "/toolbar/map_location"), FALSE);
+ 
++#ifdef HAVE_LIBGTKHTML
++    if (html_document_open_stream (appGUI->cnt->html_document, "text/html")) {
++
++        html_view_set_document (HTML_VIEW (appGUI->cnt->html_view), NULL);
++        html_document_clear (appGUI->cnt->html_document);
++        html_document_write_stream (appGUI->cnt->html_document, html, strlen (html));
++        html_view_set_document (HTML_VIEW (appGUI->cnt->html_view), appGUI->cnt->html_document);
++
++        html_document_close_stream (appGUI->cnt->html_document);
++    }
++#endif  /* LIBGTKHTML */
++
+ #ifdef HAVE_LIBWEBKIT
+         webkit_web_view_load_string(WEBKIT_WEB_VIEW(appGUI->cnt->html_webkitview), "", "text/html", "UTF-8", "file://");
+ #endif  /* LIBWEBKIT */
+@@ -1134,6 +1152,16 @@
+     gtk_scrolled_window_set_shadow_type (GTK_SCROLLED_WINDOW (appGUI->cnt->contacts_panel_scrolledwindow), GTK_SHADOW_IN);
+     gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (appGUI->cnt->contacts_panel_scrolledwindow), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+ 
++#ifdef HAVE_LIBGTKHTML
++    appGUI->cnt->html_document = html_document_new ();
++    g_signal_connect (appGUI->cnt->html_document, "link-clicked", G_CALLBACK (utl_ghtml_link_clicked), NULL);
++    g_signal_connect (appGUI->cnt->html_document, "request-url", G_CALLBACK (utl_ghtml_requested_url), NULL);
++    appGUI->cnt->html_view = html_view_new ();
++    html_view_set_document (HTML_VIEW(appGUI->cnt->html_view), appGUI->cnt->html_document);
++    gtk_widget_show (appGUI->cnt->html_view);
++    gtk_container_add (GTK_CONTAINER (appGUI->cnt->contacts_panel_scrolledwindow), appGUI->cnt->html_view);
++#endif  /* LIBGTKHTML */
++
+ #ifdef HAVE_LIBWEBKIT
+ 
+     appGUI->cnt->webkit_settings = webkit_web_settings_new ();
+diff -Naur osmo-0.2.14ORIG/src/gui.h osmo-0.2.14/src/gui.h
+--- osmo-0.2.14ORIG/src/gui.h	2015-08-08 15:10:12.000000000 +0800
++++ osmo-0.2.14/src/gui.h	2022-01-16 20:19:30.130375087 +0800
+@@ -45,6 +45,9 @@
+ #include <config.h>
+ 
+ #ifdef CONTACTS_ENABLED
++#ifdef HAVE_LIBGTKHTML
++#include <libgtkhtml/view/htmlview.h>
++#endif  /* LIBGTKHTML */
+ #ifdef HAVE_LIBWEBKIT
+ #include <webkit/webkit.h>
+ #endif  /* LIBWEBKIT */
+@@ -384,6 +387,12 @@
+ 	GtkWidget *print_event_font_entry;
+ 	GtkWidget *print_portrait_radiobutton;
+ 
++
++#ifdef HAVE_LIBGTKHTML
++	GtkWidget *html_view;
++	HtmlDocument *html_document;
++#endif  /* LIBGTKHTML */
++
+ #ifdef HAVE_LIBWEBKIT
+ 	WebKitWebView *html_webkitview;
+ 	WebKitWebSettings *webkit_settings;
+@@ -470,6 +479,11 @@
+     GSList *notifications;
+     gboolean notifications_enable;
+ 
++#ifdef HAVE_LIBGTKHTML
++	GtkWidget *html_view;
++	HtmlDocument *html_document;
++#endif  /* LIBGTKHTML */
++
+ #ifdef HAVE_LIBWEBKIT
+     WebKitWebView *html_webkitview;
+ 	WebKitWebSettings *webkit_settings;
+@@ -561,6 +575,11 @@
+ 
+     PangoFontDescription *fd_ai_font;
+ 
++#ifdef HAVE_LIBGTKHTML
++	GtkWidget *html_view;
++	HtmlDocument *html_document;
++#endif  /* LIBGTKHTML */
++
+ #ifdef HAVE_LIBWEBKIT
+     WebKitWebView *html_webkitview;
+ 	WebKitWebSettings *webkit_settings;
+diff -Naur osmo-0.2.14ORIG/src/Makefile.am osmo-0.2.14/src/Makefile.am
+--- osmo-0.2.14ORIG/src/Makefile.am	2015-08-08 15:10:12.000000000 +0800
++++ osmo-0.2.14/src/Makefile.am	2022-01-16 20:19:30.130375087 +0800
+@@ -60,6 +60,11 @@
+ AM_CFLAGS += @LIBNOTIFY_CFLAGS@
+ LIBS += @LIBNOTIFY_LIBS@
+ 
++if HAVE_LIBGTKHTML
++AM_CFLAGS += @LIBGTKHTML_CFLAGS@
++LIBS += @LIBGTKHTML_LIBS@
++endif
++
+ if HAVE_LIBWEBKIT
+ AM_CFLAGS += @LIBWEBKIT_CFLAGS@
+ LIBS += @LIBWEBKIT_LIBS@
+diff -Naur osmo-0.2.14ORIG/src/tasks.c osmo-0.2.14/src/tasks.c
+--- osmo-0.2.14ORIG/src/tasks.c	2015-08-08 15:10:12.000000000 +0800
++++ osmo-0.2.14/src/tasks.c	2022-01-16 21:04:41.543786784 +0800
+@@ -224,48 +224,36 @@
+ 	gchar tmpbuf[BUFFER_SIZE];
+ 	gboolean repeat, prev_state, next_state;
+ 
+-#ifndef HAVE_LIBWEBKIT
+-	GtkTextBuffer *text_buffer;
+-	GtkTextIter titer;
+-	GtkTextChildAnchor *anchor;
+-	GtkWidget *hseparator;
+-#else
+-	gchar *toutput = g_strdup (""), *output;
+-	PangoFontDescription *font_desc;
+-#endif  /* HAVE_LIBWEBKIT */
+-
+-	GUI *appGUI = (GUI *)data;
+-
+-#ifndef HAVE_LIBWEBKIT
+-	text_buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (appGUI->tsk->tasks_desc_textview));
+-	utl_gui_clear_text_buffer (text_buffer, &titer);
+-#endif  /* HAVE_LIBWEBKIT */
+-
+-	selection_size = gtk_tree_selection_count_selected_rows(selection);
+-	if (selection_size > 1)
+-        {
+-		gtk_widget_set_sensitive (gtk_ui_manager_get_widget (appGUI->tsk->tasks_uim_widget, "/toolbar/edit"), FALSE);
+-		gtk_widget_set_sensitive (gtk_ui_manager_get_widget (appGUI->tsk->tasks_uim_widget, "/toolbar/delete"), TRUE);
+-		gtk_widget_set_sensitive (gtk_ui_manager_get_widget (appGUI->tsk->tasks_uim_widget, "/toolbar/prev_date"), FALSE);
+-		gtk_widget_set_sensitive (gtk_ui_manager_get_widget (appGUI->tsk->tasks_uim_widget, "/toolbar/next_date"), FALSE);
+-
+-#ifdef HAVE_LIBWEBKIT                
+-		webkit_web_view_load_string (WEBKIT_WEB_VIEW (appGUI->tsk->html_webkitview), "", "text/html", "UTF-8", "file://");
+-#endif  /* HAVE_LIBWEBKIT */
+-        }
+-        else if (selection_size == 1)
+-	{
+-		gtk_widget_set_sensitive (gtk_ui_manager_get_widget (appGUI->tsk->tasks_uim_widget, "/toolbar/edit"), TRUE);
+-		gtk_widget_set_sensitive (gtk_ui_manager_get_widget (appGUI->tsk->tasks_uim_widget, "/toolbar/delete"), TRUE);
+-
+-                iter = utl_gui_get_first_selection_iter(selection, &model);
+-		gtk_tree_model_get (model, &iter,
+-		                    TA_COLUMN_DESCRIPTION, &text,
+-		                    TA_COLUMN_DUE_DATE_JULIAN, &due_date_julian,
+-		                    TA_COLUMN_START_DATE_JULIAN, &start_date_julian,
+-		                    TA_COLUMN_DONE_DATE_JULIAN, &done_date_julian,
+-		                    TA_COLUMN_DUE_TIME, &due_time,
+-		                    TA_COLUMN_REPEAT, &repeat, -1);
++/*#ifndef HAVE_LIBWEBKIT*/
++#if !defined(HAVE_LIBWEBKIT) && !defined(HAVE_LIBGTKHTML)
++GtkTextBuffer *text_buffer;
++GtkTextIter titer;
++GtkTextChildAnchor *anchor;
++GtkWidget *hseparator;
++ #else
++gchar *toutput = g_strdup (""), *output;
++PangoFontDescription *font_desc;
++#endif  /* HAVE_LIBWEBKIT / HAVE_LIBGTKHTML */
++
++    GUI *appGUI = (GUI *)data;
++
++/*#ifndef HAVE_LIBWEBKIT*/
++#if !defined(HAVE_LIBWEBKIT) && !defined(HAVE_LIBGTKHTML)
++    text_buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW(appGUI->tsk->tasks_desc_textview));
++    utl_gui_clear_text_buffer (text_buffer, &titer);
++#endif  /* HAVE_LIBWEBKIT / HAVE_LIBGTKHTML */
++
++    if (gtk_tree_selection_get_selected (selection, &model, &iter)) {
++
++        gtk_widget_set_sensitive (gtk_ui_manager_get_widget (appGUI->tsk->tasks_uim_widget, "/toolbar/edit"), TRUE);
++        gtk_widget_set_sensitive (gtk_ui_manager_get_widget (appGUI->tsk->tasks_uim_widget, "/toolbar/delete"), TRUE);
++
++        gtk_tree_model_get (model, &iter, TA_COLUMN_DESCRIPTION, &text,
++                            TA_COLUMN_DUE_DATE_JULIAN, &due_date_julian,
++                            TA_COLUMN_START_DATE_JULIAN, &start_date_julian,
++                            TA_COLUMN_DONE_DATE_JULIAN, &done_date_julian,
++                            TA_COLUMN_DUE_TIME, &due_time,
++                            TA_COLUMN_REPEAT, &repeat, -1);
+ 
+ 		if (repeat == TRUE)
+ 		{
+@@ -277,81 +265,104 @@
+ 			prev_state = next_state = (due_date_julian != 0) ? TRUE : FALSE;
+ 		}
+ 
+-		gtk_widget_set_sensitive (gtk_ui_manager_get_widget (appGUI->tsk->tasks_uim_widget, "/toolbar/prev_date"), prev_state);
+-		gtk_widget_set_sensitive (gtk_ui_manager_get_widget (appGUI->tsk->tasks_uim_widget, "/toolbar/next_date"), next_state);
++        gtk_widget_set_sensitive (gtk_ui_manager_get_widget (appGUI->tsk->tasks_uim_widget, "/toolbar/prev_date"), prev_state);
++        gtk_widget_set_sensitive (gtk_ui_manager_get_widget (appGUI->tsk->tasks_uim_widget, "/toolbar/next_date"), next_state);
+ 
+-		g_snprintf (tmpbuf, BUFFER_SIZE, "\n%s: %s\n",
+-		            _("Started"), julian_to_str (start_date_julian, DATE_FULL, config.override_locale_settings));
++        g_snprintf (tmpbuf, BUFFER_SIZE, "\n%s: %s\n", 
++                    _("Started"), julian_to_str (start_date_julian, DATE_FULL, config.override_locale_settings));
+ 
+-		if (text != NULL)
+-		{
+-#ifndef HAVE_LIBWEBKIT
+-			gtk_text_buffer_insert_with_tags_by_name (text_buffer, &titer, text, -1, "info_font", NULL);
+-			gtk_text_buffer_insert (text_buffer, &titer, "\n", -1);
+-#endif  /* HAVE_LIBWEBKIT */
+-		}
++        if (text != NULL) {
++/*#ifndef HAVE_LIBWEBKIT*/
++#if !defined(HAVE_LIBWEBKIT) && !defined(HAVE_LIBGTKHTML)
++            gtk_text_buffer_insert_with_tags_by_name (text_buffer, &titer, text, -1,
++                                                      "info_font", NULL);
++            gtk_text_buffer_insert(text_buffer, &titer, "\n", -1);
++#endif  /* HAVE_LIBWEBKIT / HAVE_LIBGTKHTML */
++        }
+ 
+-		if (start_date_julian)
+-		{
+-#ifdef HAVE_LIBWEBKIT
+-			if (text == NULL)
++        if (start_date_julian) {
++/*#ifndef HAVE_LIBWEBKIT*/
++#if !defined(HAVE_LIBWEBKIT) && !defined(HAVE_LIBGTKHTML)
++            gtk_text_buffer_insert(text_buffer, &titer, "\n", -1);
++            anchor = gtk_text_buffer_create_child_anchor (text_buffer, &titer);
++            gtk_text_buffer_insert_with_tags_by_name (text_buffer, &titer, tmpbuf, -1, 
++                                                      "italic", NULL);
++#else
++			if (text == NULL) {
+ 				toutput = utl_strconcat (toutput, "<i>", tmpbuf, "</i><br />", NULL);
+-			else
++			} else {
+ 				toutput = utl_strconcat (toutput, "<br /><hr /><i>", tmpbuf, "</i><br />", NULL);
+-#else
+-			gtk_text_buffer_insert (text_buffer, &titer, "\n", -1);
+-			anchor = gtk_text_buffer_create_child_anchor (text_buffer, &titer);
+-			gtk_text_buffer_insert_with_tags_by_name (text_buffer, &titer, tmpbuf, -1, "italic", NULL);
+-#endif  /* HAVE_LIBWEBKIT */
++			}
++#endif  /* HAVE_LIBWEBKIT / HAVE_LIBGTKHTML */
+ 
+-			if (done_date_julian != 0)
+-			{
+-				g_snprintf (tmpbuf, BUFFER_SIZE, "%s: %s\n",
+-				            _("Finished"), julian_to_str (done_date_julian, DATE_FULL, config.override_locale_settings));
+-#ifdef HAVE_LIBWEBKIT
++            if (done_date_julian != 0) {
++                g_snprintf (tmpbuf, BUFFER_SIZE, "%s: %s\n", 
++                            _("Finished"), julian_to_str (done_date_julian, DATE_FULL, config.override_locale_settings));
++/*#ifdef HAVE_LIBWEBKIT*/
++#if defined(HAVE_LIBWEBKIT) || defined(HAVE_LIBGTKHTML)
+ 				toutput = utl_strconcat (toutput, "<i>", tmpbuf, "</i>", NULL);
+ #else
+-				gtk_text_buffer_insert_with_tags_by_name (text_buffer, &titer, tmpbuf, -1, "italic", NULL);
+-#endif  /* HAVE_LIBWEBKIT */
++                gtk_text_buffer_insert_with_tags_by_name (text_buffer, &titer, tmpbuf, -1, 
++                                                          "italic", NULL);
++#endif  /* HAVE_LIBWEBKIT / HAVE_LIBGTKHTML */
++            }
++
++/*#ifndef HAVE_LIBWEBKIT*/
++#if !defined(HAVE_LIBWEBKIT) && !defined(HAVE_LIBGTKHTML)
++            gtk_text_view_set_buffer (GTK_TEXT_VIEW(appGUI->tsk->tasks_desc_textview), text_buffer);
++
++            hseparator = gtk_hseparator_new ();
++            gtk_widget_show (hseparator);
++			if (!config.gui_layout) {
++                gtk_widget_set_size_request (hseparator, 320, -1);
++			} else {
++                gtk_widget_set_size_request (hseparator, 200, -1);
+ 			}
++            gtk_text_view_add_child_at_anchor (GTK_TEXT_VIEW(appGUI->tsk->tasks_desc_textview), hseparator, anchor);
++#else
++			if (text == NULL) text = g_strdup ("");
++
++			font_desc = pango_font_description_from_string((gchar *) config.task_info_font);	
++
++			output = utl_text_to_html_page (text, pango_font_description_get_family (font_desc), 
++											NULL, NULL, NULL, NULL, toutput);
+ 
+-#ifdef HAVE_LIBWEBKIT
+-			if (text == NULL)
+-				text = g_strdup ("");
+-			font_desc = pango_font_description_from_string((gchar *) config.task_info_font);
+-			output = utl_text_to_html_page (text, pango_font_description_get_family (font_desc), NULL, NULL, NULL, NULL, toutput);
+ 			g_free (toutput);
+ 
++#ifdef HAVE_LIBWEBKIT
++
+ 			g_object_set (appGUI->tsk->webkit_settings, "default-font-size", PANGO_PIXELS(pango_font_description_get_size (font_desc)), NULL);
+ 			webkit_web_view_load_string (WEBKIT_WEB_VIEW (appGUI->tsk->html_webkitview), output, "text/html", "UTF-8", "file://");
+ 
++#elif HAVE_LIBGTKHTML	
++
++			if (html_document_open_stream (appGUI->tsk->html_document, "text/html")) {
++
++				html_view_set_document (HTML_VIEW (appGUI->tsk->html_view), NULL);
++				html_document_clear (appGUI->tsk->html_document);
++				html_document_write_stream (appGUI->tsk->html_document, output, strlen (output));
++				html_view_set_document (HTML_VIEW (appGUI->tsk->html_view), appGUI->tsk->html_document);
++
++				html_document_close_stream (appGUI->tsk->html_document);
++			}
++
++#endif  /* LIBWEBKIT / LIBGTKHTML */
++
++
+ 			g_free (output);
+ 			pango_font_description_free (font_desc);
+-#else
+-			gtk_text_view_set_buffer (GTK_TEXT_VIEW (appGUI->tsk->tasks_desc_textview), text_buffer);
+-			hseparator = gtk_hseparator_new ();
+-			gtk_widget_show (hseparator);
+-			if (!config.gui_layout)
+-				gtk_widget_set_size_request (hseparator, 320, -1);
+-			else
+-				gtk_widget_set_size_request (hseparator, 200, -1);
+ 
+-			gtk_text_view_add_child_at_anchor (GTK_TEXT_VIEW (appGUI->tsk->tasks_desc_textview), hseparator, anchor);
+-#endif  /* HAVE_LIBWEBKIT */
+-		}
+-		g_free (text);
+-	}
+-	else
+-	{
+-		gtk_widget_set_sensitive (gtk_ui_manager_get_widget (appGUI->tsk->tasks_uim_widget, "/toolbar/edit"), FALSE);
+-		gtk_widget_set_sensitive (gtk_ui_manager_get_widget (appGUI->tsk->tasks_uim_widget, "/toolbar/delete"), FALSE);
+-		gtk_widget_set_sensitive (gtk_ui_manager_get_widget (appGUI->tsk->tasks_uim_widget, "/toolbar/prev_date"), FALSE);
+-		gtk_widget_set_sensitive (gtk_ui_manager_get_widget (appGUI->tsk->tasks_uim_widget, "/toolbar/next_date"), FALSE);
++#endif  /* HAVE_LIBWEBKIT / HAVE_LIBGTKHTML */
++        }
++
++        g_free(text);
++	} else {
++        gtk_widget_set_sensitive(gtk_ui_manager_get_widget (appGUI->tsk->tasks_uim_widget, "/toolbar/edit"), FALSE);
++        gtk_widget_set_sensitive(gtk_ui_manager_get_widget (appGUI->tsk->tasks_uim_widget, "/toolbar/delete"), FALSE);
++        gtk_widget_set_sensitive(gtk_ui_manager_get_widget (appGUI->tsk->tasks_uim_widget, "/toolbar/prev_date"), FALSE);
++        gtk_widget_set_sensitive(gtk_ui_manager_get_widget (appGUI->tsk->tasks_uim_widget, "/toolbar/next_date"), FALSE);
++    }
+ 
+-#ifdef HAVE_LIBWEBKIT                
+-                webkit_web_view_load_string (WEBKIT_WEB_VIEW (appGUI->tsk->html_webkitview), "", "text/html", "UTF-8", "file://");
+-#endif  /* HAVE_LIBWEBKIT */
+-	}
+ }
+ 
+ /*------------------------------------------------------------------------------*/
+@@ -1886,36 +1897,58 @@
+ 	gtk_scrolled_window_set_shadow_type (GTK_SCROLLED_WINDOW (appGUI->tsk->panel_scrolledwindow), GTK_SHADOW_IN);
+ 	gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (appGUI->tsk->panel_scrolledwindow), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
+ 
++/*#ifdef HAVE_LIBWEBKIT*/
++#if defined(HAVE_LIBWEBKIT) || defined(HAVE_LIBGTKHTML)
++
+ #ifdef HAVE_LIBWEBKIT
+ 	appGUI->tsk->webkit_settings = webkit_web_settings_new ();
+ 
+ 	g_object_set (appGUI->tsk->webkit_settings, "enable-scripts", FALSE, NULL);
+-	g_object_set (appGUI->tsk->webkit_settings, "enable-plugins", FALSE, NULL);
++    g_object_set (appGUI->tsk->webkit_settings, "enable-plugins", FALSE, NULL);
+ 
+ 	appGUI->tsk->html_webkitview = WEBKIT_WEB_VIEW (webkit_web_view_new ());
+ 	webkit_web_view_set_settings (appGUI->tsk->html_webkitview, appGUI->tsk->webkit_settings);
+ 	webkit_web_view_set_editable (appGUI->tsk->html_webkitview, FALSE);
+ 
+     g_signal_connect (appGUI->tsk->html_webkitview, "console-message", G_CALLBACK (utl_webkit_console_msg), appGUI);
+-	g_signal_connect (appGUI->tsk->html_webkitview, "populate-popup", G_CALLBACK (utl_webkit_on_menu), appGUI);
+-	g_signal_connect (appGUI->tsk->html_webkitview, "navigation-policy-decision-requested", G_CALLBACK (utl_webkit_link_clicked), appGUI);
++	g_signal_connect (appGUI->tsk->html_webkitview, "populate-popup", 
++					  G_CALLBACK (utl_webkit_on_menu), appGUI);
++	g_signal_connect (appGUI->tsk->html_webkitview, "navigation-policy-decision-requested",
++					  G_CALLBACK (utl_webkit_link_clicked), appGUI);
++
++	gtk_widget_show (GTK_WIDGET(appGUI->tsk->html_webkitview));
++    gtk_container_add (GTK_CONTAINER (appGUI->tsk->panel_scrolledwindow), 
++					   GTK_WIDGET(appGUI->tsk->html_webkitview));
++#elif HAVE_LIBGTKHTML
++
++		appGUI->tsk->html_document = html_document_new ();
++		g_signal_connect (appGUI->tsk->html_document, "link-clicked", G_CALLBACK (utl_ghtml_link_clicked), NULL);
++		g_signal_connect (appGUI->tsk->html_document, "request-url", G_CALLBACK (utl_ghtml_requested_url), NULL);
++		appGUI->tsk->html_view = html_view_new ();
++		html_view_set_document (HTML_VIEW(appGUI->tsk->html_view), appGUI->tsk->html_document);
++		gtk_widget_show (appGUI->tsk->html_view);
++		gtk_container_add (GTK_CONTAINER (appGUI->tsk->panel_scrolledwindow), appGUI->tsk->html_view);
++
++#endif  /* LIBWEBKIT / LIBGTKHTML */
+ 
+-	gtk_widget_show (GTK_WIDGET (appGUI->tsk->html_webkitview));
+-	gtk_container_add (GTK_CONTAINER (appGUI->tsk->panel_scrolledwindow), GTK_WIDGET (appGUI->tsk->html_webkitview));
+ #else
+-	appGUI->tsk->tasks_desc_textview = gtk_text_view_new ();
+-	gtk_text_view_set_wrap_mode (GTK_TEXT_VIEW (appGUI->tsk->tasks_desc_textview), GTK_WRAP_WORD);
+-	gtk_text_view_set_pixels_above_lines (GTK_TEXT_VIEW (appGUI->tsk->tasks_desc_textview), 4);
+-	gtk_text_view_set_left_margin (GTK_TEXT_VIEW (appGUI->tsk->tasks_desc_textview), 4);
+-	gtk_text_view_set_right_margin (GTK_TEXT_VIEW (appGUI->tsk->tasks_desc_textview), 4);
+-	gtk_text_view_set_cursor_visible (GTK_TEXT_VIEW (appGUI->tsk->tasks_desc_textview), FALSE);
+-	gtk_text_view_set_editable (GTK_TEXT_VIEW (appGUI->tsk->tasks_desc_textview), FALSE);
+-	gtk_widget_show (appGUI->tsk->tasks_desc_textview);
+-	gtk_container_add (GTK_CONTAINER (appGUI->tsk->panel_scrolledwindow), appGUI->tsk->tasks_desc_textview);
+-
+-	text_buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (appGUI->tsk->tasks_desc_textview));
+-	gtk_text_buffer_create_tag (text_buffer, "italic", "style", PANGO_STYLE_ITALIC, NULL);
+-	appGUI->tsk->font_tag_object = gtk_text_buffer_create_tag (text_buffer, "info_font", "font", (gchar *) config.task_info_font, NULL);
++
++    appGUI->tsk->tasks_desc_textview = gtk_text_view_new ();
++    gtk_text_view_set_wrap_mode (GTK_TEXT_VIEW (appGUI->tsk->tasks_desc_textview), GTK_WRAP_WORD);
++    gtk_text_view_set_pixels_above_lines(GTK_TEXT_VIEW(appGUI->tsk->tasks_desc_textview), 4);
++    gtk_text_view_set_left_margin(GTK_TEXT_VIEW(appGUI->tsk->tasks_desc_textview), 4);
++    gtk_text_view_set_right_margin(GTK_TEXT_VIEW(appGUI->tsk->tasks_desc_textview), 4);
++    gtk_text_view_set_cursor_visible(GTK_TEXT_VIEW(appGUI->tsk->tasks_desc_textview), FALSE);
++    gtk_text_view_set_editable(GTK_TEXT_VIEW(appGUI->tsk->tasks_desc_textview), FALSE);
++    gtk_widget_show (appGUI->tsk->tasks_desc_textview);
++    gtk_container_add (GTK_CONTAINER (appGUI->tsk->panel_scrolledwindow), appGUI->tsk->tasks_desc_textview);
++
++    text_buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(appGUI->tsk->tasks_desc_textview));
++    gtk_text_buffer_create_tag (text_buffer, "italic",
++                  "style", PANGO_STYLE_ITALIC, NULL);
++    appGUI->tsk->font_tag_object = gtk_text_buffer_create_tag (text_buffer, "info_font",
++                      "font", (gchar *) config.task_info_font, NULL);
++
+ #endif  /* HAVE_LIBWEBKIT */
+ 
+ 	g_signal_connect(G_OBJECT(appGUI->tsk->tasks_paned), "notify::position", G_CALLBACK(tasks_paned_position_change_cb), appGUI);
+diff -Naur osmo-0.2.14ORIG/src/utils.c osmo-0.2.14/src/utils.c
+--- osmo-0.2.14ORIG/src/utils.c	2015-08-08 15:10:12.000000000 +0800
++++ osmo-0.2.14/src/utils.c	2022-01-16 20:19:30.133708421 +0800
+@@ -197,6 +197,43 @@
+ 
+ #endif  /* HAVE_LIBWEBKIT */
+ 
++#ifdef HAVE_LIBGTKHTML
++
++void
++utl_ghtml_link_clicked (GtkWidget *html, const gchar *url, gpointer data) {
++
++gchar *link = (gchar *)url;
++
++    utl_run_helper (link, utl_get_link_type (link));
++}
++
++gboolean
++utl_ghtml_requested_url (HtmlDocument *doc, const gchar *url, HtmlStream *stream, gpointer data) {
++
++FILE *fp;
++gint len;
++gchar tmp_buffer[8192];
++
++    g_return_val_if_fail (url != NULL, TRUE);
++    g_return_val_if_fail (stream != NULL, TRUE);
++
++    fp = fopen(url, "r");
++
++    if (fp != NULL) {
++
++        while ((len = fread(tmp_buffer, 1, sizeof(tmp_buffer), fp)) > 0) {
++            html_stream_write(stream, tmp_buffer, len);
++        }
++        fclose (fp);
++
++        return TRUE;
++    }
++
++    return FALSE;
++}
++
++#endif  /* HAVE_LIBGTKHTML */
++
+ /*------------------------------------------------------------------------------*/
+ 
+ gchar *
+diff -Naur osmo-0.2.14ORIG/src/utils.h osmo-0.2.14/src/utils.h
+--- osmo-0.2.14ORIG/src/utils.h	2015-08-08 15:10:12.000000000 +0800
++++ osmo-0.2.14/src/utils.h	2022-01-16 20:19:30.133708421 +0800
+@@ -103,5 +103,10 @@
+ 
+ gint        utl_open_count_url_links            (gchar *text, gboolean url_count);
+ 
++#ifdef HAVE_LIBGTKHTML
++void        utl_ghtml_link_clicked              (GtkWidget *html, const gchar *url, gpointer data);
++gboolean    utl_ghtml_requested_url             (HtmlDocument *doc, const gchar *url, HtmlStream *stream, gpointer data);
++#endif  /* HAVE_LIBGTKHTML */
++
+ #endif /* _UTILS_H */
+ 

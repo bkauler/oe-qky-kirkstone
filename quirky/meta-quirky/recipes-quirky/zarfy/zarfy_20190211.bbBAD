@@ -1,0 +1,35 @@
+# Recipe created by recipetool
+# recipetool create -o zarfy_20190211.bb https://github.com/rbtylee/zarfy/archive/master.zip
+
+#PR = "r1"
+# 20210121 PR_NUM is defined in local.conf...
+PR = "r${@int(PR_NUM) + 1}"
+
+LICENSE = "GPLv3"
+LIC_FILES_CHKSUM = "file://COPYING;md5=d32239bcb673463ab874e80d47fae504"
+
+SRC_URI = "http://distro.ibiblio.org/easyos/source/alphabetical/z/zarfy-${PV}.tar.gz"
+SRC_URI[md5sum] = "99a11a4030a520c01d8c050c3b54dfd9"
+SRC_URI[sha1sum] = "4fe5ab55436f37a54027ef9457aef6d330d87325"
+SRC_URI[sha256sum] = "13f93994e90ad99f514b539d9db56c5375248d0cddf57f01bb70022184c2b1d7"
+SRC_URI[sha384sum] = "04638fef1413f8b83389bc93bce7a045bf17ef44873c16748262a1437f022a5a132ca3573fe06fd58051594c1cc2de80"
+SRC_URI[sha512sum] = "a81c43658c05f983c47142c4b7b3ba9fcc6a46ab00df4937f5a8cd8eb3746ec50871c083712e0f1ad940f31998ab2083fee198e9ef3c96ecc724532977b03909"
+
+DEPENDS = "gtk+ gdk-pixbuf libx11 libglade libxrandr"
+
+inherit autotools-brokensep pkgconfig gettext
+
+do_configure_prepend() {
+ touch README
+}
+
+EXTRA_OECONF = ""
+
+#20201023 odd, this didn't get installed...
+do_install_append() {
+ mkdir -p ${D}/usr/share/zarfy
+ cp -a -f ${S}/data/* ${D}/usr/share/zarfy/
+}
+
+HOMEPAGE = "https://github.com/rbtylee/zarfy/"
+SUMMARY = "A gui to libxrandr. Presents a visual representation of displays."

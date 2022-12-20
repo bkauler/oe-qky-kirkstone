@@ -1,0 +1,26 @@
+# Recipe created by recipetool
+# recipetool create -o celluloid_0.24.bb https://github.com/celluloid-player/celluloid/releases/download/v0.24/celluloid-0.24.tar.xz
+
+LICENSE = "GPL-3.0-only"
+LIC_FILES_CHKSUM = "file://COPYING;md5=8006d9c814277c1bfc4ca22af94b59ee"
+
+SRC_URI = "https://github.com/celluloid-player/celluloid/releases/download/v${PV}/celluloid-${PV}.tar.xz"
+
+SRC_URI[md5sum] = "7ed1873d7af71b32f43da593fe1ac073"
+SRC_URI[sha1sum] = "41140f3d1255b3aee0e622154fe8fce81dcb7ca1"
+SRC_URI[sha256sum] = "31e2175a1ccc990d189d8261eefb1b6a4527cb55a58b4db8541331810aec495b"
+
+DEPENDS = "libepoxy mpv gtk+3 glib-2.0 appstream-glib glib-2.0-native"
+
+inherit gettext pkgconfig autotools-brokensep
+
+EXTRA_OECONF = ""
+
+# 20200929 why does build sometimes fail?
+# today, error "unterminated comment" line 680 in src/mpris/celluloid-mpris-gdbus.c
+# and i see 680 is end of the file -- however, file is supposed to have 8355 lines!
+# try this:
+PARALLEL_MAKE = "-j 1"
+
+HOMEPAGE = "https://celluloid-player.github.io/"
+SUMMARY = "GUI frontend for MPV media player"

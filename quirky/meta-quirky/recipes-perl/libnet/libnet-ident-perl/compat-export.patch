@@ -1,0 +1,27 @@
+Description: fix compat mode
+ Tests fail with
+   Global symbol "@EXPORT" requires explicit package name (did you forget to declare "my @EXPORT"?) at /build/libnet-ident-perl-1.25/blib/lib/Net/Ident.pm line 42.
+ .
+ when Makefile.PL is run with --force-compat.
+ The reason seems to be that between 1.24 and 1.25,
+   use vars qw(@ISA @EXPORT_OK $DEBUG $VERSION %EXPORT_TAGS @EXPORT_FAIL
+     %EXPORT_HOOKS @EXPORT);
+ was removed; the other variables got their `our', but @EXPORT did not.
+ So let's add it.
+Origin: vendor
+Author: gregor herrmann <gregoa@debian.org>
+Last-Update: 2020-01-24
+Forwarded: https://github.com/toddr/Net-Ident/pull/2
+Bug: https://github.com/toddr/Net-Ident/pull/2
+
+--- a/Ident.pm
++++ b/Ident.pm
+@@ -39,7 +39,7 @@
+ _export_hooks();
+ 
+ # for compatibility mode, uncomment the next line @@ s/^#\s*// @@
+-# @EXPORT = qw(_export_hook_fh);
++# our @EXPORT = qw(_export_hook_fh);
+ 
+ our $VERSION = "1.25";
+ 

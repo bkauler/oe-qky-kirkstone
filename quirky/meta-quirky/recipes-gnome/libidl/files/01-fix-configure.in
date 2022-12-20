@@ -1,0 +1,15 @@
+Description: adding AC_CONFIG_MACRO_DIR([m4]) to configure.in.
+Author: Paulo Roberto Alves de Oliveira (aka kretcheu) <kretcheu@gmail.com>
+Last-update: 2015-09-22
+Index: libidl-0.8.14/configure.in
+===================================================================
+--- libidl-0.8.14.orig/configure.in
++++ libidl-0.8.14/configure.in
+@@ -46,6 +46,7 @@ AC_ARG_ENABLE(compile-warnings,
+ dnl Make sure that $ACLOCAL_FLAGS is passed to subsequent aclocal runs.
+ ACLOCAL_AMFLAGS="\${ACLOCAL_FLAGS}"
+ AC_SUBST([ACLOCAL_AMFLAGS])
++AC_CONFIG_MACRO_DIR([m4])
+ 
+ AC_ISC_POSIX
+ 

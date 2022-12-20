@@ -1,0 +1,10 @@
+diff -Naur libcap-ng-0.8.1ORIG/src/captab.h libcap-ng-0.8.1/src/captab.h
+--- libcap-ng-0.8.1ORIG/src/captab.h	2020-11-19 02:38:55.000000000 +0800
++++ libcap-ng-0.8.1/src/captab.h	2020-12-20 07:02:16.349056144 +0800
+@@ -87,3 +87,6 @@
+ #ifdef CAP_CHECKPOINT_RESTORE
+ _S(CAP_CHECKPOINT_RESTORE,	"checkpoint_restore")
+ #endif
++#ifdef CAP_SYS_MOUNT
++_S(CAP_SYS_MOUNT,	"sys_mount")
++#endif

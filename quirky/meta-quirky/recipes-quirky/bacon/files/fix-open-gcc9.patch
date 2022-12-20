@@ -1,0 +1,24 @@
+diff -Naur bacon-3.9.3ORIG/bacon.bac bacon-3.9.3/bacon.bac
+--- bacon-3.9.3ORIG/bacon.bac	2019-12-01 20:03:53.000000000 +0800
++++ bacon-3.9.3/bacon.bac	2022-08-24 21:48:37.326538670 +0800
+@@ -1102,7 +1102,7 @@
+ 			WRITELN handle$, " = __b2c__result;" TO g_CFILE
+ 		END IF
+ 	ELIF mode$ = "DEVICE" THEN
+-		WRITELN handle$, " = open(", file$[1], ", __b2c__option_open);" TO g_CFILE
++		WRITELN handle$, " = open(", file$[1], ", __b2c__option_open, S_IRUSR|S_IWUSR);" TO g_CFILE
+ 		WRITELN "if(", handle$, " < 0){if(__b2c__trap){ERROR = 32; if(!__b2c__catch_set) RUNTIMEERROR(\"OPEN FOR DEVICE\", ", g_COUNTER, ", \"", g_CURFILE$, "\", ERROR); else if(!setjmp(__b2c__jump)) goto ", g_CATCHGOTO$, ";} }" TO g_CFILE
+ 	END IF
+ 	IF g_CATCHGOTO$ = "__B2C__PROGRAM__EXIT" THEN g_CATCH_USED = 1
+diff -Naur bacon-3.9.3ORIG/bacon.sh bacon-3.9.3/bacon.sh
+--- bacon-3.9.3ORIG/bacon.sh	2019-12-01 20:03:53.000000000 +0800
++++ bacon-3.9.3/bacon.sh	2022-08-24 21:52:19.383203914 +0800
+@@ -1442,7 +1442,7 @@
+ 	        echo "$HANDLE= __b2c__result;" >> $g_CFILE
+             fi;;
+ 	@(DEVICE) )
+-	    echo "$HANDLE = open(${FILE[0]}, __b2c__option_open);" >> $g_CFILE
++	    echo "$HANDLE = open(${FILE[0]}, __b2c__option_open, S_IRUSR|S_IWUSR);" >> $g_CFILE
+ 	    echo "if($HANDLE < 0){if(__b2c__trap){ERROR = 32; if(!__b2c__catch_set) RUNTIMEERROR(\"OPEN FOR DEVICE\", $g_COUNTER, \"$g_CURFILE\", ERROR); else if(!setjmp(__b2c__jump)) goto $g_CATCHGOTO;} }" >> $g_CFILE;;
+     esac
+     if [[ ${g_CATCHGOTO} = "__B2C__PROGRAM__EXIT" ]]

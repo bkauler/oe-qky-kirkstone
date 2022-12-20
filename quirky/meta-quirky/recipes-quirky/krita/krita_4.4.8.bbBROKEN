@@ -1,0 +1,23 @@
+# Recipe created by recipetool
+# recipetool create -o krita_4.4.8.bb https://download.kde.org/stable/krita/4.4.8/krita-4.4.8.tar.gz
+
+LICENSE = "GPLv3"
+LIC_FILES_CHKSUM = "file://COPYING;md5=d32239bcb673463ab874e80d47fae504"
+
+SRC_URI = "https://download.kde.org/stable/krita/${PV}/krita-${PV}.tar.gz"
+SRC_URI[md5sum] = "e2b287badeeb96d6fa21efa76a6a4849"
+SRC_URI[sha1sum] = "e7cbe38ef37df6c6aa7a8b7e09dffd1bdbd0c464"
+SRC_URI[sha256sum] = "bcc68a5711d92515d6553611a0bddd53f3259843fd3534b9b3e535d7ed430df8"
+SRC_URI[sha384sum] = "5b5e2fda61ec166632cc4118087ffc120b7de442fd76b4f2f3aefcdf82875c5951f7082b2b94a13bddff11b37284254c"
+SRC_URI[sha512sum] = "53b9814fcf61fbaee06e81f456aa9de7ab09df99e04932251984c8ae190248e48fa20762bdb7be503ea267e1fb835095b105ce4bf2078fd510ab5a8ef6d82f81"
+
+DEPENDS = "zlib qtdeclarative qtmultimedia libx11 boost libpng qtbase tiff jpeg \
+           giflib gsl exiv2 poppler lcms jpeg qtsvg gmp"
+
+inherit cmake python3native cmake_qt5 python3-dir
+
+EXTRA_OECMAKE = ""
+
+HOMEPAGE = "https://krita.org/en/"
+SUMMARY = "painting program"
+

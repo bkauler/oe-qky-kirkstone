@@ -1,0 +1,8 @@
+1001_printf_warning.patch
+1003_vid21394_pointer.patch
+1005_tidy_gettext.patch
+1009_v4l1.patch
+1010_libv4l2.h_includes.patch
+1011_euvccam_implicit_decls.patch
+1012_gtkdoc_sourcedir.patch
+1013_unicap_queue_t.patch

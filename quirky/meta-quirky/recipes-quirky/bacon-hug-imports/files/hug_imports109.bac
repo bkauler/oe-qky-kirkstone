@@ -1,0 +1,112 @@
+'---------------------------------------------------------------------------------------
+' All imports from the Highlevel Universal GUI (HUG) library.
+'
+' This is the include file for HUG 0.105 and requires BaCon version 3.4 or higher.
+'
+' Adapted November 2016, PvE - MIT License.
+'---------------------------------------------------------------------------------------
+
+' Imports when HUG is used as shared object
+CONST HUG_lib$ = "libhug.so"
+
+' Setup error handling
+CATCH GOTO hug_handle_error
+
+' Define the PROPERTY directives
+IMPORT "hug_Get_Gobject$(void)" FROM HUG_lib$ TYPE char*
+hug_Gobject$ = hug_Get_Gobject$()
+IMPORT "g_object_set(long,char*,...)" FROM hug_Gobject$ TYPE void
+PROTO PROPERTY
+DEF FN PROPERTY(widget, name, ...) = g_object_set(widget, name, __VA_ARGS__, NULL)
+
+PROTO SETPROPERTY
+DEF FN SETPROPERTY(widget, name, ...) = g_object_set(widget, name, __VA_ARGS__, NULL)
+
+PROTO GETPROPERTY
+DEF FN GETPROPERTY(widget, name, ...) = g_object_get(widget, name, __VA_ARGS__, NULL)
+
+CLOSE LIBRARY HUG_lib$
+
+' Import all HUG functions
+IMPORT "ATTACH(long,long,int,int)" FROM HUG_lib$ TYPE void
+IMPORT "BUTTON(char*,int,int)" FROM HUG_lib$ TYPE long
+IMPORT "CALLBACK(long,void*)" FROM HUG_lib$ TYPE void
+IMPORT "CALLBACKX(long,void*,long)" FROM HUG_lib$ TYPE void
+IMPORT "CANVAS(int,int)" FROM HUG_lib$ TYPE long
+IMPORT "CHECK(char*,int,int)" FROM HUG_lib$ TYPE long
+IMPORT "CIRCLE(char*,int,int,int,int,long)" FROM HUG_lib$ TYPE void
+IMPORT "CLIPBOARD" FROM HUG_lib$ TYPE long
+IMPORT "COMBO(char*,int,int)" FROM HUG_lib$ TYPE long
+IMPORT "DISABLE(long)" FROM HUG_lib$ TYPE void
+IMPORT "DISPLAY" FROM HUG_lib$ TYPE void
+IMPORT "EDIT(int,int)" FROM HUG_lib$ TYPE long
+IMPORT "ENABLE(long)" FROM HUG_lib$ TYPE void
+IMPORT "ENTRY(char*,int,int)" FROM HUG_lib$ TYPE long
+IMPORT "FILEDIALOG(char*,char*,int,int,int)" FROM HUG_lib$ TYPE long
+IMPORT "FOCUS(long)" FROM HUG_lib$ TYPE void
+IMPORT "FONT(long,char*)" FROM HUG_lib$ TYPE void
+IMPORT "FRAME(int,int)" FROM HUG_lib$ TYPE long
+IMPORT "GET(long)" FROM HUG_lib$ TYPE long
+IMPORT "GETCOLOR$(long, long, long)" FROM HUG_lib$ TYPE char*
+IMPORT "GRAB$(long)" FROM HUG_lib$ TYPE char*
+IMPORT "HIDE(long)" FROM HUG_lib$ TYPE void
+IMPORT "HSEPARATOR(int)" FROM HUG_lib$ TYPE long
+IMPORT "HSLIDER(int,int,double,double,double)" FROM HUG_lib$ TYPE long
+IMPORT "HUGOPTIONS(char*)" FROM HUG_lib$ TYPE void
+IMPORT "HUGLIB$(char*)" FROM HUG_lib$ TYPE char*
+IMPORT "IMAGE(char*,int,int)" FROM HUG_lib$ TYPE long
+IMPORT "INIT" FROM HUG_lib$ TYPE void
+IMPORT "KEY" FROM HUG_lib$ TYPE long
+IMPORT "LINE(char*,int,int,int,int)" FROM HUG_lib$ TYPE void
+IMPORT "LIST(int,int)" FROM HUG_lib$ TYPE long
+IMPORT "MARK(char*,int,int)" FROM HUG_lib$ TYPE long
+IMPORT "METHOD(long,int,void*)" FROM HUG_lib$ TYPE void
+IMPORT "MOUSE(long)" FROM HUG_lib$ TYPE long
+IMPORT "MSGDIALOG(char*,int,int,int,int)" FROM HUG_lib$ TYPE long
+IMPORT "NOTEBOOK(char*,int,int)" FROM HUG_lib$ TYPE long
+IMPORT "OUT(char*,char*,char*,int,int)" FROM HUG_lib$ TYPE void
+IMPORT "PASSWORD(int,int)" FROM HUG_lib$ TYPE long
+IMPORT "PICTURE(char*,int,int,int,int)" FROM HUG_lib$ TYPE void
+IMPORT "PIXEL(char*,int,int)" FROM HUG_lib$ TYPE void
+IMPORT "PROGRESSBAR(char*,int,int)" FROM HUG_lib$ TYPE long
+IMPORT "QUIT" FROM HUG_lib$ TYPE void
+IMPORT "RADIO(char*,int,int,long)" FROM HUG_lib$ TYPE long
+IMPORT "REGISTER(long,int,int,int,long,long,long,long)" FROM HUG_lib$ TYPE void
+IMPORT "SCREENSIZE(int)" FROM HUG_lib$ TYPE int
+IMPORT "SET(long,int)" FROM HUG_lib$ TYPE void
+IMPORT "SHOW(long)" FROM HUG_lib$ TYPE void
+IMPORT "SPIN(int,int,double,double,double)" FROM HUG_lib$ TYPE long
+IMPORT "SQUARE(char*,int,int,int,int,int)" FROM HUG_lib$ TYPE void
+IMPORT "STOCK(char*,int,int)" FROM HUG_lib$ TYPE long
+IMPORT "SYNC" FROM HUG_lib$ TYPE void
+IMPORT "TEXT(long,char*)" FROM HUG_lib$ TYPE void
+IMPORT "TIMEOUT(int,void*)" FROM HUG_lib$ TYPE void
+IMPORT "TOGGLE(char*,int,int)" FROM HUG_lib$ TYPE long
+IMPORT "UNFOCUS(long)" FROM HUG_lib$ TYPE void
+IMPORT "VSEPARATOR(int)" FROM HUG_lib$ TYPE long
+IMPORT "VSLIDER(int,int,double,double,double)" FROM HUG_lib$ TYPE long
+IMPORT "WINDOW(char*,int,int)" FROM HUG_lib$ TYPE long
+
+' The dialog response codes
+CONST GTK_RESPONSE_ACCEPT = -3
+CONST GTK_RESPONSE_DELETE_EVENT = -4
+CONST GTK_RESPONSE_OK = -5
+CONST GTK_RESPONSE_CANCEL = -6
+CONST GTK_RESPONSE_CLOSE = -7
+CONST GTK_RESPONSE_YES = -8
+CONST GTK_RESPONSE_NO = -9
+CONST GTK_RESPONSE_APPLY = -10
+CONST GTK_RESPONSE_HELP = -11
+	
+' All is well, finish
+GOTO hug_import_finish
+
+' Print error
+LABEL hug_handle_error
+    PRINT ERR$(ERROR)
+    END
+
+' Retsore default error handling
+LABEL hug_import_finish
+    CATCH RESET
+    TRAP SYSTEM

@@ -1,0 +1,21 @@
+Description: Fix bogus icm_profile field in output
+Author: Reuben Thomas <rrt@sc3d.org>
+Bug-Debian: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=864486
+Reviewed-by: Jörg Frings-Fürst <debian@jff.email>
+Forwarded: not-needed
+Last-Update: 2017-12-28
+---
+This patch header follows DEP-3: http://dep.debian.net/deps/dep3/
+Index: trunk/src/xsane-save.c
+===================================================================
+--- trunk.orig/src/xsane-save.c
++++ trunk/src/xsane-save.c
+@@ -427,6 +427,8 @@ void xsane_read_pnm_header(FILE *file, I
+  char buf[TEXTBUFSIZE];
+  int items_done;
+ 
++  memset(image_info, '\0', sizeof(Image_info));
++
+   fgets(buf, sizeof(buf)-1, file);
+   DBG(DBG_info, "filetype header :%s", buf);
+  

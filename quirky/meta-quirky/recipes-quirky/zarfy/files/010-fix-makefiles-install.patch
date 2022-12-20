@@ -1,0 +1,47 @@
+diff -Naur zarfy-0.1.0ORIG/Makefile.in zarfy-0.1.0/Makefile.in
+--- zarfy-0.1.0ORIG/Makefile.in	2008-09-13 21:05:07.000000000 +0800
++++ zarfy-0.1.0/Makefile.in	2020-12-29 17:41:46.653391753 +0800
+@@ -612,24 +612,24 @@
+ 
+ install-data-local:
+ 	@$(NORMAL_INSTALL)
+-	  $(mkinstalldirs) $(pkgdatadir); \
++	  $(mkinstalldirs) $(DESTDIR)$(pkgdatadir); \
+ 	  for fname in data/*; do \
+ 	    if test -f $$fname; then \
+-	      $(INSTALL_DATA) $$fname $(pkgdatadir); \
++	      $(INSTALL_DATA) $$fname $(DESTDIR)$(pkgdatadir); \
+ 	    fi \
+ 	  done;
+-	  $(mkinstalldirs) $(mandir)/man1; \
+-	  $(INSTALL_DATA) man/zarfy.1.gz $(mandir)/man1
++	  $(mkinstalldirs) $(DESTDIR)$(mandir)/man1; \
++	  $(INSTALL_DATA) man/zarfy.1.gz $(DESTDIR)$(mandir)/man1
+ 
+ uninstall-local:
+ 	@$(NORMAL_UNINSTALL)
+-	  for fname in $(pkgdatadir)/*; do \
++	  for fname in $(DESTDIR)$(pkgdatadir)/*; do \
+ 	    if test -f $$fname; then \
+ 	      rm $$fname; \
+ 	    fi \
+ 	  done; \
+-	rmdir $(pkgdatadir); \
+-	rm $(mandir)/man1/zarfy.*
++	rmdir $(DESTDIR)$(pkgdatadir); \
++	rm $(DESTDIR)$(mandir)/man1/zarfy.*
+ # Tell versions [3.59,3.63) of GNU make to not export all variables.
+ # Otherwise a system limit (for SysV at least) may be exceeded.
+ .NOEXPORT:
+diff -Naur zarfy-0.1.0ORIG/src/Makefile.in zarfy-0.1.0/src/Makefile.in
+--- zarfy-0.1.0ORIG/src/Makefile.in	2008-09-13 21:05:07.000000000 +0800
++++ zarfy-0.1.0/src/Makefile.in	2020-12-29 17:42:12.303392502 +0800
+@@ -200,7 +200,7 @@
+ 	cd $(top_builddir) && $(MAKE) $(AM_MAKEFLAGS) am--refresh
+ install-binPROGRAMS: $(bin_PROGRAMS)
+ 	@$(NORMAL_INSTALL)
+-	test -z "$(bindir)" || $(MKDIR_P) "$(DESTDIR)$(bindir)"
++	test -z "$(DESTDIR)$(bindir)" || $(MKDIR_P) "$(DESTDIR)$(bindir)"
+ 	@list='$(bin_PROGRAMS)'; for p in $$list; do \
+ 	  p1=`echo $$p|sed 's/$(EXEEXT)$$//'`; \
+ 	  if test -f $$p \

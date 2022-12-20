@@ -1,0 +1,88 @@
+2020-09-16: running on EasyOS Buster-series 2.4.1
+  need to get 'realpath', 'sha224sum', 'sha384sum'
+  out of 'coreutils' DEB, install to /usr/bin.
+  in case of 'realpath', replaces busybox applet.
+202012*: host is EasyOS Buster 2.5.4, has the above.
+20210415: in easyos, if erased session, /usr/bin/awk will disappear.
+202104*: now host is EasyOS Dunfell x86_64 v2.6+
+NOTICE 2021-06-16:
+The latest version of EasyOS that can be host for OE-Dunfell is 2.7.3, 
+which has glibc 2.31. This release of OE will not work with a host that
+has glibc >2.31. EasyOS 2.8.1 has glibc 2.33.
+NOTICE 2021-12:
+OE Dunfell can now handle glibc up to 2.34.
+
+get started
+-----------
+
+please check that /usr/bin/awk exists, kernel requires it.
+for easyos:
+# ln -s ../../bin/awk /usr/bin/awk
+
+# source oe-init-build-env build-amd64
+
+
+run
+---
+
+# bitbake-layers show-layers
+
+generates dep list, pkg list:
+# bitbake -g core-image-minimal
+
+record sorted list of packages:
+# sort pn-buildlist > pn-buildlistSORTED1
+
+start the build:
+# bitbake core-image-minimal
+
+
+to recompile a pkg
+------------------
+
+this will delete the entire prior pkg pkgname/version folder...
+# bitbake -c clean pkgname
+
+clean, and also clear state-cache:
+# bitbake -c cleansstate pkgname
+
+# bitbake -c build pkgname
+
+errors, recover
+---------------
+
+to keep going, ignore errors:
+# bitbake -k core-image-quirky
+
+Create a new recipe
+-------------------
+
+# recipetool create -o <pkg>_<ver>.bb <url>
+
+example:
+# recipetool create -o ntp_4.2.8p10.bb https://www.eecis.udel.edu/~ntp/ntp_spool/ntp4/ntp-4.2/ntp-4.2.8p10.tar.gz
+
+2021* this is OK now, applies to the earlier OE-pyro:
+Note, if <url> is a .tar.xz, get error that 'xz' missing.
+fix: in tmp-glibc/hosttools, create symlink: ln -s /usr/bin/xz xz
+
+-----------------------------------
+
+If you need to see the contents of DISTRO_FEATURES from the command line
+# bitbake -e core-image-minimal | grep "^DISTRO_FEATURES"
+DISTRO_FEATURES="acl alsa argp bluetooth ext2 ipv4 ipv6 largefile pcmcia usbgadget usbhost wifi xattr nfs  pci 3g nfc x11 vfat largefile opengl ptest multiarch  vulkan pulseaudio sysvinit gobject-introspection-data ldconfig"
+DISTRO_FEATURES_BACKFILL="pulseaudio sysvinit gobject-introspection-data ldconfig"
+DISTRO_FEATURES_BACKFILL_CONSIDERED="systemd"
+DISTRO_FEATURES_DEFAULT="acl alsa argp bluetooth ext2 ipv4 ipv6 largefile pcmcia usbgadget usbhost wifi xattr nfs zeroconf pci 3g nfc x11 vfat"
+DISTRO_FEATURES_FILTER_NATIVE="api-documentation"
+DISTRO_FEATURES_FILTER_NATIVESDK="api-documentation"
+DISTRO_FEATURES_NATIVE="x11 ipv6 xattr"
+DISTRO_FEATURES_NATIVESDK="x11"
+
+---------------------------------------------
+
+If want to run without internet access, and all required resources are local,
+put this into local.conf:
+
+BB_NO_NETWORK = "1"
+

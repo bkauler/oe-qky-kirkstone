@@ -1,0 +1,73 @@
+Description: Fix linking errors with multiply defined symbols
+ Multiple header files define the same variable, which is nowhere actually used.
+Author: IOhannes m zmölnig
+Origin: Debian
+Forwarded: https://github.com/unicap/unicap/pull/6
+Last-Update: 2020-07-27
+---
+This patch header follows DEP-3: http://dep.debian.net/deps/dep3/
+--- unicap.orig/common/queue.h
++++ unicap/common/queue.h
+@@ -24,16 +24,14 @@
+ #include <sys/time.h>
+ #include <semaphore.h>
+ 
+-struct _unicap_queue
++typedef struct _unicap_queue
+ {
+       sem_t sema;
+       sem_t *psema;
+ 
+       void * data;
+       struct _unicap_queue *next;
+-} unicap_queue;
+-
+-typedef struct _unicap_queue unicap_queue_t;
++} unicap_queue_t;
+ 
+ __HIDDEN__ void ucutil_insert_back_queue( unicap_queue_t *queue, unicap_queue_t *entry );
+ __HIDDEN__ void ucutil_insert_front_queue( unicap_queue_t *queue, unicap_queue_t *entry );
+--- unicap.orig/cpi/aravis/queue.h
++++ unicap/cpi/aravis/queue.h
+@@ -24,7 +24,7 @@
+ #include <sys/time.h>
+ #include <semaphore.h>
+ 
+-struct _unicap_queue
++typedef struct _unicap_queue
+ {
+ 		sem_t sema;
+ 		sem_t *psema;
+@@ -34,9 +34,7 @@
+ 
+ 		void * data;
+ 		struct _unicap_queue *next;
+-} unicap_queue;
+-
+-typedef struct _unicap_queue unicap_queue_t;
++} unicap_queue_t;
+ 
+ void _init_queue( struct _unicap_queue *queue );
+ void _destroy_queue( struct _unicap_queue *queue );
+--- unicap.orig/cpi/euvccam/queue.h
++++ unicap/cpi/euvccam/queue.h
+@@ -24,7 +24,7 @@
+ #include <sys/time.h>
+ #include <semaphore.h>
+ 
+-struct _unicap_queue
++typedef struct _unicap_queue
+ {
+ 		sem_t sema;
+ 		sem_t *psema;
+@@ -34,9 +34,7 @@
+ 
+ 		void * data;
+ 		struct _unicap_queue *next;
+-} unicap_queue;
+-
+-typedef struct _unicap_queue unicap_queue_t;
++} unicap_queue_t;
+ 
+ void _init_queue( struct _unicap_queue *queue );
+ void _destroy_queue( struct _unicap_queue *queue );

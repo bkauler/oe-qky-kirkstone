@@ -1,0 +1,20 @@
+Author: Alessio Treglia <alessio@debian.org>
+Description: Fix FTBFS on kfreebsd architectures.
+Forwarded: https://gna.org/bugs/index.php?16340
+---
+ src/sound-pulse.c |    4 ++++
+ 1 file changed, 4 insertions(+)
+
+--- mhwaveedit.orig/src/sound-pulse.c
++++ mhwaveedit/src/sound-pulse.c
+@@ -28,6 +28,10 @@
+ 
+ #undef MLDEBUG
+ 
++#if defined(__FreeBSD_kernel__) || defined (__GNU__)
++#include <sys/poll.h>
++#endif
++
+ /* ----------------------- */
+ /* Mainloop API */
+ 

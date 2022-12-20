@@ -1,0 +1,5 @@
+
+20221209
+kirkstone has remmina 1.4.24, compile fails.
+try 1.4.28 from meta-oe master.
+...ok.

@@ -1,0 +1,3 @@
+
+#20220322 easyos 3.4.3, hunspell not working, this might fix it....
+PACKAGECONFIG:append = " hunspell"

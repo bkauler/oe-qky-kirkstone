@@ -1,0 +1,40 @@
+# Recipe created by recipetool
+# recipetool create -o bacon_4.5.bb https://www.basic-converter.org/stable/bacon-4.5.tar.gz
+# recipetool create -o bacon_4.5.0.1.bb https://distro.ibiblio.org/easyos/source/alphabetical/b/bacon-4.5.0.1.tar.gz
+# recipetool create -o bacon_4.5.0.2.bb https://distro.ibiblio.org/easyos/source/alphabetical/b/bacon-4.5.0.2.tar.gz
+
+HOMEPAGE = "http://basic-converter.org/"
+SUMMARY = "A BASIC compiler with highlevel GUI IDE."
+
+LICENSE = "MIT"
+LIC_FILES_CHKSUM = "file://LICENSE;md5=45bf18d7318cf67fb528718d3aa04efe"
+
+SRC_URI = "https://distro.ibiblio.org/easyos/source/alphabetical/b/bacon-${PV}.tar.gz \
+           file://fix-oe-compile.patch"
+
+SRC_URI[md5sum] = "f0eace0083393917b5b5f5f6212c03c7"
+SRC_URI[sha256sum] = "26ca57230f17db2ce117aa83c955a70483543fd21e07fddf0d15acaa4615aefb"
+
+DEPENDS = "flex-native bacon-native coreutils-native util-linux-native"
+
+do_configure() {
+ true
+}
+
+do_compile() {
+ mkdir -p build
+ bacon -p -d build -c "${CC}" -o "${CFLAGS}" -l "${LDFLAGS}" bacon.bac
+}
+
+do_install() {
+ install -d ${D}${bindir}
+ install -m755 build/bacon ${D}/usr/bin
+ install -m755 bacon.sh ${D}/usr/bin
+ install -d ${D}/usr/share/BaCon
+ install -m644 bacon.bac ${D}/usr/share/BaCon
+ install -m644 bacongui-gtk.bac ${D}/usr/share/BaCon
+ install -m644 bacongui-fltk.bac ${D}/usr/share/BaCon
+ install -d ${D}/usr/share/pixmaps
+ install -m644 icons/BaCon24.png ${D}/usr/share/pixmaps/BaCon.png
+}
+

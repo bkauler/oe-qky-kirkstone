@@ -1,0 +1,31 @@
+From a3fcf20a65c476b5b8a3f92ed3e950838f9e21b7 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Andreas=20M=C3=BCller?= <schnitzeltony@gmail.com>
+Date: Thu, 30 Nov 2017 12:55:30 +0100
+Subject: [PATCH] configure.ac: remove fixed paths causing trouble when cross
+ compiling
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Upstream-Status: Inappropriate [cross specific]
+
+Signed-off-by: Andreas Müller <schnitzeltony@gmail.com>
+---
+ configure.ac | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/configure.ac b/configure.ac
+index f1c9003..1721444 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -29,7 +29,6 @@ AC_SUBST(MISCDIR)
+ AC_SUBST(QUICKCHECKDIR)
+ 
+ CPPFLAGS="$CPPFLAGS -Wall -O2 -g -pedantic-errors -DMDDS_DEBUG_NODE_BASE -DMDDS_UNIT_TEST -std=c++11"
+-CPPFLAGS="$CPPFLAGS -I/usr/include -I/usr/local/include"
+ 
+ if test "$debug_stdcxx" = "yes"; then
+   CPPFLAGS="$CPPFLAGS -D_GLIBCXX_DEBUG"
+-- 
+2.9.5
+

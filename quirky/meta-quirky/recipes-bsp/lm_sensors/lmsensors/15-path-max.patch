@@ -1,0 +1,14 @@
+--- a/lib/access.h
++++ b/lib/access.h
+@@ -22,6 +22,11 @@
+ #ifndef LIB_SENSORS_ACCESS_H
+ #define LIB_SENSORS_ACCESS_H
+ 
++/* PATH_MAX is undefined on GNU Hurd */
++#ifndef PATH_MAX
++#define PATH_MAX 4096
++#endif
++
+ #include "sensors.h"
+ #include "data.h"
+ 

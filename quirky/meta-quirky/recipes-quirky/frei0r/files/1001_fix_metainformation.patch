@@ -1,0 +1,15 @@
+Description: Fix Makefile.am to include the correct info-files
+ For whatever reasons, the released frei0r files are different from the tagged
+ releases (on github), by renaming some crucial files.
+Author: IOhannes m zmölnig
+Last-Update: 2020-01-29
+---
+This patch header follows DEP-3: http://dep.debian.net/deps/dep3/
+--- frei0r.orig/Makefile.am
++++ frei0r/Makefile.am
+@@ -16,4 +16,4 @@
+ pkgconfig_DATA = frei0r.pc
+ 
+ docsdir = ${prefix}/share/doc/${PACKAGE}
+-docs_DATA = README.md ChangeLog TODO AUTHORS 
++docs_DATA = README.txt ChangeLog.txt TODO.txt AUTHORS.txt

@@ -1,0 +1,1188 @@
+diff -Naur osmo-ac9aa8acdef0902d30e70fa145ed5839dfe88550/configure.ac osmo-21d00afd331e9eb9af76e8cc5b9a8fd82906c181/configure.ac
+--- osmo-ac9aa8acdef0902d30e70fa145ed5839dfe88550/configure.ac	2019-04-09 01:10:42.000000000 +0800
++++ osmo-21d00afd331e9eb9af76e8cc5b9a8fd82906c181/configure.ac	2019-04-09 01:10:44.000000000 +0800
+@@ -137,22 +137,6 @@
+ 	AC_DEFINE([CONTACTS_ENABLED], [1], [Contacts module enabled])
+ fi
+ 
+-# Checks for libsyncml
+-AC_ARG_WITH(libsyncml,
+-	[[  --with-libsyncml        enable experimental SyncML plugin]],
+-	[if test "x$withval" = "xyes" ; then use_syncml=1 ; else use_syncml=0; fi],
+-	use_syncml=0)
+-PKG_CHECK_MODULES(LIBSYNCML, libsyncml-1.0 >= 0.4.0, have_syncml=true,
+-	have_syncml=false)
+-libsyncml="no"
+-if test "x$have_syncml" = "xtrue"; then
+-	if test "x$use_syncml" = "x1"; then
+-		AC_DEFINE([HAVE_LIBSYNCML], [1], [Define to 1 if you have have SyncML support])
+-		libsyncml="yes"
+-	fi
+-fi
+-AM_CONDITIONAL([HAVE_LIBSYNCML], test "x$libsyncml" = "xyes")
+-
+ # Checks for Pango 1.20
+ PKG_CHECK_MODULES(PANGO_1_20, pango >= 1.20, [HAVE_PANGO_1_20=yes], [HAVE_PANGO_1_20=no])
+ if test "x$HAVE_PANGO_1_20" = xyes; then
+@@ -255,5 +239,4 @@
+     libgtkhtml:         $libgtkhtml
+     libtar:             $libtar
+     libgringotts:       $libgringotts
+-    libsyncml:          $libsyncml
+ "
+diff -Naur osmo-ac9aa8acdef0902d30e70fa145ed5839dfe88550/README osmo-21d00afd331e9eb9af76e8cc5b9a8fd82906c181/README
+--- osmo-ac9aa8acdef0902d30e70fa145ed5839dfe88550/README	2019-04-09 01:10:42.000000000 +0800
++++ osmo-21d00afd331e9eb9af76e8cc5b9a8fd82906c181/README	2019-04-09 01:10:44.000000000 +0800
+@@ -81,7 +81,6 @@
+     * Libical library, version >= 0.33
+     * Libtar library, version >= 1.2.10
+     * Libgringotts library, version >= 1.2.1 
+-    * Libsyncml library, version >= 0.4.0
+ 
+ 
+ -----> FEEDBACK ?
+diff -Naur osmo-ac9aa8acdef0902d30e70fa145ed5839dfe88550/README.syncml osmo-21d00afd331e9eb9af76e8cc5b9a8fd82906c181/README.syncml
+--- osmo-ac9aa8acdef0902d30e70fa145ed5839dfe88550/README.syncml	2019-04-09 01:10:42.000000000 +0800
++++ osmo-21d00afd331e9eb9af76e8cc5b9a8fd82906c181/README.syncml	1970-01-01 08:00:00.000000000 +0800
+@@ -1,70 +0,0 @@
+-(this file should give some hints to enable and use SyncML stuff)
+-
+-REQUIREMENTS
+-============
+-* libsyncml
+-    * http://libsyncml.opensync.org/
+-    * Debian packages: libsyncml-dev libsyncml0
+-* SyncML enabled device (cell phone, PDA, ...)
+-
+-TESTING WITHOUT OSMO
+-====================
+-* use syncml-obex-client (from the libsyncml-utils Debian package)
+-    * http://libsyncml.opensync.org/wiki/obex-guide
+-
+-COMPILE-TIME ACTIVATION
+-=======================
+-Use the "--with-libsyncml" switch for ./configure to enable SyncML support.
+-This may be the default in the future if the stuff is fairly stable.
+-
+-BLUETOOTH HINTS
+-===============
+-
+-Getting the phone's Bluetooth device address
+---------------------------------------------
+-* hcitool scan
+-
+-Getting the SyncML RFCOMM channel
+----------------------------------
+-* sdptool browse | less
+-
+-USING USB
+-=========
+-To use USB devices with non-root user accounts you have to give permissions
+-to them. This can be done with udev. Create a udev configuration file, e.g.
+-"/etc/udev/rules.d/phone.rules" and add the following line (of course
+-adopted to your phone's USB ids):
+-
+-SUBSYSTEM=="usb", SYSFS{idVendor}=="0fce", SYSFS{idProduct}=="d046",
+-MODE="0660", GROUP="plugdev"
+-
+-Now everyone in the group "plugdev" may access the phone. Of course you can
+-restrict it to one user, too.
+-
+-USB connection is done by a identifier (not to be confused with the USB
+-vendor/product ID), which is normally "0" for the first OBEX enabled USB
+-device.
+-
+-DEVELOPMENT TODO
+-================
+-* serial device support
+-* calendar support (VCALENDAR)
+-* (notes support)
+-* split off SyncML stuff from contacts import
+-* generic implementation of V(CARD|EVENT|...)
+-* GUI cleanup
+-* graphical status/error messages
+-* (SyncML over HTTP)
+-* (real sync: Osmo <-> Phone)
+-* sync vs. slow-sync? (only slow-sync for now)
+-
+-TESTED PHONES
+-=============
+-                      Bt  USB Ser   WB  Contacts Notes Calender
+-                              (NYI) XML          (NYI)  (NYI)
+-------------------------------------------------------------------------------
+-Sony Ericsson K610i    x   x    -    x     x       x      x
+-
+-CONTACT
+-=======
+-Markus Dahms <mad@automagically.de>
+diff -Naur osmo-ac9aa8acdef0902d30e70fa145ed5839dfe88550/src/about.c osmo-21d00afd331e9eb9af76e8cc5b9a8fd82906c181/src/about.c
+--- osmo-ac9aa8acdef0902d30e70fa145ed5839dfe88550/src/about.c	2019-04-09 01:10:42.000000000 +0800
++++ osmo-21d00afd331e9eb9af76e8cc5b9a8fd82906c181/src/about.c	2019-04-09 01:10:44.000000000 +0800
+@@ -562,14 +562,6 @@
+ 	gtk_text_buffer_insert (appGUI->about_entry_buffer, &appGUI->about_entry_iter, str, -1);
+ 	g_free (str);
+ 
+-#ifdef HAVE_LIBSYNCML
+-	str = g_strdup_printf ("     [+]\t%s (libsyncml)\n", _("SyncML enabled device support"));
+-#else
+-	str = g_strdup_printf ("     [-]\t%s (libsyncml)\n", _("SyncML enabled device support"));
+-#endif  /* HAVE_LIBSYNCML */
+-	gtk_text_buffer_insert (appGUI->about_entry_buffer, &appGUI->about_entry_iter, str, -1);
+-	g_free (str);
+-
+ #if defined(BACKUP_SUPPORT) && defined(HAVE_LIBGRINGOTTS)
+ 	str = g_strdup_printf ("     [+]\t%s (libtar + libgringotts)\n", _("Backup support"));
+ #else
+diff -Naur osmo-ac9aa8acdef0902d30e70fa145ed5839dfe88550/src/contacts.c osmo-21d00afd331e9eb9af76e8cc5b9a8fd82906c181/src/contacts.c
+--- osmo-ac9aa8acdef0902d30e70fa145ed5839dfe88550/src/contacts.c	2019-04-09 01:10:42.000000000 +0800
++++ osmo-21d00afd331e9eb9af76e8cc5b9a8fd82906c181/src/contacts.c	2019-04-09 01:10:44.000000000 +0800
+@@ -34,10 +34,6 @@
+ #include "contacts_export.h"
+ #include "calendar_utils.h"
+ 
+-#ifdef HAVE_LIBSYNCML
+-#include "contacts_import_syncml.h"
+-#endif  /* HAVE_LIBSYNCML */
+-
+ #ifdef CONTACTS_ENABLED
+ 
+ /*============================================================================*/
+@@ -845,11 +841,7 @@
+ 
+     GUI *appGUI = (GUI *)data;
+ 
+-#ifdef HAVE_LIBSYNCML
+-    import_contacts_show_dialog (appGUI);
+-#else
+     import_contacts_from_csv_file (appGUI);
+-#endif
+ }
+ 
+ /*------------------------------------------------------------------------------*/
+diff -Naur osmo-ac9aa8acdef0902d30e70fa145ed5839dfe88550/src/contacts_import.c osmo-21d00afd331e9eb9af76e8cc5b9a8fd82906c181/src/contacts_import.c
+--- osmo-ac9aa8acdef0902d30e70fa145ed5839dfe88550/src/contacts_import.c	2019-04-09 01:10:42.000000000 +0800
++++ osmo-21d00afd331e9eb9af76e8cc5b9a8fd82906c181/src/contacts_import.c	2019-04-09 01:10:44.000000000 +0800
+@@ -21,7 +21,6 @@
+ 
+ #include "contacts_import.h"
+ #include "contacts_import_csv.h"
+-#include "contacts_import_syncml.h"
+ #include "i18n.h"
+ #include "utils.h"
+ #include "utils_date.h"
+@@ -40,41 +39,18 @@
+ 
+     config.import_type = gtk_combo_box_get_active (GTK_COMBO_BOX (appGUI->cnt->import_type_combobox));
+ 
+-    if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON(appGUI->cnt->bluetooth_radiobutton)) == TRUE) {
+-        config.import_interface_type = SYNCML_BLUETOOTH;
+-    }
+-    if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON(appGUI->cnt->usb_radiobutton)) == TRUE) {
+-        config.import_interface_type = SYNCML_USB;
+-    }
+-
+-    strncpy(config.import_bluetooth_address, 
+-            gtk_entry_get_text (GTK_ENTRY(appGUI->cnt->bluetooth_address_entry)), MAXADDRESS-1);
+-
+     config.import_binary_xml = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (appGUI->cnt->use_wbxml_checkbutton));
+ 
+-    config.import_bluetooth_channel = gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON(appGUI->cnt->bluetooth_channel_spinbutton)); 
+-    config.import_usb_interface = gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON(appGUI->cnt->usb_interface_spinbutton)); 
+ }
+ 
+ /*-------------------------------------------------------------------------------------*/
+ 
+-#ifndef HAVE_LIBSYNCML
+ gboolean
+ import_contacts_select_file (GUI *appGUI) {
+-#else
+-void
+-import_contacts_select_file_cb (GtkWidget *widget, gpointer user_data) {
+-#endif
+ 
+ GtkWidget *dialog;
+ GtkFileFilter *filter_1, *filter_2;
+-#ifndef HAVE_LIBSYNCML
+ gboolean ret = FALSE;
+-#endif
+-
+-#ifdef HAVE_LIBSYNCML
+-    GUI *appGUI = (GUI *)user_data;
+-#endif
+ 
+     dialog = gtk_file_chooser_dialog_new(_("Select CSV file"),
+                                          GTK_WINDOW(appGUI->cnt->import_sel_window),
+@@ -102,38 +78,23 @@
+ 
+     if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT) {
+ 
+-#ifdef HAVE_LIBSYNCML
+-        gtk_widget_hide(dialog);
+-
+-        gtk_entry_set_text (GTK_ENTRY(appGUI->cnt->input_file_entry), 
+-                            gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog)));
+-
+-#else
+         gtk_widget_hide(dialog);
+         while (g_main_context_iteration(NULL, FALSE));
+ 
+         ret = add_csv_records(gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog)), appGUI);
+-#endif
+ 
+     }
+ 
+     gtk_widget_destroy(dialog);
+ 
+-#ifndef HAVE_LIBSYNCML
+     return ret;
+-#endif
+-
+ }
+ 
+ /*-------------------------------------------------------------------------------------*/
+ 
+ gboolean
+ import_contacts_from_csv_file (GUI *appGUI) {
+-#ifndef HAVE_LIBSYNCML
+     return import_contacts_select_file (appGUI);
+-#else
+-    return FALSE;
+-#endif
+ }
+ 
+ /*-------------------------------------------------------------------------------------*/
+@@ -192,11 +153,6 @@
+     switch (import_type) {
+         case IMPORT_TYPE_FILE:
+             gtk_widget_set_sensitive(appGUI->cnt->file_import_vbox, TRUE);
+-            gtk_widget_set_sensitive(appGUI->cnt->syncml_import_vbox, FALSE);
+-            break;
+-        case IMPORT_TYPE_SYNCML:
+-            gtk_widget_set_sensitive(appGUI->cnt->syncml_import_vbox, TRUE);
+-            gtk_widget_set_sensitive(appGUI->cnt->file_import_vbox, FALSE);
+             break;
+     }
+ 
+@@ -212,22 +168,6 @@
+ /*------------------------------------------------------------------------------*/
+ 
+ void
+-import_sel_interface_changed_cb (GtkButton *button, gpointer user_data) {
+-
+-    GUI *appGUI = (GUI *)user_data;
+-
+-    if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON(appGUI->cnt->bluetooth_radiobutton)) == TRUE) {
+-        gtk_widget_show (appGUI->cnt->bluetooth_params_hbox);
+-        gtk_widget_hide (appGUI->cnt->usb_params_hbox);
+-    } else {
+-        gtk_widget_show (appGUI->cnt->usb_params_hbox);
+-        gtk_widget_hide (appGUI->cnt->bluetooth_params_hbox);
+-    }
+-}
+-
+-/*------------------------------------------------------------------------------*/
+-
+-void
+ import_sel_cb (GtkWidget *widget, gpointer user_data) {
+ 
+     GUI *appGUI = (GUI *)user_data;
+@@ -249,14 +189,6 @@
+         }
+         add_csv_records(text, appGUI);
+ 
+-    } else {
+-
+-        /* SYNCML */
+-
+-#ifdef HAVE_LIBSYNCML
+-        import_contacts_from_syncml (config.import_interface_type, appGUI);
+-#endif
+-
+     }
+ 
+     import_sel_window_close_cb (NULL, NULL, appGUI);
+@@ -278,8 +210,6 @@
+ GtkWidget *hbox6;
+ GSList *radiobutton_group = NULL;
+ GtkWidget *hbox7;
+-GtkObject *bluetooth_channel_spinbutton_adj;
+-GtkObject *usb_interface_spinbutton_adj;
+ GtkWidget *cancel_button;
+ GtkWidget *hbuttonbox;
+ gchar tmpbuf[BUFFER_SIZE];
+@@ -323,7 +253,6 @@
+     gtk_widget_show (appGUI->cnt->import_type_combobox);
+     gtk_box_pack_start (GTK_BOX (hbox1), appGUI->cnt->import_type_combobox, FALSE, FALSE, 8);
+     gtk_combo_box_append_text (GTK_COMBO_BOX (appGUI->cnt->import_type_combobox), _("File"));
+-    gtk_combo_box_append_text (GTK_COMBO_BOX (appGUI->cnt->import_type_combobox), "SyncML");
+     g_signal_connect (G_OBJECT (appGUI->cnt->import_type_combobox), "changed",
+                       G_CALLBACK (import_type_selected_cb), appGUI);
+     g_signal_connect(G_OBJECT(appGUI->cnt->import_type_combobox), "focus",
+@@ -361,10 +290,6 @@
+     GTK_WIDGET_UNSET_FLAGS(appGUI->cnt->contacts_browse_button, GTK_CAN_FOCUS);
+     gtk_widget_show (appGUI->cnt->contacts_browse_button);
+     gtk_box_pack_start (GTK_BOX (hbox4), appGUI->cnt->contacts_browse_button, FALSE, TRUE, 4);
+-#ifdef HAVE_LIBSYNCML
+-    g_signal_connect(appGUI->cnt->contacts_browse_button, "clicked", 
+-                     G_CALLBACK(import_contacts_select_file_cb), appGUI);
+-#endif
+ 
+     sprintf (tmpbuf, "<b>%s:</b>", _("Input filename"));
+     label = gtk_label_new (tmpbuf);
+@@ -372,13 +297,8 @@
+     gtk_frame_set_label_widget (GTK_FRAME (frame), label);
+     gtk_label_set_use_markup (GTK_LABEL (label), TRUE);
+ 
+-    appGUI->cnt->syncml_import_vbox = gtk_vbox_new (FALSE, 0);
+-    gtk_widget_show (appGUI->cnt->syncml_import_vbox);
+-    gtk_box_pack_start (GTK_BOX (vbox1), appGUI->cnt->syncml_import_vbox, FALSE, FALSE, 0);
+-
+     frame = gtk_frame_new (NULL);
+     gtk_widget_show (frame);
+-    gtk_box_pack_start (GTK_BOX (appGUI->cnt->syncml_import_vbox), frame, TRUE, TRUE, 0);
+     gtk_frame_set_shadow_type (GTK_FRAME (frame), GTK_SHADOW_NONE);
+ 
+     alignment = gtk_alignment_new (0.5, 0.5, 1, 1);
+@@ -394,62 +314,10 @@
+     gtk_widget_show (hbox6);
+     gtk_box_pack_start (GTK_BOX (vbox4), hbox6, TRUE, TRUE, 2);
+ 
+-    appGUI->cnt->bluetooth_radiobutton = gtk_radio_button_new_with_mnemonic (NULL, "Bluetooth");
+-    gtk_widget_show (appGUI->cnt->bluetooth_radiobutton);
+-    gtk_box_pack_start (GTK_BOX (hbox6), appGUI->cnt->bluetooth_radiobutton, FALSE, FALSE, 0);
+-    gtk_radio_button_set_group (GTK_RADIO_BUTTON (appGUI->cnt->bluetooth_radiobutton), radiobutton_group);
+-    g_signal_connect (G_OBJECT (appGUI->cnt->bluetooth_radiobutton), "clicked",
+-                      G_CALLBACK(import_sel_interface_changed_cb), appGUI);
+-    radiobutton_group = gtk_radio_button_get_group (GTK_RADIO_BUTTON (appGUI->cnt->bluetooth_radiobutton));
+-
+-    appGUI->cnt->usb_radiobutton = gtk_radio_button_new_with_mnemonic (NULL, "USB");
+-    gtk_widget_show (appGUI->cnt->usb_radiobutton);
+-    gtk_box_pack_start (GTK_BOX (hbox6), appGUI->cnt->usb_radiobutton, FALSE, FALSE, 0);
+-    gtk_radio_button_set_group (GTK_RADIO_BUTTON (appGUI->cnt->usb_radiobutton), radiobutton_group);
+-    radiobutton_group = gtk_radio_button_get_group (GTK_RADIO_BUTTON (appGUI->cnt->usb_radiobutton));
+-
+     hbox7 = gtk_hbox_new (FALSE, 8);
+     gtk_widget_show (hbox7);
+     gtk_box_pack_start (GTK_BOX (vbox4), hbox7, TRUE, TRUE, 2);
+ 
+-    appGUI->cnt->bluetooth_params_hbox = gtk_hbox_new (FALSE, 4);
+-    gtk_widget_show (appGUI->cnt->bluetooth_params_hbox);
+-    gtk_box_pack_start (GTK_BOX (hbox7), appGUI->cnt->bluetooth_params_hbox, TRUE, TRUE, 0);
+-
+-    sprintf (tmpbuf, "%s:", _("Address"));
+-    label = gtk_label_new (tmpbuf);
+-    gtk_widget_show (label);
+-    gtk_box_pack_start (GTK_BOX (appGUI->cnt->bluetooth_params_hbox), label, FALSE, FALSE, 0);
+-
+-    appGUI->cnt->bluetooth_address_entry = gtk_entry_new ();
+-    gtk_widget_show (appGUI->cnt->bluetooth_address_entry);
+-    gtk_box_pack_start (GTK_BOX (appGUI->cnt->bluetooth_params_hbox), appGUI->cnt->bluetooth_address_entry, TRUE, TRUE, 0);
+-    gtk_entry_set_max_length (GTK_ENTRY(appGUI->cnt->bluetooth_address_entry), 17);    /* 00:00:00:00:00:00 */
+-
+-    sprintf (tmpbuf, "%s:", _("Channel"));
+-    label = gtk_label_new (tmpbuf);
+-    gtk_widget_show (label);
+-    gtk_box_pack_start (GTK_BOX (appGUI->cnt->bluetooth_params_hbox), label, FALSE, FALSE, 0);
+-
+-    bluetooth_channel_spinbutton_adj = gtk_adjustment_new (1, 0, 100, 1, 10, 0);
+-    appGUI->cnt->bluetooth_channel_spinbutton = gtk_spin_button_new (GTK_ADJUSTMENT (bluetooth_channel_spinbutton_adj), 1, 0);
+-    gtk_widget_show (appGUI->cnt->bluetooth_channel_spinbutton);
+-    gtk_box_pack_start (GTK_BOX (appGUI->cnt->bluetooth_params_hbox), appGUI->cnt->bluetooth_channel_spinbutton, FALSE, FALSE, 0);
+-
+-    appGUI->cnt->usb_params_hbox = gtk_hbox_new (FALSE, 4);
+-    gtk_widget_show (appGUI->cnt->usb_params_hbox);
+-    gtk_box_pack_start (GTK_BOX (hbox7), appGUI->cnt->usb_params_hbox, TRUE, TRUE, 0);
+-
+-    sprintf (tmpbuf, "%s:", _("Interface"));
+-    label = gtk_label_new (tmpbuf);
+-    gtk_widget_show (label);
+-    gtk_box_pack_start (GTK_BOX (appGUI->cnt->usb_params_hbox), label, FALSE, FALSE, 0);
+-
+-    usb_interface_spinbutton_adj = gtk_adjustment_new (1, 0, 100, 1, 10, 0);
+-    appGUI->cnt->usb_interface_spinbutton = gtk_spin_button_new (GTK_ADJUSTMENT (usb_interface_spinbutton_adj), 1, 0);
+-    gtk_widget_show (appGUI->cnt->usb_interface_spinbutton);
+-    gtk_box_pack_start (GTK_BOX (appGUI->cnt->usb_params_hbox), appGUI->cnt->usb_interface_spinbutton, FALSE, FALSE, 0);
+-
+     sprintf (tmpbuf, "<b>%s</b>", _("Interface"));
+     label = gtk_label_new (tmpbuf);
+     gtk_widget_show (label);
+@@ -458,7 +326,6 @@
+ 
+     frame = gtk_frame_new (NULL);
+     gtk_widget_show (frame);
+-    gtk_box_pack_start (GTK_BOX (appGUI->cnt->syncml_import_vbox), frame, TRUE, TRUE, 0);
+     gtk_frame_set_shadow_type (GTK_FRAME (frame), GTK_SHADOW_NONE);
+ 
+     alignment = gtk_alignment_new (0.5, 0.5, 1, 1);
+@@ -502,74 +369,14 @@
+ 
+     gtk_combo_box_set_active (GTK_COMBO_BOX (appGUI->cnt->import_type_combobox), config.import_type);
+ 
+-    if (config.import_interface_type == 0) {    /* bluetooth */
+-        gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(appGUI->cnt->bluetooth_radiobutton), TRUE);
+-    } else {
+-        gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON(appGUI->cnt->usb_radiobutton), TRUE);
+-    }
+-    import_sel_interface_changed_cb (GTK_BUTTON(appGUI->cnt->bluetooth_radiobutton), appGUI);
+-
+-    gtk_entry_set_text (GTK_ENTRY(appGUI->cnt->bluetooth_address_entry), 
+-                        config.import_bluetooth_address);
+-
+     gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (appGUI->cnt->use_wbxml_checkbutton), config.import_binary_xml);
+ 
+-    gtk_spin_button_set_value (GTK_SPIN_BUTTON (appGUI->cnt->bluetooth_channel_spinbutton), config.import_bluetooth_channel);
+-    gtk_spin_button_set_value (GTK_SPIN_BUTTON (appGUI->cnt->usb_interface_spinbutton), config.import_usb_interface);
+-
+     gtk_widget_show (appGUI->cnt->import_sel_window);
+ 
+ }
+ 
+ /*-------------------------------------------------------------------------------------*/
+ 
+-/*gboolean*/
+-/*import_contacts_from_csv_file (GUI *appGUI) {*/
+-
+-/*GtkWidget *dialog;*/
+-/*gboolean ret = FALSE;*/
+-/*GtkFileFilter *filter_1, *filter_2;*/
+-
+-    /*dialog = gtk_file_chooser_dialog_new(_("Select CSV file"),*/
+-                                         /*GTK_WINDOW(appGUI->main_window),*/
+-                                         /*GTK_FILE_CHOOSER_ACTION_OPEN,*/
+-                                         /*GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,*/
+-                                         /*GTK_STOCK_OK, GTK_RESPONSE_ACCEPT,*/
+-                                         /*NULL);*/
+-
+-    /*gtk_window_set_position(GTK_WINDOW(dialog), GTK_WIN_POS_CENTER);*/
+-    /*gtk_file_chooser_set_select_multiple(GTK_FILE_CHOOSER(dialog), FALSE);*/
+-    /*gtk_dialog_set_default_response(GTK_DIALOG(dialog), GTK_RESPONSE_ACCEPT);*/
+-
+-    /*filter_1 = gtk_file_filter_new();*/
+-    /*gtk_file_filter_add_pattern(filter_1, "*");*/
+-    /*gtk_file_filter_set_name(GTK_FILE_FILTER(filter_1), _("All Files"));*/
+-    /*gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter_1);*/
+-
+-    /*filter_2 = gtk_file_filter_new();*/
+-    /*gtk_file_filter_add_pattern(filter_2, "*.[cC][sS][vV]");*/
+-    /*gtk_file_filter_set_name(GTK_FILE_FILTER(filter_2), _("CSV (comma-separated values) files (*.csv)"));*/
+-    /*gtk_file_chooser_add_filter(GTK_FILE_CHOOSER(dialog), filter_2);*/
+-
+-    /*gtk_file_chooser_set_filter(GTK_FILE_CHOOSER(dialog), filter_2);*/
+-
+-
+-    /*if (gtk_dialog_run(GTK_DIALOG(dialog)) == GTK_RESPONSE_ACCEPT) {*/
+-
+-        /*gtk_widget_hide(dialog);*/
+-        /*while (g_main_context_iteration(NULL, FALSE));*/
+-
+-        /*ret = add_csv_records(gtk_file_chooser_get_filename(GTK_FILE_CHOOSER(dialog)), appGUI);*/
+-
+-    /*}*/
+-
+-    /*gtk_widget_destroy(dialog);*/
+-
+-    /*return ret;*/
+-/*}*/
+-
+-/*------------------------------------------------------------------------------*/
+-
+ void
+ import_window_close_cb (GtkWidget *widget, GdkEvent *event, gpointer user_data) {
+  
+diff -Naur osmo-ac9aa8acdef0902d30e70fa145ed5839dfe88550/src/contacts_import.h osmo-21d00afd331e9eb9af76e8cc5b9a8fd82906c181/src/contacts_import.h
+--- osmo-ac9aa8acdef0902d30e70fa145ed5839dfe88550/src/contacts_import.h	2019-04-09 01:10:42.000000000 +0800
++++ osmo-21d00afd331e9eb9af76e8cc5b9a8fd82906c181/src/contacts_import.h	2019-04-09 01:10:44.000000000 +0800
+@@ -26,12 +26,6 @@
+ 
+ enum {
+     IMPORT_TYPE_FILE = 0,
+-    IMPORT_TYPE_SYNCML
+-};
+-
+-enum {
+-    SYNCML_BLUETOOTH = 0,
+-    SYNCML_USB
+ };
+ 
+ void        import_contacts_show_dialog     (GUI *appGUI);
+diff -Naur osmo-ac9aa8acdef0902d30e70fa145ed5839dfe88550/src/contacts_import_syncml.c osmo-21d00afd331e9eb9af76e8cc5b9a8fd82906c181/src/contacts_import_syncml.c
+--- osmo-ac9aa8acdef0902d30e70fa145ed5839dfe88550/src/contacts_import_syncml.c	2019-04-09 01:10:42.000000000 +0800
++++ osmo-21d00afd331e9eb9af76e8cc5b9a8fd82906c181/src/contacts_import_syncml.c	1970-01-01 08:00:00.000000000 +0800
+@@ -1,358 +0,0 @@
+-
+-/*
+- * Osmo - a handy personal organizer
+- *
+- * Copyright (C) 2007 Tomasz Maka <pasp@users.sourceforge.net>
+- *           (C) 2008 Markus Dahms <mad@automagically.de>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+- */
+-
+-#include "contacts_import_syncml.h"
+-#include "i18n.h"
+-#include "utils.h"
+-#include "utils_gui.h"
+-#include "contacts.h"
+-#include "contacts_import.h"
+-#include "contacts_import_vcard.h"
+-#include "options_prefs.h"
+-
+-#ifdef CONTACTS_ENABLED
+-
+-static gboolean _contacts_from_syncml (GUI *appGUI, OsmoSyncMLData *smldata);
+-
+-/*------------------------------------------------------------------------------*/
+-
+-void
+-syncml_handle_error (SmlError *smlerror, GUI *appGUI) {
+-
+-gchar tmpbuf[BUFFER_SIZE];
+-
+-    sprintf (tmpbuf, "SyncML: %s", smlErrorPrint(&smlerror));
+-    utl_gui_create_dialog (GTK_MESSAGE_ERROR, tmpbuf, GTK_WINDOW(appGUI->main_window));
+-
+-	smlErrorDeref(&smlerror);
+-}
+-
+-/*------------------------------------------------------------------------------*/
+-
+-gboolean import_contacts_from_syncml (gint type, GUI *appGUI) 
+-{
+-	gboolean retval = FALSE;
+-	OsmoSyncMLData *smldata;
+-
+-    /* try to load data */
+-    smldata = g_new0(OsmoSyncMLData, 1);
+-    smldata->gui = appGUI;
+-    switch(type) {
+-        case SYNCML_BLUETOOTH: /* Bluetooth */
+-            smldata->oc_type = SML_OBEX_TYPE_BLUETOOTH;
+-            smldata->url = g_strdup(config.import_bluetooth_address);
+-            smldata->port = config.import_bluetooth_channel;
+-            break;
+-        case SYNCML_USB:
+-            smldata->oc_type = SML_OBEX_TYPE_USB;
+-            smldata->url = g_strdup_printf("%u", config.import_usb_interface);
+-            break;
+-        default:
+-            smldata->oc_type = SML_OBEX_TYPE_UNKNOWN;
+-            break;
+-    }
+-    /* options */
+-    smldata->wbxml = config.import_binary_xml;
+-    retval = _contacts_from_syncml(appGUI, smldata);
+-
+-	return retval;
+-}
+-
+-/*------------------------------------------------------------------------------*/
+-
+-static gboolean syncml_idle_cb(gpointer data)
+-{
+-	OsmoSyncMLData *smldata = (OsmoSyncMLData *)data;
+-	gboolean events_pending = FALSE;
+-	GSList *item;
+-
+-	g_assert(smldata);
+-
+-	for(item = smldata->sml_sessions; item != NULL; item = item->next) {
+-		g_assert(item->data);
+-		if(smlDsSessionCheck((SmlDsSession *)item->data))
+-			events_pending = TRUE;
+-			break;
+-	}
+-
+-	if(!events_pending)
+-		if(smlManagerCheck(smldata->sml_manager))
+-				events_pending = TRUE;
+-
+-	if(events_pending) {
+-		for(item = smldata->sml_sessions; item != NULL; item = item->next)
+-			smlDsSessionDispatch((SmlDsSession *)item->data);
+-		smlManagerDispatch(smldata->sml_manager);
+-	}
+-
+-	return TRUE;
+-}
+-
+-/*------------------------------------------------------------------------------*/
+-
+-static SmlBool _sml_recv_change(SmlDsSession *dsession, SmlChangeType type,
+-	const char *uid, char *data, unsigned int size, const char *contenttype,
+-	void *userdata, SmlError **error)
+-{
+-	OsmoSyncMLData *smldata = (OsmoSyncMLData *)userdata;
+-
+-	g_debug("SyncML: _sml_recv_change called:\n%s", data);
+-	g_assert(smldata);
+-
+-	contacts_import_vcard((gchar *)data, smldata->gui);
+-
+-	g_free(data);
+-	return TRUE;
+-}
+-
+-/*------------------------------------------------------------------------------*/
+-
+-static void _sml_recv_sync(SmlDsSession *dsession, unsigned int numchanges,
+-	void *userdata)
+-{
+-	g_debug("SyncML: _sml_recv_sync called: %d changes", numchanges);
+-}
+-
+-/*------------------------------------------------------------------------------*/
+-
+-static void _sml_recv_alert_reply(SmlSession *session, SmlStatus *status,
+-	void *userdata)
+-{
+-	g_debug("SyncML: _sml_recv_alert_reply called");
+-}
+-
+-/*------------------------------------------------------------------------------*/
+-
+-static SmlBool _sml_recv_alert(SmlDsSession *dsession, SmlAlertType type,
+-	const char *last, const char *next, void *userdata)
+-{
+-	SmlError *smlerror = NULL;
+-	/*OsmoSyncMLData *smldata = (OsmoSyncMLData *)userdata;*/
+-
+-	g_debug("SyncML: _sml_recv_alert called: at %s, type %i, last %s, next %s",
+-		smlDsSessionGetLocation(dsession), type, last, next);
+-
+-	if(!smlDsSessionSendAlert(dsession, SML_ALERT_SLOW_SYNC, last, next,
+-		_sml_recv_alert_reply, NULL, &smlerror)) 
+-        HANDLE_ERROR;
+-	return FALSE;
+-}
+-
+-/*------------------------------------------------------------------------------*/
+-
+-static void syncml_finish_session(OsmoSyncMLData *smldata)
+-{
+-	SmlError *smlerror;
+-
+-	smlManagerQuit(smldata->sml_manager);
+-
+-	/* disconnect */
+-	if(!smlTransportDisconnect(smldata->sml_client, NULL, &smlerror)) {
+-		g_warning("SyncML error: %s", smlErrorPrint(&smlerror));
+-		smlErrorDeref(&smlerror);
+-	} else {
+-		smlManagerStop(smldata->sml_manager);
+-		smlTransportFinalize(smldata->sml_client, &smlerror);
+-		smlTransportFree(smldata->sml_client);
+-	}
+-
+-	g_idle_remove_by_data(smldata);
+-	if(smldata->url)
+-		g_free(smldata->url);
+-	g_free(smldata);
+-}
+-
+-/*------------------------------------------------------------------------------*/
+-
+-static void _sml_manager_event(SmlManager *manager, SmlManagerEventType type,
+-	 SmlSession *session, SmlError *error, void *userdata)
+-{
+-	OsmoSyncMLData *smldata = (OsmoSyncMLData *)userdata;
+-
+-	g_debug("SyncML: _sml_manager_event called (%p)", userdata);
+-	g_assert(smldata);
+-
+-	switch(type) {
+-		case SML_MANAGER_CONNECT_DONE:
+-			g_debug("SyncML Manager: connection succeeded");
+-			break;
+-		case SML_MANAGER_DISCONNECT_DONE:
+-			g_debug("SyncML Manager: connection ended");
+-			break;
+-		case SML_MANAGER_TRANSPORT_ERROR:
+-			/*g_warning("SyncML Manager: transport error: %s",*/
+-				/*smlErrorPrint(&error));*/
+-            syncml_handle_error (error, smldata->gui);
+-			/*syncml_finish_session(smldata);*/     // FIXME
+-			break;
+-		case SML_MANAGER_SESSION_NEW:
+-			g_debug("SyncML Manager: new session with ID %s, version %d",
+-				smlSessionGetSessionID(session),
+-				smlSessionGetVersion(session));
+-			break;
+-		case SML_MANAGER_SESSION_FINAL:
+-			g_debug("SyncML Manager: session %s reported final",
+-				smlSessionGetSessionID(session));
+-			smlSessionFlush(session, TRUE, NULL);
+-			break;
+-		case SML_MANAGER_SESSION_END:
+-			g_debug("SyncML Manager: session end");
+-			syncml_finish_session(smldata);
+-			break;
+-		case SML_MANAGER_SESSION_ERROR:
+-			g_warning("SyncML Manager: session error: %s",
+-				smlErrorPrint(&error));
+-			syncml_finish_session(smldata);
+-			break;
+-		case SML_MANAGER_SESSION_WARNING:
+-			g_warning("SyncML Manager: session warning: %s",
+-				smlErrorPrint(&error));
+-			break;
+-		case SML_MANAGER_SESSION_FLUSH:
+-			g_debug("SyncML Manager: session flush");
+-			break;
+-	}
+-}
+-
+-/*------------------------------------------------------------------------------*/
+-
+-static void _sml_ds_alert(SmlDsSession *dsession, void *userdata)
+-{
+-	OsmoSyncMLData *smldata = (OsmoSyncMLData *)userdata;
+-
+-	g_debug("SyncML: _sml_ds_alert called");
+-	g_assert(smldata);
+-
+-	smlDsSessionGetAlert(dsession, _sml_recv_alert, userdata);
+-	smlDsSessionGetSync(dsession, _sml_recv_sync, userdata);
+-	smlDsSessionGetChanges(dsession, _sml_recv_change, userdata);
+-
+-	smlDsSessionRef(dsession);
+-	smldata->sml_sessions = g_slist_append(smldata->sml_sessions, dsession);
+-}
+-
+-/*------------------------------------------------------------------------------*/
+-
+-static gboolean _contacts_from_syncml(GUI *appGUI, OsmoSyncMLData *smldata)
+-{
+-	SmlTransportObexClientConfig smlocc;
+-	SmlAuthenticator *smlauth;
+-	SmlDevInf *smldevinf;
+-	SmlDevInfAgent *smlagent;
+-	SmlNotification *smlsan;
+-	SmlLocation *smlloc;
+-	SmlDsServer *smldsserver;
+-	SmlDevInfDataStore *smldids;
+-	SmlError *smlerror = NULL;
+-
+-	/* OBEX configuration */
+-	smlocc.type = smldata->oc_type;
+-	smlocc.url = smldata->url;
+-	smlocc.port = smldata->port;
+-
+-	g_debug("SyncML: trying to connect to %s channel %u", smlocc.url,
+-		smlocc.port);
+-
+-	smldata->sml_client = smlTransportNew(SML_TRANSPORT_OBEX_CLIENT,
+-		&smlerror);
+-	if(!smldata->sml_client) 
+-        HANDLE_ERROR;
+-
+-	smldata->sml_manager = smlManagerNew(smldata->sml_client, &smlerror);
+-	if(!smldata->sml_manager) 
+-        HANDLE_ERROR;
+-	smlManagerSetEventCallback(smldata->sml_manager, _sml_manager_event,
+-		smldata);
+-
+-	smlauth = smlAuthNew(&smlerror);
+-	if(!smlauth) 
+-        HANDLE_ERROR;
+-	smlAuthSetEnable(smlauth, FALSE);
+-	if(!smlAuthRegister(smlauth, smldata->sml_manager, &smlerror))
+-		HANDLE_ERROR;
+-
+-	smldevinf = smlDevInfNew("OsmoSyncML", SML_DEVINF_DEVTYPE_WORKSTATION,
+-		&smlerror);
+-	if(!smldevinf) 
+-        HANDLE_ERROR;
+-
+-	smlagent = smlDevInfAgentNew(smldevinf, &smlerror);
+-	if(!smlagent) 
+-        HANDLE_ERROR;
+-	if(!smlDevInfAgentRegister(smlagent, smldata->sml_manager, &smlerror))
+-		HANDLE_ERROR;
+-
+-	smlsan = smlNotificationNew(SML_SAN_VERSION_11, SML_SAN_UIMODE_UNSPECIFIED,
+-		SML_SAN_INITIATOR_USER, 1, "OsmoSyncML", "/",
+-		smldata->wbxml ? SML_MIMETYPE_WBXML : SML_MIMETYPE_XML,
+-		&smlerror);
+-	if(!smlsan)
+-        HANDLE_ERROR;
+-
+-	smlloc = smlLocationNew("/tmp", NULL, &smlerror);
+-	if(!smlloc)
+-        HANDLE_ERROR;
+-
+-	smldsserver = smlDsServerNew("text/x-vcard", smlloc, &smlerror);
+-	if(!smldsserver) 
+-        HANDLE_ERROR;
+-	if(!smlDsServerRegister(smldsserver, smldata->sml_manager, &smlerror))
+-		HANDLE_ERROR;
+-	smlDsServerSetConnectCallback(smldsserver, _sml_ds_alert, smldata);
+-	if(!smlDsServerAddSan(smldsserver, smlsan, &smlerror)) 
+-        HANDLE_ERROR;
+-
+-	smldids = smlDevInfDataStoreNew(smlLocationGetURI(smlloc), &smlerror);
+-	if(!smldids) 
+-        HANDLE_ERROR;
+-	smlDevInfDataStoreSetRxPref(smldids, SML_ELEMENT_TEXT_VCARD, "2.1");
+-	smlDevInfDataStoreSetTxPref(smldids, SML_ELEMENT_TEXT_VCARD, "2.1");
+-	smlDevInfDataStoreSetSyncCap(smldids, SML_DEVINF_SYNCTYPE_TWO_WAY, TRUE);
+-	smlDevInfDataStoreSetSyncCap(smldids, SML_DEVINF_SYNCTYPE_SLOW_SYNC, TRUE);
+-	smlDevInfDataStoreSetSyncCap(smldids,
+-		SML_DEVINF_SYNCTYPE_SERVER_ALERTED_SYNC, TRUE);
+-	smlDevInfAddDataStore(smldevinf, smldids);
+-
+-	if(!smlTransportInitialize(smldata->sml_client, &smlocc, &smlerror))
+-		HANDLE_ERROR;
+-
+-	if(!smlManagerStart(smldata->sml_manager, &smlerror)) 
+-        HANDLE_ERROR;
+-
+-	if(!smlTransportConnect(smldata->sml_client, &smlerror)) 
+-        HANDLE_ERROR;
+-
+-	if(!smlNotificationSend(smlsan, smldata->sml_client, &smlerror))
+-		HANDLE_ERROR;
+-
+-	smlNotificationFree(smlsan);
+-
+-	/* register callback function */
+-	g_idle_add(syncml_idle_cb, smldata);
+-
+-	return FALSE;
+-}
+-
+-/*------------------------------------------------------------------------------*/
+-
+-#endif  /* CONTACTS_ENABLED */
+-
+diff -Naur osmo-ac9aa8acdef0902d30e70fa145ed5839dfe88550/src/contacts_import_syncml.h osmo-21d00afd331e9eb9af76e8cc5b9a8fd82906c181/src/contacts_import_syncml.h
+--- osmo-ac9aa8acdef0902d30e70fa145ed5839dfe88550/src/contacts_import_syncml.h	2019-04-09 01:10:42.000000000 +0800
++++ osmo-21d00afd331e9eb9af76e8cc5b9a8fd82906c181/src/contacts_import_syncml.h	1970-01-01 08:00:00.000000000 +0800
+@@ -1,62 +0,0 @@
+-
+-/*
+- * Osmo - a handy personal organizer
+- *
+- * Copyright (C) 2007 Tomasz Maka <pasp@users.sourceforge.net>
+- *           (C) 2008 Markus Dahms <mad@automagically.de>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+- */
+-
+-#ifndef _CONTACTS_IMPORT_SYNCML_H
+-#define _CONTACTS_IMPORT_SYNCML_H
+-
+-#include "gui.h"
+-
+-#ifdef HAVE_LIBSYNCML
+-
+-#include <libsyncml/syncml.h>
+-#include <libsyncml/sml_auth.h>
+-#include <libsyncml/sml_devinf_obj.h>
+-#include <libsyncml/sml_ds_server.h>
+-#include <libsyncml/obex_client.h>
+-
+-typedef struct {
+-	/* configuration stuff */
+-	SmlTransportObexClientType oc_type;
+-	gboolean wbxml;
+-	gchar *url;
+-	guint32 port;
+-	/* session stuff */
+-	GSList *sml_sessions;
+-	SmlManager *sml_manager;
+-	SmlTransport *sml_client;
+-	/* OSMO stuff */
+-	GUI *gui;
+-} OsmoSyncMLData;
+-
+-
+-#define HANDLE_ERROR do { \
+-	g_warning("SyncML error: %s", smlErrorPrint(&smlerror)); \
+-	smlErrorDeref(&smlerror); \
+-	return FALSE; \
+-	} while(0);
+-
+-#endif /* HAVE_LIBSYNCML */
+-
+-gboolean        import_contacts_from_syncml     (gint type, GUI *appGUI);
+-
+-#endif /* _CONTACTS_IMPORT_SYNCML_H */
+-
+diff -Naur osmo-ac9aa8acdef0902d30e70fa145ed5839dfe88550/src/contacts_import_vcard.c osmo-21d00afd331e9eb9af76e8cc5b9a8fd82906c181/src/contacts_import_vcard.c
+--- osmo-ac9aa8acdef0902d30e70fa145ed5839dfe88550/src/contacts_import_vcard.c	2019-04-09 01:10:42.000000000 +0800
++++ osmo-21d00afd331e9eb9af76e8cc5b9a8fd82906c181/src/contacts_import_vcard.c	1970-01-01 08:00:00.000000000 +0800
+@@ -1,164 +0,0 @@
+-
+-/*
+- * Osmo - a handy personal organizer
+- *
+- * Copyright (C) 2007 Tomasz Maka <pasp@users.sourceforge.net>
+- *           (C) 2008 Markus Dahms <mad@automagically.de>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+- */
+-
+-#include "contacts_import_vcard.h"
+-
+-#ifdef CONTACTS_ENABLED
+-
+-/* these entries can be mapped directly from VCard field to Osmo field */
+-static OsmoVCardMapping vcard_mappings[] = {
+-	{ "TEL:HOME", COLUMN_HOME_PHONE_1 },
+-	{ "TEL:CELL", COLUMN_CELL_PHONE_1 }
+-};
+-
+-static guint32 n_vcard_mappings = G_N_ELEMENTS(vcard_mappings);
+-
+-static gchar *vcard_strdup_decode(gchar *text, OsmoVCardEncoding enc);
+-
+-gboolean contacts_import_vcard(const gchar *vcard, GUI *appGUI)
+-{
+-	gchar **lines, **strp, **split2, *varname, *value;
+-	GtkTreeIter iter;
+-	gint32 i;
+-	OsmoVCardEncoding enc;
+-
+-	g_assert(appGUI != NULL);
+-	g_assert(vcard != NULL);
+-
+-	if(strncmp(vcard, "BEGIN:VCARD", 11) != 0) {
+-		/* not a VCARD */
+-		return FALSE;
+-	}
+-
+-	/* add new contact */
+-	gtk_list_store_append(appGUI->cnt->contacts_list_store, &iter);
+-
+-	/* FIXME: support for multi-line fields */
+-	strp = lines = g_strsplit(vcard, "\n", 0);
+-
+-	while(strp && *strp) {
+-		/* split variable name and value */
+-		split2 = g_strsplit(*strp, ":", 2);
+-		if(g_strv_length(split2) < 2) {
+-			g_strfreev(split2);
+-			break;
+-		}
+-		varname = g_strdup(split2[0]);
+-		enc = VCARD_UNENCODED;
+-		if(strstr(varname, "ENCODING=QUOTED-PRINTABLE"))
+-			enc = VCARD_QUOTED_PRINTABLE;
+-		else if(strstr(varname, "BASE64"))
+-			enc = VCARD_BASE64;
+-		value = vcard_strdup_decode(split2[1], enc);
+-		g_strchomp(value);
+-		g_strfreev(split2);
+-
+-		if((varname[0] == 'N') &&
+-			((varname[1] == '\0') || (varname[1] == ';'))) {
+-			/* name */
+-			split2 = g_strsplit(value, ";", 2);
+-			if(g_strv_length(split2) == 2) {
+-				gtk_list_store_set(appGUI->cnt->contacts_list_store, &iter,
+-					COLUMN_FIRST_NAME, g_strdup(split2[1]),
+-					COLUMN_LAST_NAME, g_strdup(split2[0]), -1);
+-			}
+-			g_strfreev(split2);
+-		}
+-		else if(strncmp(varname, "ADR;HOME", 8) == 0) {
+-			gtk_list_store_set(appGUI->cnt->contacts_list_store, &iter,
+-				COLUMN_HOME_ADDRESS, g_strdup(value), -1);
+-		}
+-		else {
+-			/* try directly mapped entries */
+-			for(i = 0; i < n_vcard_mappings; i ++) {
+-				if(strncmp(vcard_mappings[i].field, varname,
+-					strlen(vcard_mappings[i].field)) == 0) {
+-					gtk_list_store_set(appGUI->cnt->contacts_list_store, &iter,
+-						vcard_mappings[i].osmo_id, g_strdup(value), -1);
+-					break;
+-				}
+-			}
+-		}
+-		g_free(varname);
+-		g_free(value);
+-
+-		strp ++;
+-	}
+-
+-	g_strfreev(lines);
+-
+-	return TRUE;
+-}
+-
+-static gchar *vcard_strdup_decode(gchar *text, OsmoVCardEncoding enc)
+-{
+-	gchar *s, *pi = text, *po, shex[3] = { 'X', 'X', '\0' };
+-	guint32 n_eq = 0;
+-
+-	switch(enc) {
+-		/* all non-ASCII characters should be encoded QP */
+-		case VCARD_QUOTED_PRINTABLE:
+-			/* count "=" chars */
+-			while(*pi != '\0') {
+-				if((*pi == '=') && (*(pi + 1) != '\n'))
+-					n_eq ++;
+-				pi ++;
+-			}
+-			/* allocate memory */
+-			po = s = g_new0(gchar, strlen(text) - (n_eq * 2) + 1);
+-			pi = text;
+-			/* copy and decode text */
+-			while(*pi != '\0') {
+-				if(*pi == '=') {
+-					if(*(pi + 1) == '\n')
+-						/* '=' at end of line => soft break */
+-						*po = ' ';
+-					else {
+-						shex[0] = *(++ pi);
+-						shex[1] = *(++ pi);
+-						*po = strtol(shex, NULL, 16);
+-					}
+-				}
+-				else
+-					*po = *pi;
+-				po ++;
+-				pi ++;
+-			}
+-			break;
+-		case VCARD_BASE64:
+-			/* base64 is used for photos and such stuff... */
+-			s = g_strdup("(BASE64 encoding currently unsupported)");
+-		default:
+-			s = g_strdup(text);
+-	}
+-
+-	/* convert to UTF-8 if necessary */
+-	if(g_utf8_validate(s, -1, NULL) == FALSE) {
+-		po = g_convert_with_fallback(s, -1, "utf-8", "iso-8859-1",
+-			"?", NULL, NULL, NULL);
+-		g_free(s);
+-		s = po;
+-	}
+-	return s;
+-}
+-
+-#endif  /* CONTACTS_ENABLED */
+diff -Naur osmo-ac9aa8acdef0902d30e70fa145ed5839dfe88550/src/contacts_import_vcard.h osmo-21d00afd331e9eb9af76e8cc5b9a8fd82906c181/src/contacts_import_vcard.h
+--- osmo-ac9aa8acdef0902d30e70fa145ed5839dfe88550/src/contacts_import_vcard.h	2019-04-09 01:10:42.000000000 +0800
++++ osmo-21d00afd331e9eb9af76e8cc5b9a8fd82906c181/src/contacts_import_vcard.h	1970-01-01 08:00:00.000000000 +0800
+@@ -1,42 +0,0 @@
+-
+-/*
+- * Osmo - a handy personal organizer
+- *
+- * Copyright (C) 2007 Tomasz Maka <pasp@users.sourceforge.net>
+- *           (C) 2008 Markus Dahms <mad@automagically.de>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; either version 2 of the License, or
+- * (at your option) any later version.
+- *
+- * This program is distributed in the hope that it will be useful,
+- * but WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- * GNU General Public License for more details.
+- *
+- * You should have received a copy of the GNU General Public License
+- * along with this program; if not, write to the Free Software
+- * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+- */
+-
+-#ifndef _CONTACTS_IMPORT_VCARD_H
+-#define _CONTACTS_IMPORT_VCARD_H
+-
+-#include "gui.h"
+-
+-typedef enum {
+-	VCARD_UNENCODED,
+-	VCARD_QUOTED_PRINTABLE,
+-	VCARD_BASE64
+-} OsmoVCardEncoding;
+-
+-typedef struct {
+-	const gchar *field;
+-	guint32 osmo_id;
+-} OsmoVCardMapping;
+-
+-
+-gboolean    contacts_import_vcard   (const gchar *vcard, GUI *appGUI);
+-
+-#endif /* _CONTACTS_IMPORT_VCARD_H */
+diff -Naur osmo-ac9aa8acdef0902d30e70fa145ed5839dfe88550/src/gui.h osmo-21d00afd331e9eb9af76e8cc5b9a8fd82906c181/src/gui.h
+--- osmo-ac9aa8acdef0902d30e70fa145ed5839dfe88550/src/gui.h	2019-04-09 01:10:42.000000000 +0800
++++ osmo-21d00afd331e9eb9af76e8cc5b9a8fd82906c181/src/gui.h	2019-04-09 01:10:44.000000000 +0800
+@@ -552,15 +552,7 @@
+ 
+     GtkWidget *input_file_entry;
+     GtkWidget *import_type_combobox;
+-    GtkWidget *bluetooth_radiobutton;
+-    GtkWidget *usb_radiobutton;
+-    GtkWidget *bluetooth_address_entry;
+     GtkWidget *file_import_vbox;
+-    GtkWidget *syncml_import_vbox;
+-    GtkWidget *bluetooth_params_hbox;
+-    GtkWidget *usb_params_hbox;
+-    GtkWidget *bluetooth_channel_spinbutton;
+-    GtkWidget *usb_interface_spinbutton;
+     GtkWidget *use_wbxml_checkbutton;
+ 
+ } CONTACTS;
+diff -Naur osmo-ac9aa8acdef0902d30e70fa145ed5839dfe88550/src/Makefile.am osmo-21d00afd331e9eb9af76e8cc5b9a8fd82906c181/src/Makefile.am
+--- osmo-ac9aa8acdef0902d30e70fa145ed5839dfe88550/src/Makefile.am	2019-04-09 01:10:42.000000000 +0800
++++ osmo-21d00afd331e9eb9af76e8cc5b9a8fd82906c181/src/Makefile.am	2019-04-09 01:10:44.000000000 +0800
+@@ -49,16 +49,6 @@
+ 			   utils_date_time.c utils_date_time.h \
+ 			   utils_time.c utils_time.h
+ 
+-# contacts_import_vcard.[ch] does not require libsyncml, but unless it is
+-# used otherwise only compile it if needed
+-if HAVE_LIBSYNCML
+-osmo_SOURCES += \
+-	contacts_import_syncml.c contacts_import_syncml.h \
+-	contacts_import_vcard.c contacts_import_vcard.h
+-AM_CFLAGS += @LIBSYNCML_CFLAGS@
+-LIBS += @LIBSYNCML_LIBS@
+-endif
+-
+ if HAVE_LIBNOTIFY
+ AM_CFLAGS += @LIBNOTIFY_CFLAGS@
+ LIBS += @LIBNOTIFY_LIBS@

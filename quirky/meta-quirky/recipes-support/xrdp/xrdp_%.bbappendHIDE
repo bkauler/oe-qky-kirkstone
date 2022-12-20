@@ -1,0 +1,12 @@
+
+inherit features_check autotools pkgconfig useradd
+
+DEPENDS = "openssl virtual/libx11 libxfixes libxrandr nasm-native \
+           fuse pixman jpeg lame"
+
+REQUIRED_DISTRO_FEATURES = "x11"
+
+EXTRA_OECONF = "--disable-pam --disable-kerberos --enable-jpeg --enable-mp3lame \
+   --enable-pixman --with-systemdsystemunitdir=no --enable-fuse"
+   
+#SYSTEMD_SERVICE_${PN} = ""

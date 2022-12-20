@@ -1,0 +1,1618 @@
+diff -Naur bluez-5.62ORIG/client/advertising.c bluez-5.62/client/advertising.c
+--- bluez-5.62ORIG/client/advertising.c	2021-08-22 12:30:44.000000000 +0800
++++ bluez-5.62/client/advertising.c	2021-10-27 08:34:35.293237037 +0800
+@@ -8,6 +8,12 @@
+  *
+  */
+ 
++/* 20201027 internationalized.
++ * ref: https://bkhome.org/news/202010/how-to-internationalize-any-c-program.html */
++#include <libintl.h>
++#include <locale.h>
++#define _(STRING) gettext(STRING)
++
+ #ifdef HAVE_CONFIG_H
+ #include <config.h>
+ #endif
+@@ -82,7 +88,7 @@
+ static DBusMessage *release_advertising(DBusConnection *conn,
+ 					DBusMessage *msg, void *user_data)
+ {
+-	bt_shell_printf("Advertising released\n");
++	bt_shell_printf(_("Advertising released\n"));
+ 
+ 	ad_release(conn);
+ 
+@@ -152,41 +158,41 @@
+ 	}
+ 
+ 	if (ad.manufacturer.data.len) {
+-		bt_shell_printf("Manufacturer: %u\n", ad.manufacturer.id);
++		bt_shell_printf(_("Manufacturer: %u\n"), ad.manufacturer.id);
+ 		bt_shell_hexdump(ad.manufacturer.data.data,
+ 						ad.manufacturer.data.len);
+ 	}
+ 
+ 	if (ad.data.data.len) {
+-		bt_shell_printf("Data Type: 0x%02x\n", ad.data.type);
++		bt_shell_printf(_("Data Type: 0x%02x\n"), ad.data.type);
+ 		bt_shell_hexdump(ad.data.data.data, ad.data.data.len);
+ 	}
+ 
+-	bt_shell_printf("Tx Power: %s\n", ad.tx_power ? "on" : "off");
++	bt_shell_printf(_("Tx Power: %s\n"), ad.tx_power ? _("on") : _("off"));
+ 
+ 	if (ad.local_name)
+-		bt_shell_printf("LocalName: %s\n", ad.local_name);
++		bt_shell_printf(_("LocalName: %s\n"), ad.local_name);
+ 	else
+-		bt_shell_printf("Name: %s\n", ad.name ? "on" : "off");
++		bt_shell_printf(_("Name: %s\n"), ad.name ? _("on") : _("off"));
+ 
+ 	if (ad.local_appearance != UINT16_MAX)
+-		bt_shell_printf("Appearance: %s (0x%04x)\n",
++		bt_shell_printf(_("Appearance: %s (0x%04x)\n"),
+ 					bt_appear_to_str(ad.local_appearance),
+ 					ad.local_appearance);
+ 	else
+-		bt_shell_printf("Appearance: %s\n",
+-					ad.appearance ? "on" : "off");
++		bt_shell_printf(_("Appearance: %s\n"),
++					ad.appearance ? _("on") : _("off"));
+ 
+-	bt_shell_printf("Discoverable: %s\n", ad.discoverable ? "on": "off");
++	bt_shell_printf(_("Discoverable: %s\n"), ad.discoverable ? _("on"): _("off"));
+ 
+ 	if (ad.duration)
+-		bt_shell_printf("Duration: %u sec\n", ad.duration);
++		bt_shell_printf(_("Duration: %u sec\n"), ad.duration);
+ 
+ 	if (ad.timeout)
+-		bt_shell_printf("Timeout: %u sec\n", ad.timeout);
++		bt_shell_printf(_("Timeout: %u sec\n"), ad.timeout);
+ 
+ 	if (ad.min_interval)
+-		bt_shell_printf("Interval: %u-%u msec\n", ad.min_interval,
++		bt_shell_printf(_("Interval: %u-%u msec\n"), ad.min_interval,
+ 					ad.max_interval);
+ }
+ 
+@@ -199,16 +205,16 @@
+ 
+ 	if (dbus_set_error_from_message(&error, message) == FALSE) {
+ 		ad.registered = true;
+-		bt_shell_printf("Advertising object registered\n");
++		bt_shell_printf(_("Advertising object registered\n"));
+ 		print_ad();
+ 		/* Leave advertise running even on noninteractive mode */
+ 	} else {
+-		bt_shell_printf("Failed to register advertisement: %s\n", error.name);
++		bt_shell_printf(_("Failed to register advertisement: %s\n"), error.name);
+ 		dbus_error_free(&error);
+ 
+ 		if (g_dbus_unregister_interface(conn, AD_PATH,
+ 						AD_IFACE) == FALSE)
+-			bt_shell_printf("Failed to unregister advertising object\n");
++			bt_shell_printf(_("Failed to unregister advertising object\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ }
+@@ -505,7 +511,7 @@
+ void ad_register(DBusConnection *conn, GDBusProxy *manager, const char *type)
+ {
+ 	if (ad.registered) {
+-		bt_shell_printf("Advertisement is already registered\n");
++		bt_shell_printf(_("Advertisement is already registered\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+@@ -517,14 +523,14 @@
+ 
+ 	if (g_dbus_register_interface(conn, AD_PATH, AD_IFACE, ad_methods,
+ 					NULL, ad_props, NULL, NULL) == FALSE) {
+-		bt_shell_printf("Failed to register advertising object\n");
++		bt_shell_printf(_("Failed to register advertising object\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+ 	if (g_dbus_proxy_method_call(manager, "RegisterAdvertisement",
+ 					register_setup, register_reply,
+ 					conn, NULL) == FALSE) {
+-		bt_shell_printf("Failed to register advertising\n");
++		bt_shell_printf(_("Failed to register advertising\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ }
+@@ -545,14 +551,13 @@
+ 
+ 	if (dbus_set_error_from_message(&error, message) == FALSE) {
+ 		ad.registered = false;
+-		bt_shell_printf("Advertising object unregistered\n");
++		bt_shell_printf(_("Advertising object unregistered\n"));
+ 		if (g_dbus_unregister_interface(conn, AD_PATH,
+ 							AD_IFACE) == FALSE)
+-			bt_shell_printf("Failed to unregister advertising"
+-					" object\n");
++			bt_shell_printf(_("Failed to unregister advertising object\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_SUCCESS);
+ 	} else {
+-		bt_shell_printf("Failed to unregister advertisement: %s\n",
++		bt_shell_printf(_("Failed to unregister advertisement: %s\n"),
+ 								error.name);
+ 		dbus_error_free(&error);
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+@@ -573,7 +578,7 @@
+ 	if (g_dbus_proxy_method_call(manager, "UnregisterAdvertisement",
+ 					unregister_setup, unregister_reply,
+ 					conn, NULL) == FALSE) {
+-		bt_shell_printf("Failed to unregister advertisement method\n");
++		bt_shell_printf(_("Failed to unregister advertisement method\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ }
+@@ -596,7 +601,7 @@
+ 
+ 	ad.uuids = g_strdupv(&argv[1]);
+ 	if (!ad.uuids) {
+-		bt_shell_printf("Failed to parse input\n");
++		bt_shell_printf(_("Failed to parse input\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+@@ -637,13 +642,13 @@
+ 		char *endptr = NULL;
+ 
+ 		if (i >= G_N_ELEMENTS(data->data)) {
+-			bt_shell_printf("Too much data\n");
++			bt_shell_printf(_("Too much data\n"));
+ 			return false;
+ 		}
+ 
+ 		val = strtol(argv[i], &endptr, 0);
+ 		if (!endptr || *endptr != '\0' || val > UINT8_MAX) {
+-			bt_shell_printf("Invalid value at index %d\n", i);
++			bt_shell_printf(_("Invalid value at index %d\n"), i);
+ 			return false;
+ 		}
+ 
+@@ -706,7 +711,7 @@
+ 
+ 	if (argc < 2 || !strlen(argv[1])) {
+ 		if (ad.manufacturer.data.len) {
+-			bt_shell_printf("Manufacturer: %u\n",
++			bt_shell_printf(_("Manufacturer: %u\n"),
+ 						ad.manufacturer.id);
+ 			bt_shell_hexdump(ad.manufacturer.data.data,
+ 						ad.manufacturer.data.len);
+@@ -717,7 +722,7 @@
+ 
+ 	val = strtol(argv[1], &endptr, 0);
+ 	if (!endptr || *endptr != '\0' || val > UINT16_MAX) {
+-		bt_shell_printf("Invalid manufacture id\n");
++		bt_shell_printf(_("Invalid manufacture id\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+@@ -761,7 +766,7 @@
+ 
+ 	if (argc < 2 || !strlen(argv[1])) {
+ 		if (ad.manufacturer.data.len) {
+-			bt_shell_printf("Type: 0x%02x\n", ad.data.type);
++			bt_shell_printf(_("Type: 0x%02x\n"), ad.data.type);
+ 			bt_shell_hexdump(ad.data.data.data, ad.data.data.len);
+ 		}
+ 
+@@ -770,7 +775,7 @@
+ 
+ 	val = strtol(argv[1], &endptr, 0);
+ 	if (!endptr || *endptr != '\0' || val > UINT8_MAX) {
+-		bt_shell_printf("Invalid type\n");
++		bt_shell_printf(_("Invalid type\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+@@ -800,8 +805,8 @@
+ void ad_advertise_discoverable(DBusConnection *conn, dbus_bool_t *value)
+ {
+ 	if (!value) {
+-		bt_shell_printf("Discoverable: %s\n",
+-				ad.discoverable ? "on" : "off");
++		bt_shell_printf(_("Discoverable: %s\n"),
++				ad.discoverable ? _("on") : _("off"));
+ 		return bt_shell_noninteractive_quit(EXIT_SUCCESS);
+ 	}
+ 
+@@ -819,7 +824,7 @@
+ {
+ 	if (!value) {
+ 		if (ad.discoverable_to)
+-			bt_shell_printf("Timeout: %u sec\n",
++			bt_shell_printf(_("Timeout: %u sec\n"),
+ 					ad.discoverable_to);
+ 		return bt_shell_noninteractive_quit(EXIT_SUCCESS);
+ 	}
+@@ -838,7 +843,7 @@
+ void ad_advertise_tx_power(DBusConnection *conn, dbus_bool_t *value)
+ {
+ 	if (!value) {
+-		bt_shell_printf("Tx Power: %s\n", ad.tx_power ? "on" : "off");
++		bt_shell_printf(_("Tx Power: %s\n"), ad.tx_power ? _("on") : _("off"));
+ 		return bt_shell_noninteractive_quit(EXIT_SUCCESS);
+ 	}
+ 
+@@ -873,9 +878,9 @@
+ {
+ 	if (!name) {
+ 		if (ad.local_name)
+-			bt_shell_printf("LocalName: %s\n", ad.local_name);
++			bt_shell_printf(_("LocalName: %s\n"), ad.local_name);
+ 		else
+-			bt_shell_printf("Name: %s\n", ad.name ? "on" : "off");
++			bt_shell_printf(_("Name: %s\n"), ad.name ? _("on") : _("off"));
+ 
+ 		return bt_shell_noninteractive_quit(EXIT_SUCCESS);
+ 	}
+@@ -917,12 +922,12 @@
+ {
+ 	if (!value) {
+ 		if (ad.local_appearance != UINT16_MAX)
+-			bt_shell_printf("Appearance: %s (0x%04x)\n",
++			bt_shell_printf(_("Appearance: %s (0x%04x)\n"),
+ 					bt_appear_to_str(ad.local_appearance),
+ 					ad.local_appearance);
+ 		else
+-			bt_shell_printf("Appearance: %s\n",
+-					ad.appearance ? "on" : "off");
++			bt_shell_printf(_("Appearance: %s\n"),
++					ad.appearance ? _("on") : _("off"));
+ 
+ 		return bt_shell_noninteractive_quit(EXIT_SUCCESS);
+ 	}
+@@ -941,7 +946,7 @@
+ {
+ 	if (!value) {
+ 		if (ad.duration)
+-			bt_shell_printf("Duration: %u sec\n", ad.duration);
++			bt_shell_printf(_("Duration: %u sec\n"), ad.duration);
+ 		return bt_shell_noninteractive_quit(EXIT_SUCCESS);
+ 	}
+ 
+@@ -959,7 +964,7 @@
+ {
+ 	if (!value) {
+ 		if (ad.timeout)
+-			bt_shell_printf("Timeout: %u sec\n", ad.timeout);
++			bt_shell_printf(_("Timeout: %u sec\n"), ad.timeout);
+ 		return bt_shell_noninteractive_quit(EXIT_SUCCESS);
+ 	}
+ 
+@@ -977,7 +982,7 @@
+ {
+ 	if (!value) {
+ 		if (ad.secondary)
+-			 bt_shell_printf("Secondary Channel: %s\n",
++			 bt_shell_printf(_("Secondary Channel: %s\n"),
+ 							ad.secondary);
+ 		return bt_shell_noninteractive_quit(EXIT_SUCCESS);
+ 	}
+diff -Naur bluez-5.62ORIG/client/agent.c bluez-5.62/client/agent.c
+--- bluez-5.62ORIG/client/agent.c	2021-02-23 04:26:59.000000000 +0800
++++ bluez-5.62/client/agent.c	2021-10-27 08:01:27.503274692 +0800
+@@ -8,6 +8,12 @@
+  *
+  */
+ 
++/* 20201027 internationalized.
++ * ref: https://bkhome.org/news/202010/how-to-internationalize-any-c-program.html */
++#include <libintl.h>
++#include <locale.h>
++#define _(STRING) gettext(STRING)
++
+ #ifdef HAVE_CONFIG_H
+ #include <config.h>
+ #endif
+@@ -105,7 +111,7 @@
+ static DBusMessage *release_agent(DBusConnection *conn,
+ 					DBusMessage *msg, void *user_data)
+ {
+-	bt_shell_printf("Agent released\n");
++	bt_shell_printf(_("Agent released\n"));
+ 
+ 	agent_release(conn);
+ 
+@@ -117,7 +123,7 @@
+ {
+ 	const char *device;
+ 
+-	bt_shell_printf("Request PIN code\n");
++	bt_shell_printf(_("Request PIN code\n"));
+ 
+ 	dbus_message_get_args(msg, NULL, DBUS_TYPE_OBJECT_PATH, &device,
+ 							DBUS_TYPE_INVALID);
+@@ -149,7 +155,7 @@
+ {
+ 	const char *device;
+ 
+-	bt_shell_printf("Request passkey\n");
++	bt_shell_printf(_("Request passkey\n"));
+ 
+ 	dbus_message_get_args(msg, NULL, DBUS_TYPE_OBJECT_PATH, &device,
+ 							DBUS_TYPE_INVALID);
+@@ -194,7 +200,7 @@
+ 	dbus_uint32_t passkey;
+ 	char *str;
+ 
+-	bt_shell_printf("Request confirmation\n");
++	bt_shell_printf(_("Request confirmation\n"));
+ 
+ 	dbus_message_get_args(msg, NULL, DBUS_TYPE_OBJECT_PATH, &device,
+ 				DBUS_TYPE_UINT32, &passkey, DBUS_TYPE_INVALID);
+@@ -213,7 +219,7 @@
+ {
+ 	const char *device;
+ 
+-	bt_shell_printf("Request authorization\n");
++	bt_shell_printf(_("Request authorization\n"));
+ 
+ 	dbus_message_get_args(msg, NULL, DBUS_TYPE_OBJECT_PATH, &device,
+ 							DBUS_TYPE_INVALID);
+@@ -232,7 +238,7 @@
+ 	const char *device, *uuid;
+ 	char *str;
+ 
+-	bt_shell_printf("Authorize service\n");
++	bt_shell_printf(_("Authorize service\n"));
+ 
+ 	dbus_message_get_args(msg, NULL, DBUS_TYPE_OBJECT_PATH, &device,
+ 				DBUS_TYPE_STRING, &uuid, DBUS_TYPE_INVALID);
+@@ -249,7 +255,7 @@
+ static DBusMessage *cancel_request(DBusConnection *conn,
+ 					DBusMessage *msg, void *user_data)
+ {
+-	bt_shell_printf("Request canceled\n");
++	bt_shell_printf(_("Request canceled\n"));
+ 
+ 	agent_release_prompt();
+ 	dbus_message_unref(pending_message);
+@@ -304,14 +310,14 @@
+ 
+ 	if (dbus_set_error_from_message(&error, message) == FALSE) {
+ 		agent_registered = TRUE;
+-		bt_shell_printf("Agent registered\n");
++		bt_shell_printf(_("Agent registered\n"));
+ 	} else {
+-		bt_shell_printf("Failed to register agent: %s\n", error.name);
++		bt_shell_printf(_("Failed to register agent: %s\n"), error.name);
+ 		dbus_error_free(&error);
+ 
+ 		if (g_dbus_unregister_interface(conn, AGENT_PATH,
+ 						AGENT_INTERFACE) == FALSE)
+-			bt_shell_printf("Failed to unregister agent object\n");
++			bt_shell_printf(_("Failed to unregister agent object\n"));
+ 	}
+ }
+ 
+@@ -320,7 +326,7 @@
+ 
+ {
+ 	if (agent_registered == TRUE) {
+-		bt_shell_printf("Agent is already registered\n");
++		bt_shell_printf(_("Agent is already registered\n"));
+ 		return;
+ 	}
+ 
+@@ -329,7 +335,7 @@
+ 	if (g_dbus_register_interface(conn, AGENT_PATH,
+ 					AGENT_INTERFACE, methods,
+ 					NULL, NULL, NULL, NULL) == FALSE) {
+-		bt_shell_printf("Failed to register agent object\n");
++		bt_shell_printf(_("Failed to register agent object\n"));
+ 		return;
+ 	}
+ 
+@@ -337,7 +343,7 @@
+ 						register_agent_setup,
+ 						register_agent_reply,
+ 						conn, NULL) == FALSE) {
+-		bt_shell_printf("Failed to call register agent method\n");
++		bt_shell_printf(_("Failed to call register agent method\n"));
+ 		return;
+ 	}
+ 
+@@ -359,10 +365,10 @@
+ 	dbus_error_init(&error);
+ 
+ 	if (dbus_set_error_from_message(&error, message) == FALSE) {
+-		bt_shell_printf("Agent unregistered\n");
++		bt_shell_printf(_("Agent unregistered\n"));
+ 		agent_release(conn);
+ 	} else {
+-		bt_shell_printf("Failed to unregister agent: %s\n", error.name);
++		bt_shell_printf(_("Failed to unregister agent: %s\n"), error.name);
+ 		dbus_error_free(&error);
+ 	}
+ }
+@@ -370,12 +376,12 @@
+ void agent_unregister(DBusConnection *conn, GDBusProxy *manager)
+ {
+ 	if (agent_registered == FALSE) {
+-		bt_shell_printf("No agent is registered\n");
++		bt_shell_printf(_("No agent is registered\n"));
+ 		return;
+ 	}
+ 
+ 	if (!manager) {
+-		bt_shell_printf("Agent unregistered\n");
++		bt_shell_printf(_("Agent unregistered\n"));
+ 		agent_release(conn);
+ 		return;
+ 	}
+@@ -384,7 +390,7 @@
+ 						unregister_agent_setup,
+ 						unregister_agent_reply,
+ 						conn, NULL) == FALSE) {
+-		bt_shell_printf("Failed to call unregister agent method\n");
++		bt_shell_printf(_("Failed to call unregister agent method\n"));
+ 		return;
+ 	}
+ }
+@@ -403,13 +409,13 @@
+ 	dbus_error_init(&error);
+ 
+ 	if (dbus_set_error_from_message(&error, message) == TRUE) {
+-		bt_shell_printf("Failed to request default agent: %s\n",
++		bt_shell_printf(_("Failed to request default agent: %s\n"),
+ 							error.name);
+ 		dbus_error_free(&error);
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+-	bt_shell_printf("Default agent request successful\n");
++	bt_shell_printf(_("Default agent request successful\n"));
+ 
+ 	return bt_shell_noninteractive_quit(EXIT_SUCCESS);
+ }
+@@ -417,7 +423,7 @@
+ void agent_default(DBusConnection *conn, GDBusProxy *manager)
+ {
+ 	if (agent_registered == FALSE) {
+-		bt_shell_printf("No agent is registered\n");
++		bt_shell_printf(_("No agent is registered\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+@@ -425,7 +431,7 @@
+ 						request_default_setup,
+ 						request_default_reply,
+ 						NULL, NULL) == FALSE) {
+-		bt_shell_printf("Failed to call RequestDefaultAgent method\n");
++		bt_shell_printf(_("Failed to call RequestDefaultAgent method\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ }
+diff -Naur bluez-5.62ORIG/client/gatt.c bluez-5.62/client/gatt.c
+--- bluez-5.62ORIG/client/gatt.c	2021-02-23 04:26:59.000000000 +0800
++++ bluez-5.62/client/gatt.c	2021-10-27 08:01:27.506608025 +0800
+@@ -8,6 +8,12 @@
+  *
+  */
+ 
++/* 20201027 internationalized.
++ * ref: https://bkhome.org/news/202010/how-to-internationalize-any-c-program.html */
++#include <libintl.h>
++#include <locale.h>
++#define _(STRING) gettext(STRING)
++
+ #ifdef HAVE_CONFIG_H
+ #include <config.h>
+ #endif
+@@ -594,7 +600,7 @@
+ 	dbus_error_init(&error);
+ 
+ 	if (dbus_set_error_from_message(&error, message) == TRUE) {
+-		bt_shell_printf("Failed to read: %s\n", error.name);
++		bt_shell_printf(_("Failed to read: %s\n"), error.name);
+ 		dbus_error_free(&error);
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+@@ -602,7 +608,7 @@
+ 	dbus_message_iter_init(message, &iter);
+ 
+ 	if (dbus_message_iter_get_arg_type(&iter) != DBUS_TYPE_ARRAY) {
+-		bt_shell_printf("Invalid response to read\n");
++		bt_shell_printf(_("Invalid response to read\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+@@ -610,7 +616,7 @@
+ 	dbus_message_iter_get_fixed_array(&array, &value, &len);
+ 
+ 	if (len < 0) {
+-		bt_shell_printf("Unable to parse value\n");
++		bt_shell_printf(_("Unable to parse value\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+@@ -640,11 +646,11 @@
+ {
+ 	if (g_dbus_proxy_method_call(proxy, "ReadValue", read_setup, read_reply,
+ 						&offset, NULL) == FALSE) {
+-		bt_shell_printf("Failed to read\n");
++		bt_shell_printf(_("Failed to read\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+-	bt_shell_printf("Attempting to read %s\n", g_dbus_proxy_get_path(proxy));
++	bt_shell_printf(_("Attempting to read %s\n"), g_dbus_proxy_get_path(proxy));
+ }
+ 
+ void gatt_read_attribute(GDBusProxy *proxy, int argc, char *argv[])
+@@ -663,7 +669,7 @@
+ 		return;
+ 	}
+ 
+-	bt_shell_printf("Unable to read attribute %s\n",
++	bt_shell_printf(_("Unable to read attribute %s\n"),
+ 						g_dbus_proxy_get_path(proxy));
+ 	return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ }
+@@ -675,7 +681,7 @@
+ 	dbus_error_init(&error);
+ 
+ 	if (dbus_set_error_from_message(&error, message) == TRUE) {
+-		bt_shell_printf("Failed to write: %s\n", error.name);
++		bt_shell_printf(_("Failed to write: %s\n"), error.name);
+ 		dbus_error_free(&error);
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+@@ -742,10 +748,10 @@
+ 	/* Write using the fd if it has been acquired and fit the MTU */
+ 	if (proxy == write_io.proxy &&
+ 			(write_io.io && write_io.mtu >= data->iov.iov_len)) {
+-		bt_shell_printf("Attempting to write fd %d\n",
++		bt_shell_printf(_("Attempting to write fd %d\n"),
+ 						io_get_fd(write_io.io));
+ 		if (sock_send(write_io.io, &data->iov, 1) < 0) {
+-			bt_shell_printf("Failed to write: %s", strerror(errno));
++			bt_shell_printf(_("Failed to write: %s"), strerror(errno));
+ 			return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 		}
+ 		return;
+@@ -753,11 +759,11 @@
+ 
+ 	if (g_dbus_proxy_method_call(proxy, "WriteValue", write_setup,
+ 					write_reply, data, NULL) == FALSE) {
+-		bt_shell_printf("Failed to write\n");
++		bt_shell_printf(_("Failed to write\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+-	bt_shell_printf("Attempting to write %s\n",
++	bt_shell_printf(_("Attempting to write %s\n"),
+ 					g_dbus_proxy_get_path(proxy));
+ }
+ 
+@@ -775,13 +781,13 @@
+ 			continue;
+ 
+ 		if (i >= G_N_ELEMENTS(value)) {
+-			bt_shell_printf("Too much data\n");
++			bt_shell_printf(_("Too much data\n"));
+ 			return NULL;
+ 		}
+ 
+ 		val = strtol(entry, &endptr, 0);
+ 		if (!endptr || *endptr != '\0' || val > UINT8_MAX) {
+-			bt_shell_printf("Invalid value at index %d\n", i);
++			bt_shell_printf(_("Invalid value at index %d\n"), i);
+ 			return NULL;
+ 		}
+ 
+@@ -815,7 +821,7 @@
+ 		return;
+ 	}
+ 
+-	bt_shell_printf("Unable to write attribute %s\n",
++	bt_shell_printf(_("Unable to write attribute %s\n"),
+ 						g_dbus_proxy_get_path(proxy));
+ 
+ 	return bt_shell_noninteractive_quit(EXIT_FAILURE);
+@@ -914,7 +920,7 @@
+ 	dbus_error_init(&error);
+ 
+ 	if (dbus_set_error_from_message(&error, message) == TRUE) {
+-		bt_shell_printf("Failed to acquire write: %s\n", error.name);
++		bt_shell_printf(_("Failed to acquire write: %s\n"), error.name);
+ 		dbus_error_free(&error);
+ 		write_io.proxy = NULL;
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+@@ -926,11 +932,11 @@
+ 	if ((dbus_message_get_args(message, NULL, DBUS_TYPE_UNIX_FD, &fd,
+ 					DBUS_TYPE_UINT16, &write_io.mtu,
+ 					DBUS_TYPE_INVALID) == false)) {
+-		bt_shell_printf("Invalid AcquireWrite response\n");
++		bt_shell_printf(_("Invalid AcquireWrite response\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+-	bt_shell_printf("AcquireWrite success: fd %d MTU %u\n", fd,
++	bt_shell_printf(_("AcquireWrite success: fd %d MTU %u\n"), fd,
+ 								write_io.mtu);
+ 
+ 	write_io.io = sock_io_new(fd, NULL);
+@@ -957,15 +963,14 @@
+ 
+ 	iface = g_dbus_proxy_get_interface(proxy);
+ 	if (strcmp(iface, "org.bluez.GattCharacteristic1")) {
+-		bt_shell_printf("Unable to acquire write: %s not a"
+-				" characteristic\n",
++		bt_shell_printf(_("Unable to acquire write: %s not a characteristic\n"),
+ 				g_dbus_proxy_get_path(proxy));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+ 	if (g_dbus_proxy_method_call(proxy, "AcquireWrite", acquire_setup,
+ 				acquire_write_reply, NULL, NULL) == FALSE) {
+-		bt_shell_printf("Failed to AcquireWrite\n");
++		bt_shell_printf(_("Failed to AcquireWrite\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+@@ -975,7 +980,7 @@
+ void gatt_release_write(GDBusProxy *proxy, const char *arg)
+ {
+ 	if (proxy != write_io.proxy || !write_io.io) {
+-		bt_shell_printf("Write not acquired\n");
++		bt_shell_printf(_("Write not acquired\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+@@ -992,7 +997,7 @@
+ 	dbus_error_init(&error);
+ 
+ 	if (dbus_set_error_from_message(&error, message) == TRUE) {
+-		bt_shell_printf("Failed to acquire notify: %s\n", error.name);
++		bt_shell_printf(_("Failed to acquire notify: %s\n"), error.name);
+ 		dbus_error_free(&error);
+ 		write_io.proxy = NULL;
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+@@ -1008,11 +1013,11 @@
+ 	if ((dbus_message_get_args(message, NULL, DBUS_TYPE_UNIX_FD, &fd,
+ 					DBUS_TYPE_UINT16, &notify_io.mtu,
+ 					DBUS_TYPE_INVALID) == false)) {
+-		bt_shell_printf("Invalid AcquireNotify response\n");
++		bt_shell_printf(_("Invalid AcquireNotify response\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+-	bt_shell_printf("AcquireNotify success: fd %d MTU %u\n", fd,
++	bt_shell_printf(_("AcquireNotify success: fd %d MTU %u\n"), fd,
+ 								notify_io.mtu);
+ 
+ 	notify_io.io = sock_io_new(fd, NULL);
+@@ -1026,15 +1031,14 @@
+ 
+ 	iface = g_dbus_proxy_get_interface(proxy);
+ 	if (strcmp(iface, "org.bluez.GattCharacteristic1")) {
+-		bt_shell_printf("Unable to acquire notify: %s not a"
+-				" characteristic\n",
++		bt_shell_printf(_("Unable to acquire notify: %s not a characteristic\n"),
+ 				g_dbus_proxy_get_path(proxy));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+ 	if (g_dbus_proxy_method_call(proxy, "AcquireNotify", acquire_setup,
+ 				acquire_notify_reply, NULL, NULL) == FALSE) {
+-		bt_shell_printf("Failed to AcquireNotify\n");
++		bt_shell_printf(_("Failed to AcquireNotify\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+@@ -1044,7 +1048,7 @@
+ void gatt_release_notify(GDBusProxy *proxy, const char *arg)
+ {
+ 	if (proxy != notify_io.proxy || !notify_io.io) {
+-		bt_shell_printf("Notify not acquired\n");
++		bt_shell_printf(_("Notify not acquired\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+@@ -1061,13 +1065,13 @@
+ 	dbus_error_init(&error);
+ 
+ 	if (dbus_set_error_from_message(&error, message) == TRUE) {
+-		bt_shell_printf("Failed to %s notify: %s\n",
+-				enable ? "start" : "stop", error.name);
++		bt_shell_printf(_("Failed to %s notify: %s\n"),
++				enable ? _("start") : _("stop"), error.name);
+ 		dbus_error_free(&error);
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+-	bt_shell_printf("Notify %s\n", enable == TRUE ? "started" : "stopped");
++	bt_shell_printf(_("Notify %s\n"), enable == TRUE ? _("started") : _("stopped"));
+ 
+ 	return bt_shell_noninteractive_quit(EXIT_SUCCESS);
+ }
+@@ -1083,8 +1087,8 @@
+ 
+ 	if (g_dbus_proxy_method_call(proxy, method, NULL, notify_reply,
+ 				GUINT_TO_POINTER(enable), NULL) == FALSE) {
+-		bt_shell_printf("Failed to %s notify\n",
+-				enable ? "start" : "stop");
++		bt_shell_printf(_("Failed to %s notify\n"),
++				enable ? _("start") : _("stop"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+@@ -1101,7 +1105,7 @@
+ 		return;
+ 	}
+ 
+-	bt_shell_printf("Unable to notify attribute %s\n",
++	bt_shell_printf(_("Unable to notify attribute %s\n"),
+ 						g_dbus_proxy_get_path(proxy));
+ 
+ 	return bt_shell_noninteractive_quit(EXIT_FAILURE);
+@@ -1131,13 +1135,13 @@
+ 	dbus_error_init(&error);
+ 
+ 	if (dbus_set_error_from_message(&error, message) == TRUE) {
+-		bt_shell_printf("Failed to register application: %s\n",
++		bt_shell_printf(_("Failed to register application: %s\n"),
+ 				error.name);
+ 		dbus_error_free(&error);
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+-	bt_shell_printf("Application registered\n");
++	bt_shell_printf(_("Application registered\n"));
+ 
+ 	return bt_shell_noninteractive_quit(EXIT_SUCCESS);
+ }
+@@ -1205,7 +1209,7 @@
+ 
+ 	l = g_list_find_custom(managers, proxy, match_proxy);
+ 	if (!l) {
+-		bt_shell_printf("Unable to find GattManager proxy\n");
++		bt_shell_printf(_("Unable to find GattManager proxy\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+@@ -1217,8 +1221,7 @@
+ 						PROFILE_INTERFACE, methods,
+ 						NULL, properties, NULL,
+ 						NULL) == FALSE) {
+-			bt_shell_printf("Failed to register application"
+-					" object\n");
++			bt_shell_printf(_("Failed to register application object\n"));
+ 			return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 		}
+ 	}
+@@ -1227,7 +1230,7 @@
+ 						register_app_setup,
+ 						register_app_reply, NULL,
+ 						NULL) == FALSE) {
+-		bt_shell_printf("Failed register application\n");
++		bt_shell_printf(_("Failed register application\n"));
+ 		g_dbus_unregister_interface(conn, APP_PATH, PROFILE_INTERFACE);
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+@@ -1241,13 +1244,13 @@
+ 	dbus_error_init(&error);
+ 
+ 	if (dbus_set_error_from_message(&error, message) == TRUE) {
+-		bt_shell_printf("Failed to unregister application: %s\n",
++		bt_shell_printf(_("Failed to unregister application: %s\n"),
+ 				error.name);
+ 		dbus_error_free(&error);
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+-	bt_shell_printf("Application unregistered\n");
++	bt_shell_printf(_("Application unregistered\n"));
+ 
+ 	if (!uuids)
+ 		return bt_shell_noninteractive_quit(EXIT_SUCCESS);
+@@ -1273,7 +1276,7 @@
+ 
+ 	l = g_list_find_custom(managers, proxy, match_proxy);
+ 	if (!l) {
+-		bt_shell_printf("Unable to find GattManager proxy\n");
++		bt_shell_printf(_("Unable to find GattManager proxy\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+@@ -1281,7 +1284,7 @@
+ 						unregister_app_setup,
+ 						unregister_app_reply, conn,
+ 						NULL) == FALSE) {
+-		bt_shell_printf("Failed unregister profile\n");
++		bt_shell_printf(_("Failed unregister profile\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ }
+@@ -1461,7 +1464,7 @@
+ 	else if (!strcmp(input, "no")) {
+ 		service->primary = false;
+ 	} else {
+-		bt_shell_printf("Invalid option: %s\n", input);
++		bt_shell_printf(_("Invalid option: %s\n"), input);
+ 		local_services = g_list_remove(local_services, service);
+ 		print_service(service, COLORED_DEL);
+ 		g_dbus_unregister_interface(service->conn, service->path,
+@@ -1489,7 +1492,7 @@
+ 					SERVICE_INTERFACE, NULL, NULL,
+ 					service_properties, service,
+ 					service_free) == FALSE) {
+-		bt_shell_printf("Failed to register service object\n");
++		bt_shell_printf(_("Failed to register service object\n"));
+ 		service_free(service);
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+@@ -1530,7 +1533,7 @@
+ 
+ 	service = service_find(argv[1]);
+ 	if (!service) {
+-		bt_shell_printf("Failed to unregister service object\n");
++		bt_shell_printf(_("Failed to unregister service object\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+@@ -1565,7 +1568,7 @@
+ 	char *inc_path;
+ 
+ 	if (!local_services) {
+-		bt_shell_printf("No service registered\n");
++		bt_shell_printf(_("No service registered\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+@@ -1574,7 +1577,7 @@
+ 
+ 	inc_service = service_find(argv[1]);
+ 	if (!inc_service) {
+-		bt_shell_printf("Failed to find  service object\n");
++		bt_shell_printf(_("Failed to find  service object\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+@@ -1596,14 +1599,13 @@
+ 
+ 	service = service_find(argv[1]);
+ 	if (!service) {
+-		bt_shell_printf("Failed to unregister include service"
+-							" object\n");
++		bt_shell_printf(_("Failed to unregister include service object\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+ 	ser_inc = service_find(argv[2]);
+ 	if (!ser_inc) {
+-		bt_shell_printf("Failed to find include service object\n");
++		bt_shell_printf(_("Failed to find include service object\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+@@ -1949,7 +1951,7 @@
+ 	dbus_error_init(&error);
+ 
+ 	if (dbus_set_error_from_message(&error, message) == TRUE) {
+-		bt_shell_printf("Failed to read: %s\n", error.name);
++		bt_shell_printf(_("Failed to read: %s\n"), error.name);
+ 		dbus_error_free(&error);
+ 		g_dbus_send_error(conn, data->msg, error.name, "%s",
+ 							error.message);
+@@ -1959,7 +1961,7 @@
+ 	dbus_message_iter_init(message, &iter);
+ 
+ 	if (dbus_message_iter_get_arg_type(&iter) != DBUS_TYPE_ARRAY) {
+-		bt_shell_printf("Invalid response to read\n");
++		bt_shell_printf(_("Invalid response to read\n"));
+ 		g_dbus_send_error(conn, data->msg,
+ 				"org.bluez.Error.InvalidArguments", NULL);
+ 		goto done;
+@@ -1969,7 +1971,7 @@
+ 	dbus_message_iter_get_fixed_array(&array, &value, &len);
+ 
+ 	if (len < 0) {
+-		bt_shell_printf("Unable to parse value\n");
++		bt_shell_printf(_("Unable to parse value\n"));
+ 		g_dbus_send_error(conn, data->msg,
+ 				"org.bluez.Error.InvalidArguments", NULL);
+ 	}
+@@ -2014,7 +2016,7 @@
+ 					proxy_read_reply, data, NULL))
+ 		return NULL;
+ 
+-	bt_shell_printf("Failed to read\n");
++	bt_shell_printf(_("Failed to read\n"));
+ 
+ 	return g_dbus_create_error(msg, "org.bluez.Error.InvalidArguments",
+ 								NULL);
+@@ -2180,7 +2182,7 @@
+ 	dbus_error_init(&error);
+ 
+ 	if (dbus_set_error_from_message(&error, message)) {
+-		bt_shell_printf("Failed to write: %s\n", error.name);
++		bt_shell_printf(_("Failed to write: %s\n"), error.name);
+ 		g_dbus_send_error(conn, data->msg, error.name, "%s",
+ 							error.message);
+ 	} else
+@@ -2208,7 +2210,7 @@
+ 		return NULL;
+ 
+ 
+-	bt_shell_printf("Failed to write\n");
++	bt_shell_printf(_("Failed to write\n"));
+ 
+ 	return g_dbus_create_error(msg, "org.bluez.Error.InvalidArguments",
+ 								NULL);
+@@ -2408,7 +2410,7 @@
+ 	dbus_error_init(&error);
+ 
+ 	if (dbus_set_error_from_message(&error, message) == TRUE) {
+-		bt_shell_printf("Failed to %s: %s\n",
++		bt_shell_printf(_("Failed to %s: %s\n"),
+ 				data->enable ? "StartNotify" : "StopNotify",
+ 				error.name);
+ 		dbus_error_free(&error);
+@@ -2502,7 +2504,7 @@
+ {
+ 	struct chrc *chrc = user_data;
+ 
+-	bt_shell_printf("Attribute %s (%s) indication confirm received",
++	bt_shell_printf(_("Attribute %s (%s) indication confirm received"),
+ 			chrc->path, bt_uuidstr_to_str(chrc->uuid));
+ 
+ 	return dbus_message_new_method_return(msg);
+@@ -2560,7 +2562,7 @@
+ 	struct chrc *chrc;
+ 
+ 	if (!local_services) {
+-		bt_shell_printf("No service registered\n");
++		bt_shell_printf(_("No service registered\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+@@ -2580,7 +2582,7 @@
+ 	if (g_dbus_register_interface(conn, chrc->path, CHRC_INTERFACE,
+ 					chrc_methods, NULL, chrc_properties,
+ 					chrc, chrc_free) == FALSE) {
+-		bt_shell_printf("Failed to register characteristic object\n");
++		bt_shell_printf(_("Failed to register characteristic object\n"));
+ 		chrc_free(chrc);
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+@@ -2626,7 +2628,7 @@
+ 
+ 	chrc = chrc_find(argv[1]);
+ 	if (!chrc) {
+-		bt_shell_printf("Failed to unregister characteristic object\n");
++		bt_shell_printf(_("Failed to unregister characteristic object\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+@@ -2833,14 +2835,14 @@
+ 	struct desc *desc;
+ 
+ 	if (!local_services) {
+-		bt_shell_printf("No service registered\n");
++		bt_shell_printf(_("No service registered\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+ 	service = g_list_last(local_services)->data;
+ 
+ 	if (!service->chrcs) {
+-		bt_shell_printf("No characteristic registered\n");
++		bt_shell_printf(_("No characteristic registered\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+@@ -2857,7 +2859,7 @@
+ 	if (g_dbus_register_interface(conn, desc->path, DESC_INTERFACE,
+ 					desc_methods, NULL, desc_properties,
+ 					desc, desc_free) == FALSE) {
+-		bt_shell_printf("Failed to register descriptor object\n");
++		bt_shell_printf(_("Failed to register descriptor object\n"));
+ 		desc_free(desc);
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+@@ -2908,7 +2910,7 @@
+ 
+ 	desc = desc_find(argv[1]);
+ 	if (!desc) {
+-		bt_shell_printf("Failed to unregister descriptor object\n");
++		bt_shell_printf(_("Failed to unregister descriptor object\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+@@ -3001,7 +3003,7 @@
+ 	if (g_dbus_register_interface(service->conn, chrc->path, CHRC_INTERFACE,
+ 					chrc_methods, NULL, chrc_properties,
+ 					chrc, chrc_free) == FALSE) {
+-		bt_shell_printf("Failed to register characteristic object\n");
++		bt_shell_printf(_("Failed to register characteristic object\n"));
+ 		chrc_free(chrc);
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+@@ -3059,7 +3061,7 @@
+ 					SERVICE_INTERFACE, NULL, NULL,
+ 					service_properties, service,
+ 					service_free) == FALSE) {
+-		bt_shell_printf("Failed to register service object\n");
++		bt_shell_printf(_("Failed to register service object\n"));
+ 		service_free(service);
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+@@ -3095,7 +3097,7 @@
+ 	else if (!strcmp(input, "all"))
+ 		return clone_device(proxy);
+ 
+-	bt_shell_printf("Invalid option: %s\n", input);
++	bt_shell_printf(_("Invalid option: %s\n"), input);
+ 
+ 	return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ }
+@@ -3109,7 +3111,7 @@
+ 	else if (!strcmp(input, "no"))
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 
+-	bt_shell_printf("Invalid option: %s\n", input);
++	bt_shell_printf(_("Invalid option: %s\n"), input);
+ 
+ 	return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ }
+@@ -3150,7 +3152,7 @@
+ 	if (argc > 1) {
+ 		proxy = gatt_select_attribute(proxy, argv[1]);
+ 		if (!proxy) {
+-			bt_shell_printf("Unable to find attribute %s\n",
++			bt_shell_printf(_("Unable to find attribute %s\n"),
+ 								argv[1]);
+ 			return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 		}
+diff -Naur bluez-5.62ORIG/client/main.c bluez-5.62/client/main.c
+--- bluez-5.62ORIG/client/main.c	2021-10-14 02:38:34.000000000 +0800
++++ bluez-5.62/client/main.c	2021-10-27 08:38:33.486565872 +0800
+@@ -8,6 +8,12 @@
+  *
+  */
+ 
++/* 20201027 internationalized.
++ * ref: https://bkhome.org/news/202010/how-to-internationalize-any-c-program.html */
++#include <libintl.h>
++#include <locale.h>
++#define _(STRING) gettext(STRING)
++
+ #ifdef HAVE_CONFIG_H
+ #include <config.h>
+ #endif
+@@ -79,7 +85,7 @@
+ 
+ static void proxy_leak(gpointer data)
+ {
+-	printf("Leaking proxy %p\n", data);
++	printf(_("Leaking proxy %p\n"), data);
+ }
+ 
+ static void setup_standard_input(void)
+@@ -298,7 +304,7 @@
+ 		g_free(entry);
+ 		break;
+ 	default:
+-		bt_shell_printf("%s%s has unsupported type\n", label, name);
++		bt_shell_printf(_("%s%s has unsupported type\n"), label, name);
+ 		break;
+ 	}
+ }
+@@ -904,7 +910,7 @@
+ static gboolean check_default_ctrl(void)
+ {
+ 	if (!default_ctrl) {
+-		bt_shell_printf("No default controller available\n");
++		bt_shell_printf(_("No default controller available\n"));
+ 		return FALSE;
+ 	}
+ 
+@@ -944,7 +950,7 @@
+ 		}
+ 	}
+ 
+-	bt_shell_printf("Invalid argument %s\n", argv[1]);
++	bt_shell_printf(_("Invalid argument %s\n"), argv[1]);
+ 	return FALSE;
+ }
+ 
+@@ -974,7 +980,7 @@
+ 	} else {
+ 		adapter = find_ctrl_by_address(ctrl_list, argv[1]);
+ 		if (!adapter) {
+-			bt_shell_printf("Controller %s not available\n",
++			bt_shell_printf(_("Controller %s not available\n"),
+ 								argv[1]);
+ 			return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 		}
+@@ -1034,7 +1040,7 @@
+ 
+ 	adapter = find_ctrl_by_address(ctrl_list, argv[1]);
+ 	if (!adapter) {
+-		bt_shell_printf("Controller %s not available\n", argv[1]);
++		bt_shell_printf(_("Controller %s not available\n"), argv[1]);
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+@@ -1094,10 +1100,10 @@
+ 	char *str = user_data;
+ 
+ 	if (dbus_error_is_set(error)) {
+-		bt_shell_printf("Failed to set %s: %s\n", str, error->name);
++		bt_shell_printf(_("Failed to set %s: %s\n"), str, error->name);
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	} else {
+-		bt_shell_printf("Changing %s succeeded\n", str);
++		bt_shell_printf(_("Changing %s succeeded\n"), str);
+ 		return bt_shell_noninteractive_quit(EXIT_SUCCESS);
+ 	}
+ }
+@@ -1215,24 +1221,24 @@
+ 
+ 		if (!g_dbus_proxy_get_property(default_ctrl->proxy,
+ 					"DiscoverableTimeout", &iter)) {
+-			bt_shell_printf("Unable to get DiscoverableTimeout\n");
++			bt_shell_printf(_("Unable to get DiscoverableTimeout\n"));
+ 			return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 		}
+ 
+ 		dbus_message_iter_get_basic(&iter, &value);
+ 
+-		bt_shell_printf("DiscoverableTimeout: %d seconds\n", value);
++		bt_shell_printf(_("DiscoverableTimeout: %d seconds\n"), value);
+ 
+ 		return;
+ 	}
+ 
+ 	value = strtol(argv[1], &endptr, 0);
+ 	if (!endptr || *endptr != '\0' || value > UINT32_MAX) {
+-		bt_shell_printf("Invalid argument\n");
++		bt_shell_printf(_("Invalid argument\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+-	str = g_strdup_printf("discoverable-timeout %d", value);
++	str = g_strdup_printf(_("discoverable-timeout %d"), value);
+ 
+ 	if (g_dbus_proxy_set_property_basic(default_ctrl->proxy,
+ 					"DiscoverableTimeout",
+@@ -1262,7 +1268,7 @@
+ 			agent_register(dbus_conn, agent_manager,
+ 						auto_register_agent);
+ 		else
+-			bt_shell_printf("Agent registration enabled\n");
++			bt_shell_printf(_("Agent registration enabled\n"));
+ 	} else {
+ 		g_free(auto_register_agent);
+ 		auto_register_agent = NULL;
+@@ -1270,7 +1276,7 @@
+ 		if (agent_manager)
+ 			agent_unregister(dbus_conn, agent_manager);
+ 		else
+-			bt_shell_printf("Agent registration disabled\n");
++			bt_shell_printf(_("Agent registration disabled\n"));
+ 	}
+ 
+ 	return bt_shell_noninteractive_quit(EXIT_SUCCESS);
+@@ -1308,13 +1314,13 @@
+ 	dbus_error_init(&error);
+ 
+ 	if (dbus_set_error_from_message(&error, message) == TRUE) {
+-		bt_shell_printf("Failed to %s discovery: %s\n",
+-				enable == TRUE ? "start" : "stop", error.name);
++		bt_shell_printf(_("Failed to %s discovery: %s\n"),
++				enable == TRUE ? _("start") : _("stop"), error.name);
+ 		dbus_error_free(&error);
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+-	bt_shell_printf("Discovery %s\n", enable ? "started" : "stopped");
++	bt_shell_printf(_("Discovery %s\n"), enable ? _("started") : _("stopped"));
+ 
+ 	filter.active = enable;
+ 	/* Leave the discovery running even on noninteractive mode */
+@@ -1384,14 +1390,14 @@
+ 
+ 	dbus_error_init(&error);
+ 	if (dbus_set_error_from_message(&error, message) == TRUE) {
+-		bt_shell_printf("SetDiscoveryFilter failed: %s\n", error.name);
++		bt_shell_printf(_("SetDiscoveryFilter failed: %s\n"), error.name);
+ 		dbus_error_free(&error);
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+ 	filter.set = true;
+ 
+-	bt_shell_printf("SetDiscoveryFilter success\n");
++	bt_shell_printf(_("SetDiscoveryFilter success\n"));
+ 
+ 	return bt_shell_noninteractive_quit(EXIT_SUCCESS);
+ }
+@@ -1408,7 +1414,7 @@
+ 	if (g_dbus_proxy_method_call(default_ctrl->proxy, "SetDiscoveryFilter",
+ 					func, set_discovery_filter_reply,
+ 					&filter, NULL) == FALSE) {
+-		bt_shell_printf("Failed to set discovery filter\n");
++		bt_shell_printf(_("Failed to set discovery filter\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+@@ -1435,8 +1441,8 @@
+ 	if (g_dbus_proxy_method_call(default_ctrl->proxy, method,
+ 				NULL, start_discovery_reply,
+ 				GUINT_TO_POINTER(enable), NULL) == FALSE) {
+-		bt_shell_printf("Failed to %s discovery\n",
+-					enable == TRUE ? "start" : "stop");
++		bt_shell_printf(_("Failed to %s discovery\n"),
++					enable == TRUE ? _("start") : _("stop"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ }
+@@ -1461,7 +1467,7 @@
+ 
+ 	filter.uuids = g_strdupv(&argv[1]);
+ 	if (!filter.uuids) {
+-		bt_shell_printf("Failed to parse input\n");
++		bt_shell_printf(_("Failed to parse input\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+@@ -1540,7 +1546,7 @@
+ 	else if (!strcmp(argv[1], "off"))
+ 		filter.duplicate = false;
+ 	else {
+-		bt_shell_printf("Invalid option: %s\n", argv[1]);
++		bt_shell_printf(_("Invalid option: %s\n"), argv[1]);
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+@@ -1553,8 +1559,8 @@
+ static void cmd_scan_filter_discoverable(int argc, char *argv[])
+ {
+ 	if (argc < 2 || !strlen(argv[1])) {
+-		bt_shell_printf("Discoverable: %s\n",
+-				filter.discoverable ? "on" : "off");
++		bt_shell_printf(_("Discoverable: %s\n"),
++				filter.discoverable ? _("on") : _("off"));
+ 		return bt_shell_noninteractive_quit(EXIT_SUCCESS);
+ 	}
+ 
+@@ -1563,7 +1569,7 @@
+ 	else if (!strcmp(argv[1], "off"))
+ 		filter.discoverable = false;
+ 	else {
+-		bt_shell_printf("Invalid option: %s\n", argv[1]);
++		bt_shell_printf(_("Invalid option: %s\n"), argv[1]);
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+@@ -1682,7 +1688,7 @@
+ 	}
+ 
+ 	if (!all) {
+-		bt_shell_printf("Invalid argument %s\n", name);
++		bt_shell_printf(_("Invalid argument %s\n"), name);
+ 		return FALSE;
+ 	}
+ 
+@@ -1715,7 +1721,7 @@
+ 	if (argc < 2 || !strlen(argv[1])) {
+ 		if (default_dev)
+ 			return default_dev;
+-		bt_shell_printf("Missing device address argument\n");
++		bt_shell_printf(_("Missing device address argument\n"));
+ 		return NULL;
+ 	}
+ 
+@@ -1724,7 +1730,7 @@
+ 
+ 	proxy = find_proxy_by_address(default_ctrl->devices, argv[1]);
+ 	if (!proxy) {
+-		bt_shell_printf("Device %s not available\n", argv[1]);
++		bt_shell_printf(_("Device %s not available\n"), argv[1]);
+ 		return NULL;
+ 	}
+ 
+@@ -1753,9 +1759,9 @@
+ 
+ 		dbus_message_iter_get_basic(&iter, &type);
+ 
+-		bt_shell_printf("Device %s (%s)\n", address, type);
++		bt_shell_printf(_("Device %s (%s)\n"), address, type);
+ 	} else {
+-		bt_shell_printf("Device %s\n", address);
++		bt_shell_printf(_("Device %s\n"), address);
+ 	}
+ 
+ 	print_property(proxy, "Name");
+@@ -1797,12 +1803,12 @@
+ 	dbus_error_init(&error);
+ 
+ 	if (dbus_set_error_from_message(&error, message) == TRUE) {
+-		bt_shell_printf("Failed to pair: %s\n", error.name);
++		bt_shell_printf(_("Failed to pair: %s\n"), error.name);
+ 		dbus_error_free(&error);
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+-	bt_shell_printf("Pairing successful\n");
++	bt_shell_printf(_("Pairing successful\n"));
+ 
+ 	return bt_shell_noninteractive_quit(EXIT_SUCCESS);
+ }
+@@ -1830,11 +1836,11 @@
+ 
+ 	if (g_dbus_proxy_method_call(proxy, "Pair", NULL, pair_reply,
+ 							NULL, NULL) == FALSE) {
+-		bt_shell_printf("Failed to pair\n");
++		bt_shell_printf(_("Failed to pair\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+-	bt_shell_printf("Attempting to pair with %s\n", proxy_address(proxy));
++	bt_shell_printf(_("Attempting to pair with %s\n"), proxy_address(proxy));
+ }
+ 
+ static void cancel_pairing_reply(DBusMessage *message, void *user_data)
+@@ -1973,12 +1979,12 @@
+ 	dbus_error_init(&error);
+ 
+ 	if (dbus_set_error_from_message(&error, message) == TRUE) {
+-		bt_shell_printf("Failed to remove device: %s\n", error.name);
++		bt_shell_printf(_("Failed to remove device: %s\n"), error.name);
+ 		dbus_error_free(&error);
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+-	bt_shell_printf("Device has been removed\n");
++	bt_shell_printf(_("Device has been removed\n"));
+ 	return bt_shell_noninteractive_quit(EXIT_SUCCESS);
+ }
+ 
+@@ -2002,7 +2008,7 @@
+ 						remove_device_setup,
+ 						remove_device_reply,
+ 						path, g_free) == FALSE) {
+-		bt_shell_printf("Failed to remove device\n");
++		bt_shell_printf(_("Failed to remove device\n"));
+ 		g_free(path);
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+@@ -2029,7 +2035,7 @@
+ 
+ 	proxy = find_proxy_by_address(default_ctrl->devices, argv[1]);
+ 	if (!proxy) {
+-		bt_shell_printf("Device %s not available\n", argv[1]);
++		bt_shell_printf(_("Device %s not available\n"), argv[1]);
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+@@ -2044,13 +2050,13 @@
+ 	dbus_error_init(&error);
+ 
+ 	if (dbus_set_error_from_message(&error, message) == TRUE) {
+-		bt_shell_printf("Failed to connect: %s %s\n", error.name,
++		bt_shell_printf(_("Failed to connect: %s %s\n"), error.name,
+ 				error.message);
+ 		dbus_error_free(&error);
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+-	bt_shell_printf("Connection successful\n");
++	bt_shell_printf(_("Connection successful\n"));
+ 
+ 	set_default_device(proxy, NULL);
+ 	return bt_shell_noninteractive_quit(EXIT_SUCCESS);
+@@ -2065,17 +2071,17 @@
+ 
+ 	proxy = find_proxy_by_address(default_ctrl->devices, argv[1]);
+ 	if (!proxy) {
+-		bt_shell_printf("Device %s not available\n", argv[1]);
++		bt_shell_printf(_("Device %s not available\n"), argv[1]);
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+ 	if (g_dbus_proxy_method_call(proxy, "Connect", NULL, connect_reply,
+ 							proxy, NULL) == FALSE) {
+-		bt_shell_printf("Failed to connect\n");
++		bt_shell_printf(_("Failed to connect\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+-	bt_shell_printf("Attempting to connect to %s\n", argv[1]);
++	bt_shell_printf(_("Attempting to connect to %s\n"), argv[1]);
+ }
+ 
+ static void disconn_reply(DBusMessage *message, void *user_data)
+@@ -2086,12 +2092,12 @@
+ 	dbus_error_init(&error);
+ 
+ 	if (dbus_set_error_from_message(&error, message) == TRUE) {
+-		bt_shell_printf("Failed to disconnect: %s\n", error.name);
++		bt_shell_printf(_("Failed to disconnect: %s\n"), error.name);
+ 		dbus_error_free(&error);
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+-	bt_shell_printf("Successful disconnected\n");
++	bt_shell_printf(_("Successful disconnected\n"));
+ 
+ 	if (proxy == default_dev)
+ 		set_default_device(NULL, NULL);
+@@ -2109,11 +2115,11 @@
+ 
+ 	if (g_dbus_proxy_method_call(proxy, "Disconnect", NULL, disconn_reply,
+ 							proxy, NULL) == FALSE) {
+-		bt_shell_printf("Failed to disconnect\n");
++		bt_shell_printf(_("Failed to disconnect\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+-	bt_shell_printf("Attempting to disconnect from %s\n",
++	bt_shell_printf(_("Attempting to disconnect from %s\n"),
+ 						proxy_address(proxy));
+ }
+ 
+@@ -2144,7 +2150,7 @@
+ 	char *name;
+ 
+ 	if (!default_dev) {
+-		bt_shell_printf("No device connected\n");
++		bt_shell_printf(_("No device connected\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+@@ -2165,7 +2171,7 @@
+ 	GDBusProxy *proxy;
+ 
+ 	if (!default_dev) {
+-		bt_shell_printf("No device connected\n");
++		bt_shell_printf(_("No device connected\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+@@ -2185,13 +2191,13 @@
+ 	if (argc < 2 || !strlen(argv[1])) {
+ 		if (default_attr)
+ 			return default_attr;
+-		bt_shell_printf("Missing attribute argument\n");
++		bt_shell_printf(_("Missing attribute argument\n"));
+ 		return NULL;
+ 	}
+ 
+ 	proxy = gatt_select_attribute(default_attr, argv[1]);
+ 	if (!proxy) {
+-		bt_shell_printf("Attribute %s not available\n", argv[1]);
++		bt_shell_printf(_("Attribute %s not available\n"), argv[1]);
+ 		return NULL;
+ 	}
+ 
+@@ -2249,7 +2255,7 @@
+ static void cmd_read(int argc, char *argv[])
+ {
+ 	if (!default_attr) {
+-		bt_shell_printf("No attribute selected\n");
++		bt_shell_printf(_("No attribute selected\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+@@ -2259,7 +2265,7 @@
+ static void cmd_write(int argc, char *argv[])
+ {
+ 	if (!default_attr) {
+-		bt_shell_printf("No attribute selected\n");
++		bt_shell_printf(_("No attribute selected\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+@@ -2269,7 +2275,7 @@
+ static void cmd_acquire_write(int argc, char *argv[])
+ {
+ 	if (!default_attr) {
+-		bt_shell_printf("No attribute selected\n");
++		bt_shell_printf(_("No attribute selected\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+@@ -2279,7 +2285,7 @@
+ static void cmd_release_write(int argc, char *argv[])
+ {
+ 	if (!default_attr) {
+-		bt_shell_printf("No attribute selected\n");
++		bt_shell_printf(_("No attribute selected\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+@@ -2289,7 +2295,7 @@
+ static void cmd_acquire_notify(int argc, char *argv[])
+ {
+ 	if (!default_attr) {
+-		bt_shell_printf("No attribute selected\n");
++		bt_shell_printf(_("No attribute selected\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+@@ -2299,7 +2305,7 @@
+ static void cmd_release_notify(int argc, char *argv[])
+ {
+ 	if (!default_attr) {
+-		bt_shell_printf("No attribute selected\n");
++		bt_shell_printf(_("No attribute selected\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+@@ -2314,7 +2320,7 @@
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 
+ 	if (!default_attr) {
+-		bt_shell_printf("No attribute selected\n");
++		bt_shell_printf(_("No attribute selected\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+@@ -2327,7 +2333,7 @@
+ 
+ 	proxy = default_attr ? default_attr : default_dev;
+ 	if (!proxy) {
+-		bt_shell_printf("Not connected\n");
++		bt_shell_printf(_("Not connected\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+@@ -2586,7 +2592,7 @@
+ 
+ 	value = strtol(argv[1], &endptr, 0);
+ 	if (!endptr || *endptr != '\0' || value > UINT16_MAX) {
+-		bt_shell_printf("Invalid argument\n");
++		bt_shell_printf(_("Invalid argument\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+@@ -2650,7 +2656,7 @@
+ 
+ 	value = strtol(argv[1], &endptr, 0);
+ 	if (!endptr || *endptr != '\0' || value > UINT16_MAX) {
+-		bt_shell_printf("Invalid argument\n");
++		bt_shell_printf(_("Invalid argument\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+@@ -2669,7 +2675,7 @@
+ 
+ 	value = strtol(argv[1], &endptr, 0);
+ 	if (!endptr || *endptr != '\0' || value > UINT16_MAX) {
+-		bt_shell_printf("Invalid argument\n");
++		bt_shell_printf(_("Invalid argument\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+@@ -2688,7 +2694,7 @@
+ 
+ 	value = strtol(argv[1], &endptr, 0);
+ 	if (!endptr || *endptr != '\0' || value > UINT16_MAX) {
+-		bt_shell_printf("Invalid argument\n");
++		bt_shell_printf(_("Invalid argument\n"));
+ 		return bt_shell_noninteractive_quit(EXIT_FAILURE);
+ 	}
+ 
+@@ -3174,6 +3180,11 @@
+ 	GDBusClient *client;
+ 	int status;
+ 
++    /* 20201027 internationalized */
++    setlocale(LC_ALL, "");
++    bindtextdomain("bluetoothctl", "/usr/share/locale");
++    textdomain("bluetoothctl");
++
+ 	bt_shell_init(argc, argv, &opt);
+ 	bt_shell_set_menu(&main_menu);
+ 	bt_shell_add_submenu(&advertise_menu);

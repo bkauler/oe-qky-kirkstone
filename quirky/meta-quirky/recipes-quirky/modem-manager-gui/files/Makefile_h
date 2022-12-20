@@ -1,0 +1,4 @@
+LIBPATH := /usr/lib
+PREFIX := /usr
+ADDLIBSNAMES := 
+OFONOPLUGIN := true

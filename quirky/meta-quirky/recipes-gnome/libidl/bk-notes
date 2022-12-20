@@ -1,0 +1,10 @@
+2021-11-29
+got this from oe pyro, it is not in oe dunfell.
+need it for old versions of seamonkey (1.1.x, 2.0.x).
+
+20221207
+kirkstone, libidl-native compiles, but libidl config fail:
+"configure: error: cannot run test program while cross compiling"
+
+...have removed libidl from pkg-list.
+

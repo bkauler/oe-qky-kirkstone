@@ -1,0 +1,372 @@
+Description: correct typo "Paper geometrie" into “Paper geometry”
+Author: Jörg Frings-Fürst <debian@jff-webhosting.net>
+Bug-Debian: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=862972
+Forwarded: not-needed
+Last-Update: 2017-05-19
+---
+This patch header follows DEP-3: http://dep.debian.net/deps/dep3/
+Index: trunk/po/ca.po
+===================================================================
+--- trunk.orig/po/ca.po
++++ trunk/po/ca.po
+@@ -891,7 +891,7 @@ msgid "color [dpi]"
+ msgstr "color [ppp]"
+ 
+ #. TEXT_SETUP_PRINTER_PAPER_GEOMETRIE
+-msgid "Paper geometrie:"
++msgid "Paper geometry:"
+ msgstr "Geometria del paper:"
+ 
+ #. TEXT_SETUP_PRINTER_WIDTH
+Index: trunk/po/cs.po
+===================================================================
+--- trunk.orig/po/cs.po
++++ trunk/po/cs.po
+@@ -907,7 +907,7 @@ msgid "color [dpi]"
+ msgstr ""
+ 
+ #. TEXT_SETUP_PRINTER_PAPER_GEOMETRIE
+-msgid "Paper geometrie:"
++msgid "Paper geometry:"
+ msgstr ""
+ 
+ #. TEXT_SETUP_PRINTER_WIDTH
+Index: trunk/po/da.po
+===================================================================
+--- trunk.orig/po/da.po
++++ trunk/po/da.po
+@@ -892,7 +892,7 @@ msgid "color [dpi]"
+ msgstr "farve [dpi]"
+ 
+ #. TEXT_SETUP_PRINTER_PAPER_GEOMETRIE
+-msgid "Paper geometrie:"
++msgid "Paper geometry:"
+ msgstr "Papir geometri:"
+ 
+ #. TEXT_SETUP_PRINTER_WIDTH
+Index: trunk/po/de.po
+===================================================================
+--- trunk.orig/po/de.po
++++ trunk/po/de.po
+@@ -890,7 +890,7 @@ msgid "color [dpi]"
+ msgstr "Farbe [dpi]"
+ 
+ #. TEXT_SETUP_PRINTER_PAPER_GEOMETRIE
+-msgid "Paper geometrie:"
++msgid "Paper geometry:"
+ msgstr "Papiergeometrie:"
+ 
+ #. TEXT_SETUP_PRINTER_WIDTH
+Index: trunk/po/es.po
+===================================================================
+--- trunk.orig/po/es.po
++++ trunk/po/es.po
+@@ -890,7 +890,7 @@ msgid "color [dpi]"
+ msgstr "color [ppp]"
+ 
+ #. TEXT_SETUP_PRINTER_PAPER_GEOMETRIE
+-msgid "Paper geometrie:"
++msgid "Paper geometry:"
+ msgstr "Geometría del papel:"
+ 
+ #. TEXT_SETUP_PRINTER_WIDTH
+Index: trunk/po/fi.po
+===================================================================
+--- trunk.orig/po/fi.po
++++ trunk/po/fi.po
+@@ -875,7 +875,7 @@ msgid "color [dpi]"
+ msgstr ""
+ 
+ #. TEXT_SETUP_PRINTER_PAPER_GEOMETRIE
+-msgid "Paper geometrie:"
++msgid "Paper geometry:"
+ msgstr ""
+ 
+ #. TEXT_SETUP_PRINTER_WIDTH
+Index: trunk/po/fr.po
+===================================================================
+--- trunk.orig/po/fr.po
++++ trunk/po/fr.po
+@@ -896,7 +896,7 @@ msgid "color [dpi]"
+ msgstr "couleur [ppp]"
+ 
+ #. TEXT_SETUP_PRINTER_PAPER_GEOMETRIE
+-msgid "Paper geometrie:"
++msgid "Paper geometry:"
+ msgstr "Géométrie du papier :"
+ 
+ #. TEXT_SETUP_PRINTER_WIDTH
+Index: trunk/po/gl.po
+===================================================================
+--- trunk.orig/po/gl.po
++++ trunk/po/gl.po
+@@ -888,7 +888,7 @@ msgid "color [dpi]"
+ msgstr "cor [ppp]"
+ 
+ #. TEXT_SETUP_PRINTER_PAPER_GEOMETRIE
+-msgid "Paper geometrie:"
++msgid "Paper geometry:"
+ msgstr "Xeometría do papel:"
+ 
+ #. TEXT_SETUP_PRINTER_WIDTH
+Index: trunk/po/hu.po
+===================================================================
+--- trunk.orig/po/hu.po
++++ trunk/po/hu.po
+@@ -905,7 +905,7 @@ msgid "color [dpi]"
+ msgstr ""
+ 
+ #. TEXT_SETUP_PRINTER_PAPER_GEOMETRIE
+-msgid "Paper geometrie:"
++msgid "Paper geometry:"
+ msgstr ""
+ 
+ #. TEXT_SETUP_PRINTER_WIDTH
+Index: trunk/po/it.po
+===================================================================
+--- trunk.orig/po/it.po
++++ trunk/po/it.po
+@@ -889,7 +889,7 @@ msgid "color [dpi]"
+ msgstr "colore [dpi]"
+ 
+ #. TEXT_SETUP_PRINTER_PAPER_GEOMETRIE
+-msgid "Paper geometrie:"
++msgid "Paper geometry:"
+ msgstr "Geometria carta:"
+ 
+ #. TEXT_SETUP_PRINTER_WIDTH
+Index: trunk/po/ja.po
+===================================================================
+--- trunk.orig/po/ja.po
++++ trunk/po/ja.po
+@@ -916,7 +916,7 @@ msgid "color [dpi]"
+ msgstr ""
+ 
+ #. TEXT_SETUP_PRINTER_PAPER_GEOMETRIE
+-msgid "Paper geometrie:"
++msgid "Paper geometry:"
+ msgstr ""
+ 
+ #. TEXT_SETUP_PRINTER_WIDTH
+Index: trunk/po/nl.po
+===================================================================
+--- trunk.orig/po/nl.po
++++ trunk/po/nl.po
+@@ -916,7 +916,7 @@ msgid "color [dpi]"
+ msgstr ""
+ 
+ #. TEXT_SETUP_PRINTER_PAPER_GEOMETRIE
+-msgid "Paper geometrie:"
++msgid "Paper geometry:"
+ msgstr ""
+ 
+ #. TEXT_SETUP_PRINTER_WIDTH
+Index: trunk/po/pa.po
+===================================================================
+--- trunk.orig/po/pa.po
++++ trunk/po/pa.po
+@@ -890,7 +890,7 @@ msgid "color [dpi]"
+ msgstr "ਕਲਰ [dpi]"
+ 
+ #. TEXT_SETUP_PRINTER_PAPER_GEOMETRIE
+-msgid "Paper geometrie:"
++msgid "Paper geometry:"
+ msgstr "ਪੇਪਰ ਜੁਮੈਟਰੀ:"
+ 
+ #. TEXT_SETUP_PRINTER_WIDTH
+Index: trunk/po/pl.po
+===================================================================
+--- trunk.orig/po/pl.po
++++ trunk/po/pl.po
+@@ -915,7 +915,7 @@ msgid "color [dpi]"
+ msgstr ""
+ 
+ #. TEXT_SETUP_PRINTER_PAPER_GEOMETRIE
+-msgid "Paper geometrie:"
++msgid "Paper geometry:"
+ msgstr ""
+ 
+ #. TEXT_SETUP_PRINTER_WIDTH
+Index: trunk/po/pt.po
+===================================================================
+--- trunk.orig/po/pt.po
++++ trunk/po/pt.po
+@@ -919,7 +919,7 @@ msgid "color [dpi]"
+ msgstr ""
+ 
+ #. TEXT_SETUP_PRINTER_PAPER_GEOMETRIE
+-msgid "Paper geometrie:"
++msgid "Paper geometry:"
+ msgstr ""
+ 
+ #. TEXT_SETUP_PRINTER_WIDTH
+Index: trunk/po/pt_BR.po
+===================================================================
+--- trunk.orig/po/pt_BR.po
++++ trunk/po/pt_BR.po
+@@ -919,7 +919,7 @@ msgid "color [dpi]"
+ msgstr ""
+ 
+ #. TEXT_SETUP_PRINTER_PAPER_GEOMETRIE
+-msgid "Paper geometrie:"
++msgid "Paper geometry:"
+ msgstr ""
+ 
+ #. TEXT_SETUP_PRINTER_WIDTH
+Index: trunk/po/ro.po
+===================================================================
+--- trunk.orig/po/ro.po
++++ trunk/po/ro.po
+@@ -922,7 +922,7 @@ msgid "color [dpi]"
+ msgstr ""
+ 
+ #. TEXT_SETUP_PRINTER_PAPER_GEOMETRIE
+-msgid "Paper geometrie:"
++msgid "Paper geometry:"
+ msgstr ""
+ 
+ #. TEXT_SETUP_PRINTER_WIDTH
+Index: trunk/po/ru.po
+===================================================================
+--- trunk.orig/po/ru.po
++++ trunk/po/ru.po
+@@ -912,7 +912,7 @@ msgid "color [dpi]"
+ msgstr ""
+ 
+ #. TEXT_SETUP_PRINTER_PAPER_GEOMETRIE
+-msgid "Paper geometrie:"
++msgid "Paper geometry:"
+ msgstr ""
+ 
+ #. TEXT_SETUP_PRINTER_WIDTH
+Index: trunk/po/sk.po
+===================================================================
+--- trunk.orig/po/sk.po
++++ trunk/po/sk.po
+@@ -892,7 +892,7 @@ msgid "color [dpi]"
+ msgstr "farba [dpi]"
+ 
+ #. TEXT_SETUP_PRINTER_PAPER_GEOMETRIE
+-msgid "Paper geometrie:"
++msgid "Paper geometry:"
+ msgstr "Geometria papiera"
+ 
+ #. TEXT_SETUP_PRINTER_WIDTH
+Index: trunk/po/sl.po
+===================================================================
+--- trunk.orig/po/sl.po
++++ trunk/po/sl.po
+@@ -910,7 +910,7 @@ msgid "color [dpi]"
+ msgstr ""
+ 
+ #. TEXT_SETUP_PRINTER_PAPER_GEOMETRIE
+-msgid "Paper geometrie:"
++msgid "Paper geometry:"
+ msgstr ""
+ 
+ #. TEXT_SETUP_PRINTER_WIDTH
+Index: trunk/po/sr.po
+===================================================================
+--- trunk.orig/po/sr.po
++++ trunk/po/sr.po
+@@ -891,7 +891,7 @@ msgid "color [dpi]"
+ msgstr "боја [dpi]"
+ 
+ #. TEXT_SETUP_PRINTER_PAPER_GEOMETRIE
+-msgid "Paper geometrie:"
++msgid "Paper geometry:"
+ msgstr "Геометрија папира:"
+ 
+ #. TEXT_SETUP_PRINTER_WIDTH
+Index: trunk/po/sv.po
+===================================================================
+--- trunk.orig/po/sv.po
++++ trunk/po/sv.po
+@@ -924,7 +924,7 @@ msgid "color [dpi]"
+ msgstr ""
+ 
+ #. TEXT_SETUP_PRINTER_PAPER_GEOMETRIE
+-msgid "Paper geometrie:"
++msgid "Paper geometry:"
+ msgstr ""
+ 
+ #. TEXT_SETUP_PRINTER_WIDTH
+Index: trunk/po/tr.po
+===================================================================
+--- trunk.orig/po/tr.po
++++ trunk/po/tr.po
+@@ -910,7 +910,7 @@ msgid "color [dpi]"
+ msgstr ""
+ 
+ #. TEXT_SETUP_PRINTER_PAPER_GEOMETRIE
+-msgid "Paper geometrie:"
++msgid "Paper geometry:"
+ msgstr ""
+ 
+ #. TEXT_SETUP_PRINTER_WIDTH
+Index: trunk/po/vi.po
+===================================================================
+--- trunk.orig/po/vi.po
++++ trunk/po/vi.po
+@@ -935,7 +935,7 @@ msgid "color [dpi]"
+ msgstr ""
+ 
+ #. TEXT_SETUP_PRINTER_PAPER_GEOMETRIE
+-msgid "Paper geometrie:"
++msgid "Paper geometry:"
+ msgstr ""
+ 
+ #. TEXT_SETUP_PRINTER_WIDTH
+Index: trunk/po/xsane.pot
+===================================================================
+--- trunk.orig/po/xsane.pot
++++ trunk/po/xsane.pot
+@@ -865,7 +865,7 @@ msgid "color [dpi]"
+ msgstr ""
+ 
+ #. TEXT_SETUP_PRINTER_PAPER_GEOMETRIE
+-msgid "Paper geometrie:"
++msgid "Paper geometry:"
+ msgstr ""
+ 
+ #. TEXT_SETUP_PRINTER_WIDTH
+Index: trunk/po/zh.po
+===================================================================
+--- trunk.orig/po/zh.po
++++ trunk/po/zh.po
+@@ -904,7 +904,7 @@ msgid "color [dpi]"
+ msgstr ""
+ 
+ #. TEXT_SETUP_PRINTER_PAPER_GEOMETRIE
+-msgid "Paper geometrie:"
++msgid "Paper geometry:"
+ msgstr ""
+ 
+ #. TEXT_SETUP_PRINTER_WIDTH
+Index: trunk/po/zh_CN.po
+===================================================================
+--- trunk.orig/po/zh_CN.po
++++ trunk/po/zh_CN.po
+@@ -892,7 +892,7 @@ msgid "color [dpi]"
+ msgstr ""
+ 
+ #. TEXT_SETUP_PRINTER_PAPER_GEOMETRIE
+-msgid "Paper geometrie:"
++msgid "Paper geometry:"
+ msgstr ""
+ 
+ #. TEXT_SETUP_PRINTER_WIDTH
+Index: trunk/src/xsane-text.h
+===================================================================
+--- trunk.orig/src/xsane-text.h
++++ trunk/src/xsane-text.h
+@@ -277,7 +277,7 @@
+ #define TEXT_SETUP_PRINTER_LINEART_RES			_("lineart [dpi]")
+ #define TEXT_SETUP_PRINTER_GRAYSCALE_RES		_("grayscale [dpi]")
+ #define TEXT_SETUP_PRINTER_COLOR_RES			_("color [dpi]")
+-#define TEXT_SETUP_PRINTER_PAPER_GEOMETRIE		_("Paper geometrie:")
++#define TEXT_SETUP_PRINTER_PAPER_GEOMETRIE		_("Paper geometry:")
+ #define TEXT_SETUP_PRINTER_WIDTH			_("width")
+ #define TEXT_SETUP_PRINTER_HEIGHT			_("height")
+ #define TEXT_SETUP_PRINTER_LEFT				_("left offset")
+

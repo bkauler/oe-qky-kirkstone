@@ -1,0 +1,47 @@
+# Recipe created by recipetool
+# recipetool create -o xlockmore_5.65.bb http://sillycycle.com/xlock/xlockmore-5.65.tar.xz
+
+###COMPILE FAIL, STAYING WITH OLD VERSION###
+
+LICENSE = "GPLv2"
+LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/GPL-2.0;md5=801f80980d171dd6425610833a22dbe6"
+
+SRC_URI = "http://sillycycle.com/xlock/xlockmore-${PV}.tar.xz"
+SRC_URI[md5sum] = "50dc99671045968f9d21c710344f2fbc"
+SRC_URI[sha1sum] = "2ad5197d10f9b0fa7ae3872171c675388e320735"
+SRC_URI[sha256sum] = "cdc0d5b86be0a553f248ca261a043c2a043032de2b678429e4c2b0bd56449434"
+SRC_URI[sha384sum] = "902e21b8aa657b7c4ddc32eb7c6de353e04adab6a751e4fea73650c3086f845e2b95024001223076bf7c96b6727b28f1"
+SRC_URI[sha512sum] = "ecbf7e5c087843265eb4a537b3fe06a0d86d5f67d88c45137b6a7f4f5b30522d44fb87b5628cd9e042f90af129863fd3a4c2b5e2305df2dc3dfd867a03469ad8"
+
+DEPENDS = "libx11 libxt libxaw libxmu libxpm xorgproto libxau libxext libpng glib-2.0 jpeg libxdmcp libxinerama libice libsm freetype"
+
+inherit pkgconfig autotools gettext
+
+EXTRA_OECONF = "--enable-xlockrc --without-motif --without-editres --without-gltt --without-ftgl --without-opengl --without-mesa --without-dtsaver --without-rplay --without-nas --enable-nice-only --without-gtk --without-gtk2 --without-esound --disable-pam --disable-gtktest --without-magick --disable-bomb"
+
+#i think with all of the above, it will be cutdown enough.
+do_configure_prepend() {
+ #but take this out, as wants c++...
+ sed -i -e 's%^#define MODE_solitaire%/*BK*/%' ${S}/xlock/mode.h
+ #but why do we want so many, get rid of more... these are all the "nice" modes...
+ #for aMODE in apollonian blot bouboule bug clock daisy dclock decay deco deluxe demon dilemma dragon eyes fadeplot flame forest fzort grav hop hyper ico image kaleid life life1d life3d lightning lisa lissie loop marquee munch nose pacman penrose petal puzzle pyro pyro2 qix rain roll space sphere spiral spline star swarm tetris triangle tube turtle vines wator wire world worm xcl xjack
+ #ha, just take out one of these for now...
+ for aMODE in apollonian
+ do
+  sed -i '/^#define MODE_${aMODE}/d' ${S}/xlock/mode.h
+ done
+}
+
+#ERROR: xlockmore-5.65-r0 do_configure: QA Issue: This autoconf log indicates errors, it looked at host include and/or library paths while determining system capabilities.
+#Rerun configure task after fixing this. [configure-unsafe]
+ERROR_QA_remove = "configure-unsafe"
+
+#cc1: warning: include location "/usr/X11R6/include" is unsafe for cross-compilation [-Wpoison-system-directories]
+#cc1: warning: include location "/usr/X11R6/include" is unsafe for cross-compilation [-Wpoison-system-directories]
+#cc1: error: '-Wformat-security' ignored without '-Wformat' [-Werror=format-security]
+ERROR_QA_remove = "format-security"
+ERROR_QA_remove = "poison-system-directories"
+ERROR_QA_remove = "builtin-declaration-mismatch"
+
+HOMEPAGE = "http://sillycycle.com/xlockmore.html"
+SUMMARY = "A collection of screensavers and lockers for X"

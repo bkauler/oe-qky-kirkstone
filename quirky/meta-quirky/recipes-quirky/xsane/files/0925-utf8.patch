@@ -1,0 +1,19 @@
+Description: Convert to utf-8
+Author: Jörg Frings-Fürst <debian@jff.email>
+Forwarded: not-needed
+Last-Update: 2020-08-33
+---
+This patch header follows DEP-3: http://dep.debian.net/deps/dep3/
+Index: trunk/doc/sane-xsane-gimp-doc.html
+===================================================================
+--- trunk.orig/doc/sane-xsane-gimp-doc.html
++++ trunk/doc/sane-xsane-gimp-doc.html
+@@ -166,7 +166,7 @@ You can start xsane from the GIMP menu<i
+ </blockquote>
+ <br>
+ <br>
+-The GIMP�s XSane or Acquire menu contains short-cuts to the SANE devices that
++The GIMP´s XSane or Acquire menu contains short-cuts to the SANE devices that
+ were available at the time xsane was queried.
+ </blockquote>
+ 

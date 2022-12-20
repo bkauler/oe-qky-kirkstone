@@ -1,0 +1,4 @@
+20221203
+kirkstone has networkmanager 1.36.2 has stupid meson config fail.
+go back to 1.32.10 from honister, still uses autotools
+(in meta-openembedded)

@@ -1,0 +1,7 @@
+
+20221207
+kirkstone has xrdp 0.9.18, at meta-oe/recipes-support/xrdp
+but it was easier to create a complete .bb here
+rather then a .bbappend
+
+note, pkg xorgxrdp requires xrdp >= 0.9.16

@@ -1,0 +1,9 @@
+in dunfell (as well as earlier thud), 0.9.10 compiles,
+0.9.14+ doesn't.
+
+20211210
+--------
+0.10.3 compiled, with some bad QA hacks.
+
+20221204
+0.10.4 compiled ok.

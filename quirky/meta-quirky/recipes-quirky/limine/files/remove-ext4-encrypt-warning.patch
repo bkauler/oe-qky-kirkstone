@@ -1,0 +1,14 @@
+diff -Naur limine-3.7ORIG/common/fs/ext2.s2.c limine-3.7/common/fs/ext2.s2.c
+--- limine-3.7ORIG/common/fs/ext2.s2.c	2022-06-20 12:01:05.000000000 +0800
++++ limine-3.7/common/fs/ext2.s2.c	2022-06-21 09:12:25.533354558 +0800
+@@ -329,10 +329,6 @@
+         return false;
+     }
+ 
+-    if (sb->s_rev_level != 0 && sb->s_feature_incompat & EXT2_IF_ENCRYPT) {
+-        print("ext2: WARNING: File system has encryption feature on, stuff may misbehave\n");
+-    }
+-
+     if (sb->s_state == EXT2_FS_UNRECOVERABLE_ERRORS) {
+         print("ext2: unrecoverable errors found\n");
+         return false;

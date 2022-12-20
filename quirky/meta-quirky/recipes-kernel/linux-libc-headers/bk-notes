@@ -1,0 +1,5 @@
+
+20221201
+openembedded-core has 5.16, but we are using kernel 5.15
+
+ref: http://cgit.openembedded.org/openembedded-core/commit/meta/recipes-kernel/linux-libc-headers?id=9cebccedb16919b70198ee26acb8fcb6c4565359

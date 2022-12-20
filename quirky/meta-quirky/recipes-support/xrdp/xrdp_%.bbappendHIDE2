@@ -1,0 +1,8 @@
+
+DEPENDS:remove = "libpam"
+REQUIRED_DISTRO_FEATURES:remove = "pam"
+PACKAGECONFIG:append = " fuse"
+EXTRA_OECONF:remove = "--enable-pam-config=suse"
+
+EXTRA_OECONF:append = "--disable-pam"
+

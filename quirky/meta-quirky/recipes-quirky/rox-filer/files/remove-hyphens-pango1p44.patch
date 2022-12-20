@@ -1,0 +1,13 @@
+diff -Naur srcORIG/display.c src/display.c
+--- srcORIG/display.c	2011-10-23 01:48:50.000000000 +0800
++++ src/display.c	2022-12-18 08:27:18.846733225 +0800
+@@ -861,6 +861,9 @@
+ 		pango_attr_list_insert(list, attr);
+ 	}
+ 
++	if (!list) list = pango_attr_list_new();
++	pango_attr_list_insert(list, pango_attr_insert_hyphens_new(FALSE));
++	
+ 	if (list)
+ 		pango_layout_set_attributes(view->layout, list);
+ 

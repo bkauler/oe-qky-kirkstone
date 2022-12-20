@@ -1,0 +1,17 @@
+Description: Use a variable for return-by-reference
+Author: Miriam Ruiz <little_miry@yahoo.es>
+Origin: Debian
+Forwarded: https://github.com/unicap/unicap/pull/6
+Last-Update: 2020-07-27
+--- unicap.orig/cpi/vid21394/vid21394_base.c
++++ unicap/cpi/vid21394/vid21394_base.c
+@@ -1333,7 +1333,8 @@
+ 	
+ /*    TRACE( "rs232io fcp: %08llx out_data_length: %d, in_data_length: %d\n", fcp, out_data_length, in_data_length ); */
+ 
+-   return( _vid21394_send_fcp_command_new( vid21394handle, fcp, bit, out_data, out_data_length, in_data, (unsigned int *)&in_data_length ) );
++   size_t in_data_length_sz = in_data_length;
++   return( _vid21394_send_fcp_command_new( vid21394handle, fcp, bit, out_data, out_data_length, in_data, &in_data_length_sz ) );
+ }
+ 
+ unicap_status_t vid21394_read_rs232( vid21394handle_t vid21394handle, 

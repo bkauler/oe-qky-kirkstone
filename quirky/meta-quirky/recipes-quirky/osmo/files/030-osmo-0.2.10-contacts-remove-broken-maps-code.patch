@@ -1,0 +1,178 @@
+diff -Naur osmo-21d00afd331e9eb9af76e8cc5b9a8fd82906c181/src/contacts.c osmo-9eac3c04ec86a5ffb52e8ba8778b365c3aa68901/src/contacts.c
+--- osmo-21d00afd331e9eb9af76e8cc5b9a8fd82906c181/src/contacts.c	2019-04-09 01:10:44.000000000 +0800
++++ osmo-9eac3c04ec86a5ffb52e8ba8778b365c3aa68901/src/contacts.c	2019-04-09 01:10:46.000000000 +0800
+@@ -301,7 +301,6 @@
+ 
+ 		gtk_widget_set_sensitive (gtk_ui_manager_get_widget (appGUI->cnt->contacts_uim_widget, "/toolbar/edit"), FALSE);
+ 		gtk_widget_set_sensitive (gtk_ui_manager_get_widget (appGUI->cnt->contacts_uim_widget, "/toolbar/delete"), FALSE);
+-		gtk_widget_set_sensitive (gtk_ui_manager_get_widget (appGUI->cnt->contacts_uim_widget, "/toolbar/map_location"), FALSE);
+ 		set_export_active (appGUI);
+ 
+ 		return;
+@@ -315,7 +314,6 @@
+ 		address_available = check_address (WORK_ADDRESS, appGUI);
+ 	}
+ 
+-	gtk_widget_set_sensitive (gtk_ui_manager_get_widget (appGUI->cnt->contacts_uim_widget, "/toolbar/map_location"), address_available);
+ 	set_export_active (appGUI);
+ 
+ 	/****************************************************************/
+@@ -761,73 +759,6 @@
+ /*------------------------------------------------------------------------------*/
+ 
+ void
+-contacts_map_location_cb (GtkWidget *widget, gpointer data) {
+-
+-gint response = -1;
+-GtkWidget *info_dialog = NULL;
+-GtkWidget *hbox;
+-GtkWidget *home_addr_radiobutton;
+-GtkWidget *work_addr_radiobutton;
+-GSList *hw_radiobutton_group = NULL;
+-
+-
+-    GUI *appGUI = (GUI *)data;
+-
+-    if (gtk_tree_selection_get_selected (appGUI->cnt->contacts_list_selection, NULL, NULL)) {
+-    
+-		if (check_address (HOME_ADDRESS, appGUI) && check_address (WORK_ADDRESS, appGUI)) {
+-
+-			info_dialog = gtk_message_dialog_new (GTK_WINDOW(appGUI->main_window),
+-                                                  GTK_DIALOG_DESTROY_WITH_PARENT | GTK_DIALOG_MODAL,
+-                                                  GTK_MESSAGE_INFO, GTK_BUTTONS_OK_CANCEL, 
+-												  "\n%s:", _("Please select address"));
+-
+-			gtk_window_set_title(GTK_WINDOW(info_dialog), _("Information"));
+-			gtk_widget_show (info_dialog);
+-
+-			hbox = gtk_hbox_new (FALSE, 4);
+-		 	gtk_box_pack_start (GTK_BOX(GTK_DIALOG(info_dialog)->vbox), hbox, FALSE, TRUE, 2);
+-			gtk_widget_show (hbox);
+-
+-			work_addr_radiobutton = gtk_radio_button_new_with_mnemonic (NULL, _("Work"));
+-			gtk_widget_show (work_addr_radiobutton);
+-		 	gtk_box_pack_end (GTK_BOX(hbox), work_addr_radiobutton, FALSE, TRUE, 2);
+-		    gtk_radio_button_set_group (GTK_RADIO_BUTTON (work_addr_radiobutton), hw_radiobutton_group);
+-            hw_radiobutton_group = gtk_radio_button_get_group (GTK_RADIO_BUTTON (work_addr_radiobutton));
+-
+-			home_addr_radiobutton = gtk_radio_button_new_with_mnemonic (NULL, _("Home"));
+-			gtk_widget_show (home_addr_radiobutton);
+-		 	gtk_box_pack_end (GTK_BOX(hbox), home_addr_radiobutton, FALSE, TRUE, 2);
+-		  	gtk_radio_button_set_group (GTK_RADIO_BUTTON (home_addr_radiobutton), hw_radiobutton_group);
+-			hw_radiobutton_group = gtk_radio_button_get_group (GTK_RADIO_BUTTON (home_addr_radiobutton));
+-
+-			gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (home_addr_radiobutton), TRUE);
+-
+-			response = gtk_dialog_run(GTK_DIALOG(info_dialog));
+-
+-			if (response == GTK_RESPONSE_OK) {
+-				if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (home_addr_radiobutton)) == TRUE) {
+-					show_contact_location_on_map (HOME_ADDRESS, appGUI);
+-				} else {
+-					show_contact_location_on_map (WORK_ADDRESS, appGUI);
+-				}
+-			}
+-
+-			gtk_widget_destroy(info_dialog);
+-
+-		} else {
+-			if (check_address (HOME_ADDRESS, appGUI)) {
+-				show_contact_location_on_map (HOME_ADDRESS, appGUI);
+-			} else {
+-				show_contact_location_on_map (WORK_ADDRESS, appGUI);
+-			}
+-		}
+-    }
+-}
+-
+-/*------------------------------------------------------------------------------*/
+-
+-void
+ contacts_export_items_cb (GtkWidget *widget, gpointer data) {
+ 
+     GUI *appGUI = (GUI *)data;
+@@ -1051,7 +982,6 @@
+ "    <toolitem name=\"delete\" action=\"delete\" />\n"
+ "    <separator/>\n"
+ "    <toolitem name=\"birthdays\" action=\"birthdays\" />\n"
+-"    <toolitem name=\"map_location\" action=\"map_location\" />\n"
+ "    <separator/>\n"
+ "    <toolitem name=\"import\" action=\"import\" />\n"
+ "    <toolitem name=\"export\" action=\"export\" />\n"
+@@ -1065,7 +995,6 @@
+     { "delete", OSMO_STOCK_CONTACTS_REMOVE, _("Remove contact"), NULL, _("Remove contact"), G_CALLBACK(contacts_remove_item_cb)},
+     { "edit", OSMO_STOCK_CONTACTS_EDIT, _("Edit contact"), NULL, _("Edit contact"), G_CALLBACK(contacts_edit_item_cb)},
+     { "birthdays", OSMO_STOCK_CONTACTS_BIRTHDAYS, _("Show birthdays"), NULL, _("Show birthdays"), G_CALLBACK(contacts_birthdays_item_cb)},
+-    { "map_location", OSMO_STOCK_CONTACTS_MAP_LOCATION, _("Show contact location on the map"), NULL, _("Show contact location on the map"), G_CALLBACK(contacts_map_location_cb)},
+     { "import", OSMO_STOCK_CONTACTS_IMPORT, _("Import contacts"), NULL, _("Import contacts"), G_CALLBACK(contacts_import_items_cb)},
+     { "export", OSMO_STOCK_CONTACTS_EXPORT, _("Export contacts"), NULL, _("Export contacts"), G_CALLBACK(contacts_export_items_cb)},
+ 	{ "preferences", OSMO_STOCK_PREFERENCES, _("Preferences"), NULL, _("Preferences"), G_CALLBACK (show_preferences_window_cb)},
+@@ -1378,56 +1307,6 @@
+ }
+ 
+ /*------------------------------------------------------------------------------*/
+-
+-void
+-show_contact_location_on_map (gint address_type, GUI *appGUI) {
+-
+-GtkTreeIter     iter;
+-GtkTreeModel    *model;
+-gboolean pn_flag = FALSE;
+-gint i;
+-gchar *text = NULL;
+-gchar google_maps_url[BUFFER_SIZE];
+-gint cbegin, cend, cskip1, cskip2;
+-
+-    if (gtk_tree_selection_get_selected (appGUI->cnt->contacts_list_selection, &model, &iter)) {
+-
+-		if (address_type == HOME_ADDRESS) {
+-			cbegin = COLUMN_HOME_ADDRESS;
+-			cend = COLUMN_HOME_COUNTRY;
+-			cskip1 = COLUMN_HOME_POST_CODE;
+-			cskip2 = COLUMN_HOME_STATE;
+-		} else {
+-			cbegin = COLUMN_WORK_ADDRESS;
+-			cend = COLUMN_WORK_COUNTRY;
+-			cskip1 = COLUMN_WORK_POST_CODE;
+-			cskip2 = COLUMN_WORK_STATE;
+-		}
+-
+-        g_snprintf (google_maps_url, BUFFER_SIZE, "%s\"", GOOGLE_MAPS_QUERY);
+-
+-		for (i = cbegin; i <= cend; i++) {
+-
+-			if (i == cskip1 || i == cskip2) continue;
+-
+-				gtk_tree_model_get (model, &iter, i, &text, -1);
+-				if (text != NULL) {
+-					if (pn_flag) {
+-						g_strlcat (google_maps_url, ",", BUFFER_SIZE);
+-					}
+-					g_strlcat (google_maps_url, text, BUFFER_SIZE);
+-					pn_flag = TRUE;
+-					g_free (text);
+-				}
+-		}
+-
+-		g_strlcat (google_maps_url, "\"", BUFFER_SIZE);
+-
+-		utl_run_helper (google_maps_url, WWW);
+-	}
+-}
+-
+-/*------------------------------------------------------------------------------*/
+ 
+ #endif  /* CONTACTS_ENABLED */
+ 
+diff -Naur osmo-21d00afd331e9eb9af76e8cc5b9a8fd82906c181/src/contacts.h osmo-9eac3c04ec86a5ffb52e8ba8778b365c3aa68901/src/contacts.h
+--- osmo-21d00afd331e9eb9af76e8cc5b9a8fd82906c181/src/contacts.h	2019-04-09 01:10:44.000000000 +0800
++++ osmo-9eac3c04ec86a5ffb52e8ba8778b365c3aa68901/src/contacts.h	2019-04-09 01:10:46.000000000 +0800
+@@ -29,8 +29,6 @@
+ #define CONTACTS_GROUP_ENTRIES_NAME "contacts_groups"
+ #define CONTACTS_ENTRIES_FILENAME   "contacts_records.xml"
+ 
+-#define GOOGLE_MAPS_QUERY           "http://maps.google.com/maps?q="
+-
+ /* photo widths */
+ #define PHOTO_SMALL     80
+ #define PHOTO_MEDIUM    120

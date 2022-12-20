@@ -1,0 +1,33 @@
+# Recipe created by recipetool
+# recipetool create -o audacity_3.1.3.bb https://github.com/audacity/audacity/releases/download/Audacity-3.1.3/audacity-3.1.3-source.tar.gz
+
+SUMMARY = "Multitrack audio editor"
+HOMEPAGE = "https://www.audacityteam.org/"
+
+LICENSE = "GPLv2"
+LIC_FILES_CHKSUM = "file://LICENSE.txt;md5=549b88b1c547acbec8f9e262f30b573e"
+
+SRC_URI = "https://github.com/audacity/audacity/releases/download/Audacity-${PV}/audacity-${PV}-source.tar.gz"
+SRC_URI[md5sum] = "22fee69e4038d12a8f47b23688da6cb9"
+SRC_URI[sha1sum] = "cba5a1a2236158b2be49a7af17339549f9bf1afe"
+SRC_URI[sha256sum] = "fd8ecdc3d29b3be3bb5cbc01a77806dd59fbec2ad86854924c339811427f2aa1"
+SRC_URI[sha384sum] = "20ee29e08ae6e03160420e43ecbbd37e9d32b6884a195fbb6acc4f9c753860480d350a5397d86ca8bac1142d6e437ff1"
+SRC_URI[sha512sum] = "f3bb9a6cbf90c40d50f47bc296cf677e799fb8beb74e21ea3cd389de35a58ccd7df898f176a9326b682736b5dd9a9cfe56e83f56f2428f8ababb32037397fb53"
+
+S = "${WORKDIR}/Audacity-${PV}-Source"
+
+DEPENDS = "virtual/libgl python3 python3-conan-native ffmpeg gtk+3 gtk+ alsa-lib \
+           cairo expat flac gdk-pixbuf glib-2.0 glib-2.0-native harfbuzz libid3tag \
+           libmad lame mpg123 libogg pango libsndfile1 sox sqlite3 util-linux \
+           vamps libvorbis wavpack zlib jack pulseaudio libopus portaudio-v19"
+
+inherit cmake pkgconfig python3native python3-dir
+
+EXTRA_OECMAKE = "-Daudacity_use_ffmpeg=loaded -DCMAKE_BUILD_TYPE=release \
+       -Daudacity_lib_preference=system -Daudacity_obey_system_dependencies=on \
+       -Daudacity_conan_allow_prebuilt_binaries=off -Daudacity_use_lv2=local \
+       -Daudacity_use_portmixer=local -Daudacity_use_midi=local \
+       -Daudacity_use_vamp=local -Daudacity_use_portsmf=local \
+       -Daudacity_use_sbsms=local -Daudacity_use_soundtouch=local \
+       -Daudacity_use_twolame=local"
+

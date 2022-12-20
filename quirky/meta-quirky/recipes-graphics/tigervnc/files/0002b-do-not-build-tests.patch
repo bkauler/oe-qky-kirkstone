@@ -1,0 +1,12 @@
+diff -Naur tigervnc-1.10.99ORIG/CMakeLists.txt tigervnc-1.10.99/CMakeLists.txt
+--- tigervnc-1.10.99ORIG/CMakeLists.txt	2020-03-12 19:03:27.000000000 +0800
++++ tigervnc-1.10.99/CMakeLists.txt	2022-12-11 14:37:16.483353353 +0800
+@@ -305,8 +305,6 @@
+   add_subdirectory(media)
+ endif()
+ 
+-add_subdirectory(tests)
+-
+ 
+ include(cmake/BuildPackages.cmake)
+ 

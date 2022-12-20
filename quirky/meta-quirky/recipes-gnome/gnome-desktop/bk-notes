@@ -1,0 +1,4 @@
+
+20221203
+kirkstone has gnome-desktop 42.0 which requires gtk4
+gnome-desktop3 is from honister, requires gtk3

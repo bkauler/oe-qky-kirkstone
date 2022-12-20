@@ -1,0 +1,17 @@
+Description: Makefile.PL; no longer interactive when mod_perl is installed
+Origin: vendor
+Forwarded: not-needed
+Author: Matt Hope <dopey@debian.org>
+Reviewed-by: gregor herrmann <gregoa@debian.org>
+Last-Update: 2020-01-24
+
+--- a/Makefile.PL
++++ b/Makefile.PL
+@@ -152,6 +152,7 @@
+ 
+ # initial checks to see if apache is possible at all
+ sub check_initial_apache ($) {
++    return;
+     my $apinfo = shift;
+     print "\nChecking for Apache.pm... ";
+     eval { require Apache };

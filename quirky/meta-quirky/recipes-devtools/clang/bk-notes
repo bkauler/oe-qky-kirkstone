@@ -1,0 +1,5 @@
+
+20221206
+see script 'create-oe-quirky'
+it deletes meta/recipes-devtools/llvm
+so that meta-clang can provide llvm

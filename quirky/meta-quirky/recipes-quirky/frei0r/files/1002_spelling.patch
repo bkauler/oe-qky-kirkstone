@@ -1,0 +1,74 @@
+Description: Spelling fixes
+Author: IOhannes m zmölnig
+Forwarded: https://github.com/dyne/frei0r/pull/98
+Last-Update: 2020-01-29
+---
+This patch header follows DEP-3: http://dep.debian.net/deps/dep3/
+--- frei0r.orig/src/filter/elastic_scale/README.md
++++ frei0r/src/filter/elastic_scale/README.md
+@@ -1,6 +1,6 @@
+ # Elastic Scale
+ 
+-Elastic scale allows to apply non linear scale to video footage.
++Elastic scale allows one to apply non linear scale to video footage.
+ 
+ Written by Matthias Schnöll,  Aug 2018  and released under GNU GPL
+ 
+--- frei0r.orig/src/filter/elastic_scale/elastic_scale.cpp
++++ frei0r/src/filter/elastic_scale/elastic_scale.cpp
+@@ -28,8 +28,8 @@
+ #define PI 3.141592654
+ 
+ /**
+-This is a frei0r filter which allows to scale video footage non-linearly.
+-In combination with a linear scale filter, it allows to scale 4:3 footage
++This is a frei0r filter which allows one to scale video footage non-linearly.
++In combination with a linear scale filter, it allows one to scale 4:3 footage
+ to 16:9 and maintain the original aspect ratio in the center part of the image.
+ */
+ 
+@@ -303,7 +303,7 @@
+ };
+ 
+ frei0r::construct<ElasticScale> plugin("Elastic scale filter",
+-                "This is a frei0r filter which allows to scale video footage non-linearly.",
++                "This is a frei0r filter which allows one to scale video footage non-linearly.",
+                 "Matthias Schnoell",
+                 0,2,
+                 F0R_COLOR_MODEL_RGBA8888);
+--- frei0r.orig/src/filter/lightgraffiti/lightgraffiti.cpp
++++ frei0r/src/filter/lightgraffiti/lightgraffiti.cpp
+@@ -822,7 +822,7 @@
+                      Background weight
+                      */
+                     if (m_pBackgroundWeight > 0) {
+-                        // Use part of the background mean. This allows to have only lights appearing in the video
++                        // Use part of the background mean. This allows one to have only lights appearing in the video
+                         // if people or other objects walk into the video after the first frame (darker, therefore not in the light mask).
+                         out[pixel] = RGBA((int) (m_pBackgroundWeight*m_longMeanImage[3*pixel+0] + (1-m_pBackgroundWeight)*GETR(out[pixel])),
+                                           (int) (m_pBackgroundWeight*m_longMeanImage[3*pixel+1] + (1-m_pBackgroundWeight)*GETG(out[pixel])),
+--- frei0r.orig/src/filter/tutorial/tutorial.cpp
++++ frei0r/src/filter/tutorial/tutorial.cpp
+@@ -123,7 +123,8 @@
+         // can be pre-computed; when applying the filter, only thing left to do is reading the value
+         // in the lookup table.
+ 
+-        // This parameter allows to do simple benchmarking: Rendering a video with uint8_t pointers and with uint32_t pointers.
++        // This parameter allows one to do simple benchmarking: Rendering a
++        // video with uint8_t pointers and with uint32_t pointers.
+         // (Don't forget to substract the rendering time without this effect applied to avoid counting
+         // encoding and decoding as well!)
+         if (m_pointerMethod == 0) {
+--- frei0r.orig/src/filter/vignette/vignette.cpp
++++ frei0r/src/filter/vignette/vignette.cpp
+@@ -29,8 +29,8 @@
+   with a cos⁴ curve. Additionally the x:y aspect ratio of the vignette can be
+   changed (note that normal cameras with a round aperture always have an aspect ratio
+   of 1:1, but for cinematic effects the aspect ratio is often adjusted to match
+-  the frame's aspect ratio). The ClearCenter value allows to shift the vignetting away
+-  from the center, preserving it from changes.
++  the frame's aspect ratio). The ClearCenter value allows one to shift the
++  vignetting away from the center, preserving it from changes.
+ 
+   */
+ class Vignette : public frei0r::filter

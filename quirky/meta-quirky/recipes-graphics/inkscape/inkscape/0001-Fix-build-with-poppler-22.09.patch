@@ -1,0 +1,77 @@
+From ceb354d22bf25e4b48d00817cc993926358f258b Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Andreas=20M=C3=BCller?= <schnitzeltony@gmail.com>
+Date: Sat, 15 Oct 2022 21:38:30 +0200
+Subject: [PATCH] Fix build with poppler 22.09
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Upstream-Statu: Pending
+
+Signed-off-by: Andreas Müller <schnitzeltony@gmail.com>
+---
+ src/extension/internal/pdfinput/pdf-parser.cpp  | 12 ++++++++++++
+ src/extension/internal/pdfinput/svg-builder.cpp | 10 ++++++++++
+ 2 files changed, 22 insertions(+)
+
+diff --git a/src/extension/internal/pdfinput/pdf-parser.cpp b/src/extension/internal/pdfinput/pdf-parser.cpp
+index d6e2ede..b1ae5bb 100644
+--- a/src/extension/internal/pdfinput/pdf-parser.cpp
++++ b/src/extension/internal/pdfinput/pdf-parser.cpp
+@@ -685,6 +685,17 @@ void PdfParser::opConcat(Object args[], int /*numArgs*/)
+ // TODO not good that numArgs is ignored but args[] is used:
+ void PdfParser::opSetDash(Object args[], int /*numArgs*/)
+ {
++#if POPPLER_CHECK_VERSION(22,9,0)
++  Array *a = args[0].getArray();
++  int length = a->getLength();
++  std::vector<double> dash(length);
++  for (int i = 0; i < length; ++i) {
++    Object obj;
++    dash[i] = _POPPLER_CALL_ARGS_DEREF(obj, a->get, i).getNum();
++    _POPPLER_FREE(obj);
++  }
++  state->setLineDash(std::move(dash), args[1].getNum());
++#else
+   double *dash = nullptr;
+ 
+   Array *a = args[0].getArray();
+@@ -698,6 +709,7 @@ void PdfParser::opSetDash(Object args[], int /*numArgs*/)
+     }
+   }
+   state->setLineDash(dash, length, args[1].getNum());
++#endif
+   builder->updateStyle(state);
+ }
+ 
+diff --git a/src/extension/internal/pdfinput/svg-builder.cpp b/src/extension/internal/pdfinput/svg-builder.cpp
+index 901cc8c..ef660eb 100644
+--- a/src/extension/internal/pdfinput/svg-builder.cpp
++++ b/src/extension/internal/pdfinput/svg-builder.cpp
+@@ -388,6 +388,15 @@ void SvgBuilder::_setStrokeStyle(SPCSSAttr *css, GfxState *state) {
+     sp_repr_css_set_property(css, "stroke-miterlimit", os_ml.str().c_str());
+ 
+     // Line dash
++#if POPPLER_CHECK_VERSION(22,9,0)
++    double dash_start;
++    const auto& dash_pattern = state->getLineDash(&dash_start);
++    int dash_length = dash_pattern.size();
++    if ( dash_length > 0 ) {
++        Inkscape::CSSOStringStream os_array;
++        for ( int i = 0 ; i < dash_pattern.size() ; i++ ) {
++            os_array << dash_pattern[i];
++#else
+     double *dash_pattern;
+     int dash_length;
+     double dash_start;
+@@ -396,6 +405,7 @@ void SvgBuilder::_setStrokeStyle(SPCSSAttr *css, GfxState *state) {
+         Inkscape::CSSOStringStream os_array;
+         for ( int i = 0 ; i < dash_length ; i++ ) {
+             os_array << dash_pattern[i];
++#endif
+             if (i < (dash_length - 1)) {
+                 os_array << ",";
+             }
+-- 
+2.35.3
+

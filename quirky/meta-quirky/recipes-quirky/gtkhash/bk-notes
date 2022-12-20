@@ -1,0 +1,5 @@
+broken:
+../gtkhash-1.2/configure: line 10207: test: --should-not-have-used-/usr/bin/libgcrypt-config: integer expression expected
+
+this is an ongoing problem in oe. ditto for others, such as freetype-config.
+

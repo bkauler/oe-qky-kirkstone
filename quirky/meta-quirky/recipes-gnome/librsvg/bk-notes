@@ -1,0 +1,10 @@
+
+20221202
+kirkstone has librsvg 2.52.7, which requires pango >= 1.46.0
+however, we are using an older pango 1.42.3, due to indesirable behaviour
+of later versions.
+
+so, rolled back to librsvg 2.40.21, version used in dunfell, honister.
+
+20221205
+gave up, using librsvg in kirkstone

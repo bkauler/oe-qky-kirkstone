@@ -1,0 +1,27 @@
+# Recipe created by recipetool
+# recipetool create -o redshift_1.12.bb https://github.com/jonls/redshift/releases/download/v1.12/redshift-1.12.tar.gz
+
+LICENSE = "GPLv3"
+LIC_FILES_CHKSUM = "file://COPYING;md5=d32239bcb673463ab874e80d47fae504"
+
+SRC_URI = "https://github.com/jonls/redshift/releases/download/v${PV}/redshift-${PV}.tar.gz"
+SRC_URI[md5sum] = "b474c5d0cfaa68bc508496f2253c26e8"
+SRC_URI[sha256sum] = "5111145773f1ade10c5967c531f8c1938b42171399bf48126db10162a04b4a48"
+
+DEPENDS = "intltool-native libdrm libx11 libxxf86vm libxcb glib-2.0 glib-2.0-native \
+           libxau libxdmcp libxext libpcre util-linux-native"
+
+inherit pkgconfig gettext autotools
+
+EXTRA_OECONF = "--with-systemduserunitdir=no --disable-apparmor --disable-ubuntu --disable-gui"
+
+do_compile_prepend() {
+ sed -i -e 's%^LDFLAGS = %# LDFLAGS = %' ${B}/Makefile
+ sed -i -e 's%^LDFLAGS = %# LDFLAGS = %' ${B}/src/Makefile
+ sed -i -e 's%^CFLAGS = %# CFLAGS = %' ${B}/Makefile
+ sed -i -e 's%^CFLAGS = %# CFLAGS = %' ${B}/src/Makefile
+}
+
+
+HOMEPAGE = "http://jonls.dk/redshift/"
+SUMMARY = "Redshift adjusts the color temperature of your screen according to your surroundings"

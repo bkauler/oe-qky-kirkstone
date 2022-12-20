@@ -1,0 +1,14 @@
+
+20221207
+fails, even though tried to remove pam, it still wants it.
+older version of tigervnc in dunfell works, consider roll back.
+
+20221212
+kirkstone has 1.11.0
+have rolled back to the last commit before pam became mandatory,
+named it version 1.10.99
+
+NOTE: it uses older xserver source than is in kirkstone, this might
+be a problem. same thing even latest recipe in meta-oe master.
+
+

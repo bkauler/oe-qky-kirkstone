@@ -1,0 +1,38 @@
+# Recipe created by recipetool
+# recipetool create -o txt2svg_20200822.bb https://distro.ibiblio.org/easyos/source/alphabetical/t/txt2svg-20200822.tar.gz
+
+HOMEPAGE = "https://basic-converter.proboards.com/thread/938/txt2svg-logo-generator"
+SUMMARY = "Fancy text and logo generator"
+
+LICENSE = "GPLv2"
+LIC_FILES_CHKSUM = "file://${COREBASE}/COPYING.GPLv2;md5=751419260aa954499f7abaabaa882bbe"
+
+SRC_URI = "https://distro.ibiblio.org/easyos/source/alphabetical/t/txt2svg-${PV}.tar.gz"
+
+SRC_URI[md5sum] = "a269ca2114bd2cd8cf4f952d6e519f3d"
+SRC_URI[sha1sum] = "58e5294147369c0823f5a9337f696ec3928e0c7e"
+SRC_URI[sha256sum] = "23224748dd260eaf440fbdf42c583e8e53b3280920d23578e3c6628d66e94ed5"
+
+DEPENDS = "gtk+ m4-native bacon-native flex-native pango cairo"
+
+inherit gettext pkgconfig
+
+do_configure () {
+ true
+}
+
+do_compile () {
+ if [ -d build ];then
+  rm -rf build
+ fi
+ mkdir build
+ # reqd for bacon 3.x: -a rebuild libbacon.a
+ bacon -a -d build -c "${CC}" -o "${CFLAGS} -fno-pie -fdata-sections -ffunction-sections -Wl,--gc-sections" -l "${LDFLAGS} -no-pie" txt2svg.bac
+ #bacon -a -d build -c "${CC}" -o "${CFLAGS}" -l "${LDFLAGS}" txt2svg.bac
+}
+
+do_install () {
+ install -d ${D}/usr/bin
+ install -m755 build/txt2svg ${D}/usr/bin
+}
+

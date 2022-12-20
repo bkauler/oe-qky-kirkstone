@@ -1,0 +1,494 @@
+Description: Fix a typo in GUI messages
+ Fix the "postsciptfile" typo in xsane-text.h and po files.
+Author: Stephane Blondon <stephane.blondon@gmail.com>
+Forwarded: not-needed
+Origin: other, http://bugs.debian.org/cgi-bin/bugreport.cgi?msg=5;bug=569747
+Bug-Debian: http://bugs.debian.org/569747
+Forwarded: no
+
+Index: trunk/po/ca.po
+===================================================================
+--- trunk.orig/po/ca.po
++++ trunk/po/ca.po
+@@ -1969,11 +1969,11 @@ msgid "Additional gamma value for blue c
+ msgstr "Valor gamma addicional de la component blava per a les fotocòpies"
+ 
+ #. DESC_PRINTER_EMBED_CSA
+-msgid "Creates a postsciptfile that contains the ICM profile of the scanner"
++msgid "Creates a postscript file that contains the ICM profile of the scanner"
+ msgstr "Crea un fitxer PostScript que conté el perfil ICM de l'escàner"
+ 
+ #. DESC_PRINTER_EMBED_CRD
+-msgid "Creates a postsciptfile that contains the ICM profile of the printer"
++msgid "Creates a postscript file that contains the ICM profile of the printer"
+ msgstr "Crea un fitxer PostScript que conté el perfil ICM de la impressora"
+ 
+ #. DESC_PRINTER_CMS_BPC
+Index: trunk/po/cs.po
+===================================================================
+--- trunk.orig/po/cs.po
++++ trunk/po/cs.po
+@@ -2015,11 +2015,11 @@ msgid "Additional gamma value for blue c
+ msgstr "Dodatečná gama hodnota pro modrou komponentu pro kopírování"
+ 
+ #. DESC_PRINTER_EMBED_CSA
+-msgid "Creates a postsciptfile that contains the ICM profile of the scanner"
++msgid "Creates a postscript file that contains the ICM profile of the scanner"
+ msgstr ""
+ 
+ #. DESC_PRINTER_EMBED_CRD
+-msgid "Creates a postsciptfile that contains the ICM profile of the printer"
++msgid "Creates a postscript file that contains the ICM profile of the printer"
+ msgstr ""
+ 
+ #. DESC_PRINTER_CMS_BPC
+Index: trunk/po/da.po
+===================================================================
+--- trunk.orig/po/da.po
++++ trunk/po/da.po
+@@ -1960,11 +1960,11 @@ msgid "Additional gamma value for blue c
+ msgstr "Supplerende gammaværdi for fotokopiering, blå farvedel"
+ 
+ #. DESC_PRINTER_EMBED_CSA
+-msgid "Creates a postsciptfile that contains the ICM profile of the scanner"
++msgid "Creates a postscript file that contains the ICM profile of the scanner"
+ msgstr "Danner en postscriptfil der indeholder ICM-profilen for skanneren"
+ 
+ #. DESC_PRINTER_EMBED_CRD
+-msgid "Creates a postsciptfile that contains the ICM profile of the printer"
++msgid "Creates a postscript file that contains the ICM profile of the printer"
+ msgstr "Danner en postscriptfil der indeholder ICM-profilen for printeren"
+ 
+ #. DESC_PRINTER_CMS_BPC
+Index: trunk/po/de.po
+===================================================================
+--- trunk.orig/po/de.po
++++ trunk/po/de.po
+@@ -1962,11 +1962,11 @@ msgid "Additional gamma value for blue c
+ msgstr "Zusätzlicher Gammawert für blaue Komponente beim Fotokopieren"
+ 
+ #. DESC_PRINTER_EMBED_CSA
+-msgid "Creates a postsciptfile that contains the ICM profile of the scanner"
++msgid "Creates a postscript file that contains the ICM profile of the scanner"
+ msgstr "Erzeugt eine Postscriptdatei die das ICM-Profil des Scammers enthält"
+ 
+ #. DESC_PRINTER_EMBED_CRD
+-msgid "Creates a postsciptfile that contains the ICM profile of the printer"
++msgid "Creates a postscript file that contains the ICM profile of the printer"
+ msgstr "Erzeugt eine Postscriptdatei die das ICM-Profil des Druckers enthält"
+ 
+ #. DESC_PRINTER_CMS_BPC
+Index: trunk/po/es.po
+===================================================================
+--- trunk.orig/po/es.po
++++ trunk/po/es.po
+@@ -2048,11 +2048,11 @@ msgid "Additional gamma value for blue c
+ msgstr "Valor de gamma adicional del valor azul para fotocopia"
+ 
+ #. DESC_PRINTER_EMBED_CSA
+-msgid "Creates a postsciptfile that contains the ICM profile of the scanner"
++msgid "Creates a postscript file that contains the ICM profile of the scanner"
+ msgstr ""
+ 
+ #. DESC_PRINTER_EMBED_CRD
+-msgid "Creates a postsciptfile that contains the ICM profile of the printer"
++msgid "Creates a postscript file that contains the ICM profile of the printer"
+ msgstr ""
+ 
+ #. DESC_PRINTER_CMS_BPC
+Index: trunk/po/fi.po
+===================================================================
+--- trunk.orig/po/fi.po
++++ trunk/po/fi.po
+@@ -1943,11 +1943,11 @@ msgid "Additional gamma value for blue c
+ msgstr ""
+ 
+ #. DESC_PRINTER_EMBED_CSA
+-msgid "Creates a postsciptfile that contains the ICM profile of the scanner"
++msgid "Creates a postscript file that contains the ICM profile of the scanner"
+ msgstr ""
+ 
+ #. DESC_PRINTER_EMBED_CRD
+-msgid "Creates a postsciptfile that contains the ICM profile of the printer"
++msgid "Creates a postscript file that contains the ICM profile of the printer"
+ msgstr ""
+ 
+ #. DESC_PRINTER_CMS_BPC
+Index: trunk/po/fr.po
+===================================================================
+--- trunk.orig/po/fr.po
++++ trunk/po/fr.po
+@@ -2042,11 +2042,11 @@ msgid "Additional gamma value for blue c
+ msgstr "Gamma additionnel pour la composante bleue pour la photocopie"
+ 
+ #. DESC_PRINTER_EMBED_CSA
+-msgid "Creates a postsciptfile that contains the ICM profile of the scanner"
++msgid "Creates a postscript file that contains the ICM profile of the scanner"
+ msgstr ""
+ 
+ #. DESC_PRINTER_EMBED_CRD
+-msgid "Creates a postsciptfile that contains the ICM profile of the printer"
++msgid "Creates a postscript file that contains the ICM profile of the printer"
+ msgstr ""
+ 
+ #. DESC_PRINTER_CMS_BPC
+Index: trunk/po/hu.po
+===================================================================
+--- trunk.orig/po/hu.po
++++ trunk/po/hu.po
+@@ -2012,11 +2012,11 @@ msgid "Additional gamma value for blue c
+ msgstr "Plusz kék gamma érték a fotómásoláshoz"
+ 
+ #. DESC_PRINTER_EMBED_CSA
+-msgid "Creates a postsciptfile that contains the ICM profile of the scanner"
++msgid "Creates a postscript file that contains the ICM profile of the scanner"
+ msgstr ""
+ 
+ #. DESC_PRINTER_EMBED_CRD
+-msgid "Creates a postsciptfile that contains the ICM profile of the printer"
++msgid "Creates a postscript file that contains the ICM profile of the printer"
+ msgstr ""
+ 
+ #. DESC_PRINTER_CMS_BPC
+Index: trunk/po/it.po
+===================================================================
+--- trunk.orig/po/it.po
++++ trunk/po/it.po
+@@ -1965,11 +1965,11 @@ msgid "Additional gamma value for blue c
+ msgstr "Valore aggiuntivo della gamma per la componente blu per la fotocopia"
+ 
+ #. DESC_PRINTER_EMBED_CSA
+-msgid "Creates a postsciptfile that contains the ICM profile of the scanner"
++msgid "Creates a postscript file that contains the ICM profile of the scanner"
+ msgstr "Crea un file postscript che contiene il profilo ICM dello scanner"
+ 
+ #. DESC_PRINTER_EMBED_CRD
+-msgid "Creates a postsciptfile that contains the ICM profile of the printer"
++msgid "Creates a postscript file that contains the ICM profile of the printer"
+ msgstr "Crea un file postscript che contiene il profilo ICM della stampante"
+ 
+ #. DESC_PRINTER_CMS_BPC
+Index: trunk/po/ja.po
+===================================================================
+--- trunk.orig/po/ja.po
++++ trunk/po/ja.po
+@@ -2031,11 +2031,11 @@ msgid "Additional gamma value for blue c
+ msgstr "焼き増しへの青成分追加ガンマ値"
+ 
+ #. DESC_PRINTER_EMBED_CSA
+-msgid "Creates a postsciptfile that contains the ICM profile of the scanner"
++msgid "Creates a postscript file that contains the ICM profile of the scanner"
+ msgstr ""
+ 
+ #. DESC_PRINTER_EMBED_CRD
+-msgid "Creates a postsciptfile that contains the ICM profile of the printer"
++msgid "Creates a postscript file that contains the ICM profile of the printer"
+ msgstr ""
+ 
+ #. DESC_PRINTER_CMS_BPC
+Index: trunk/po/nl.po
+===================================================================
+--- trunk.orig/po/nl.po
++++ trunk/po/nl.po
+@@ -2025,11 +2025,11 @@ msgid "Additional gamma value for blue c
+ msgstr "Extra gammacorrectie voor blauw voor fotokopie"
+ 
+ #. DESC_PRINTER_EMBED_CSA
+-msgid "Creates a postsciptfile that contains the ICM profile of the scanner"
++msgid "Creates a postscript file that contains the ICM profile of the scanner"
+ msgstr ""
+ 
+ #. DESC_PRINTER_EMBED_CRD
+-msgid "Creates a postsciptfile that contains the ICM profile of the printer"
++msgid "Creates a postscript file that contains the ICM profile of the printer"
+ msgstr ""
+ 
+ #. DESC_PRINTER_CMS_BPC
+Index: trunk/po/pa.po
+===================================================================
+--- trunk.orig/po/pa.po
++++ trunk/po/pa.po
+@@ -1951,11 +1951,11 @@ msgid "Additional gamma value for blue c
+ msgstr "ਫੋਟੋ-ਕਾਪੀ ਲਈ ਨੀਲੇ ਭਾਗ ਵਾਸਤੇ ਹੋਰ ਗਾਮਾ ਮੁੱਲ"
+ 
+ #. DESC_PRINTER_EMBED_CSA
+-msgid "Creates a postsciptfile that contains the ICM profile of the scanner"
++msgid "Creates a postscript file that contains the ICM profile of the scanner"
+ msgstr "ਇੱਕ ਪੋਸਟ-ਸਕ੍ਰਿਪਟ ਫਾਇਲ ਬਣਾਓ, ਜੋ ਕਿ ਸਕੈਨਰ ਦਾ ICM ਪਰੋਫਾਇਲ ਰੱਖਦੀ ਹੋਵੇ।"
+ 
+ #. DESC_PRINTER_EMBED_CRD
+-msgid "Creates a postsciptfile that contains the ICM profile of the printer"
++msgid "Creates a postscript file that contains the ICM profile of the printer"
+ msgstr "ਇੱਕ ਪੋਸਟ-ਸਕ੍ਰਿਪਟ ਫਾਇਲ ਬਣਾਓ, ਜੋ ਕਿ ਪਰਿੰਟਰ ਦਾ ICM ਪਰੋਫਾਇਲ ਰੱਖਦੀ ਹੋਵੇ।"
+ 
+ #. DESC_PRINTER_CMS_BPC
+Index: trunk/po/pl.po
+===================================================================
+--- trunk.orig/po/pl.po
++++ trunk/po/pl.po
+@@ -2030,11 +2030,11 @@ msgid "Additional gamma value for blue c
+ msgstr "Dodatkowy parametr gamma dla niebieskiej składowej kopii"
+ 
+ #. DESC_PRINTER_EMBED_CSA
+-msgid "Creates a postsciptfile that contains the ICM profile of the scanner"
++msgid "Creates a postscript file that contains the ICM profile of the scanner"
+ msgstr ""
+ 
+ #. DESC_PRINTER_EMBED_CRD
+-msgid "Creates a postsciptfile that contains the ICM profile of the printer"
++msgid "Creates a postscript file that contains the ICM profile of the printer"
+ msgstr ""
+ 
+ #. DESC_PRINTER_CMS_BPC
+Index: trunk/po/pt.po
+===================================================================
+--- trunk.orig/po/pt.po
++++ trunk/po/pt.po
+@@ -2040,11 +2040,11 @@ msgid "Additional gamma value for blue c
+ msgstr "Valor gama adicional para o componente azul para fotocópia"
+ 
+ #. DESC_PRINTER_EMBED_CSA
+-msgid "Creates a postsciptfile that contains the ICM profile of the scanner"
++msgid "Creates a postscript file that contains the ICM profile of the scanner"
+ msgstr ""
+ 
+ #. DESC_PRINTER_EMBED_CRD
+-msgid "Creates a postsciptfile that contains the ICM profile of the printer"
++msgid "Creates a postscript file that contains the ICM profile of the printer"
+ msgstr ""
+ 
+ #. DESC_PRINTER_CMS_BPC
+Index: trunk/po/pt_BR.po
+===================================================================
+--- trunk.orig/po/pt_BR.po
++++ trunk/po/pt_BR.po
+@@ -2040,11 +2040,11 @@ msgid "Additional gamma value for blue c
+ msgstr "Valor gama adicional para o componente azul para fotocópia"
+ 
+ #. DESC_PRINTER_EMBED_CSA
+-msgid "Creates a postsciptfile that contains the ICM profile of the scanner"
++msgid "Creates a postscript file that contains the ICM profile of the scanner"
+ msgstr ""
+ 
+ #. DESC_PRINTER_EMBED_CRD
+-msgid "Creates a postsciptfile that contains the ICM profile of the printer"
++msgid "Creates a postscript file that contains the ICM profile of the printer"
+ msgstr ""
+ 
+ #. DESC_PRINTER_CMS_BPC
+Index: trunk/po/ro.po
+===================================================================
+--- trunk.orig/po/ro.po
++++ trunk/po/ro.po
+@@ -2043,11 +2043,11 @@ msgid "Additional gamma value for blue c
+ msgstr "Valoare gamma adiţională componentă albastru pt. fotocopie"
+ 
+ #. DESC_PRINTER_EMBED_CSA
+-msgid "Creates a postsciptfile that contains the ICM profile of the scanner"
++msgid "Creates a postscript file that contains the ICM profile of the scanner"
+ msgstr ""
+ 
+ #. DESC_PRINTER_EMBED_CRD
+-msgid "Creates a postsciptfile that contains the ICM profile of the printer"
++msgid "Creates a postscript file that contains the ICM profile of the printer"
+ msgstr ""
+ 
+ #. DESC_PRINTER_CMS_BPC
+Index: trunk/po/ru.po
+===================================================================
+--- trunk.orig/po/ru.po
++++ trunk/po/ru.po
+@@ -2024,11 +2024,11 @@ msgid "Additional gamma value for blue c
+ msgstr "Дополнительное значение синего компонента гаммы при копировании"
+ 
+ #. DESC_PRINTER_EMBED_CSA
+-msgid "Creates a postsciptfile that contains the ICM profile of the scanner"
++msgid "Creates a postscript file that contains the ICM profile of the scanner"
+ msgstr ""
+ 
+ #. DESC_PRINTER_EMBED_CRD
+-msgid "Creates a postsciptfile that contains the ICM profile of the printer"
++msgid "Creates a postscript file that contains the ICM profile of the printer"
+ msgstr ""
+ 
+ #. DESC_PRINTER_CMS_BPC
+Index: trunk/po/sk.po
+===================================================================
+--- trunk.orig/po/sk.po
++++ trunk/po/sk.po
+@@ -1971,11 +1971,11 @@ msgid "Additional gamma value for blue c
+ msgstr "Dodatočná gama hodnota pre modrý komponent fotokópie"
+ 
+ #. DESC_PRINTER_EMBED_CSA
+-msgid "Creates a postsciptfile that contains the ICM profile of the scanner"
++msgid "Creates a postscript file that contains the ICM profile of the scanner"
+ msgstr "Vytvoriť postscript súbor obsahujúci ICM profil skenera"
+ 
+ #. DESC_PRINTER_EMBED_CRD
+-msgid "Creates a postsciptfile that contains the ICM profile of the printer"
++msgid "Creates a postscript file that contains the ICM profile of the printer"
+ msgstr "Vytvoriť postscript súbor obsahujúci ICM profil tlačiarne"
+ 
+ #. DESC_PRINTER_CMS_BPC
+Index: trunk/po/sl.po
+===================================================================
+--- trunk.orig/po/sl.po
++++ trunk/po/sl.po
+@@ -2015,11 +2015,11 @@ msgid "Additional gamma value for blue c
+ msgstr "Dodatna vrednost gama za modro komponento pri fotokopiranju"
+ 
+ #. DESC_PRINTER_EMBED_CSA
+-msgid "Creates a postsciptfile that contains the ICM profile of the scanner"
++msgid "Creates a postscript file that contains the ICM profile of the scanner"
+ msgstr ""
+ 
+ #. DESC_PRINTER_EMBED_CRD
+-msgid "Creates a postsciptfile that contains the ICM profile of the printer"
++msgid "Creates a postscript file that contains the ICM profile of the printer"
+ msgstr ""
+ 
+ #. DESC_PRINTER_CMS_BPC
+Index: trunk/po/sr.po
+===================================================================
+--- trunk.orig/po/sr.po
++++ trunk/po/sr.po
+@@ -1958,12 +1958,12 @@ msgid "Additional gamma value for blue c
+ msgstr "Додатна вредност гама за плаву компоненту при фотокопирању"
+ 
+ #. DESC_PRINTER_EMBED_CSA
+-msgid "Creates a postsciptfile that contains the ICM profile of the scanner"
+-msgstr "Направи postscipt фајлу која садржи ICM профил скенера"
++msgid "Creates a postscript file that contains the ICM profile of the scanner"
++msgstr "Направи postscript фајлу која садржи ICM профил скенера"
+ 
+ #. DESC_PRINTER_EMBED_CRD
+-msgid "Creates a postsciptfile that contains the ICM profile of the printer"
+-msgstr "Направи postscipt фајлу која садржи ICM профил штампача"
++msgid "Creates a postscript file that contains the ICM profile of the printer"
++msgstr "Направи postscript фајлу која садржи ICM профил штампача"
+ 
+ #. DESC_PRINTER_CMS_BPC
+ msgid "Applies black point compensation"
+Index: trunk/po/sv.po
+===================================================================
+--- trunk.orig/po/sv.po
++++ trunk/po/sv.po
+@@ -2043,11 +2043,11 @@ msgid "Additional gamma value for blue c
+ msgstr "Extra gammavärde för den blåa komponeneten vid fotokopiering"
+ 
+ #. DESC_PRINTER_EMBED_CSA
+-msgid "Creates a postsciptfile that contains the ICM profile of the scanner"
++msgid "Creates a postscript file that contains the ICM profile of the scanner"
+ msgstr ""
+ 
+ #. DESC_PRINTER_EMBED_CRD
+-msgid "Creates a postsciptfile that contains the ICM profile of the printer"
++msgid "Creates a postscript file that contains the ICM profile of the printer"
+ msgstr ""
+ 
+ #. DESC_PRINTER_CMS_BPC
+Index: trunk/po/tr.po
+===================================================================
+--- trunk.orig/po/tr.po
++++ trunk/po/tr.po
+@@ -2023,11 +2023,11 @@ msgid "Additional gamma value for blue c
+ msgstr "Fotokopi için mavi bileşenin ilave gamma değeri"
+ 
+ #. DESC_PRINTER_EMBED_CSA
+-msgid "Creates a postsciptfile that contains the ICM profile of the scanner"
++msgid "Creates a postscript file that contains the ICM profile of the scanner"
+ msgstr ""
+ 
+ #. DESC_PRINTER_EMBED_CRD
+-msgid "Creates a postsciptfile that contains the ICM profile of the printer"
++msgid "Creates a postscript file that contains the ICM profile of the printer"
+ msgstr ""
+ 
+ #. DESC_PRINTER_CMS_BPC
+Index: trunk/po/vi.po
+===================================================================
+--- trunk.orig/po/vi.po
++++ trunk/po/vi.po
+@@ -2061,11 +2061,11 @@ msgid "Additional gamma value for blue c
+ msgstr "Giá trị gamma thêm cho thành phần màu xanh da trời cho photocopy"
+ 
+ #. DESC_PRINTER_EMBED_CSA
+-msgid "Creates a postsciptfile that contains the ICM profile of the scanner"
++msgid "Creates a postscript file that contains the ICM profile of the scanner"
+ msgstr ""
+ 
+ #. DESC_PRINTER_EMBED_CRD
+-msgid "Creates a postsciptfile that contains the ICM profile of the printer"
++msgid "Creates a postscript file that contains the ICM profile of the printer"
+ msgstr ""
+ 
+ #. DESC_PRINTER_CMS_BPC
+Index: trunk/po/xsane.pot
+===================================================================
+--- trunk.orig/po/xsane.pot
++++ trunk/po/xsane.pot
+@@ -1912,11 +1912,11 @@ msgid "Additional gamma value for blue c
+ msgstr ""
+ 
+ #. DESC_PRINTER_EMBED_CSA
+-msgid "Creates a postsciptfile that contains the ICM profile of the scanner"
++msgid "Creates a postscript file that contains the ICM profile of the scanner"
+ msgstr ""
+ 
+ #. DESC_PRINTER_EMBED_CRD
+-msgid "Creates a postsciptfile that contains the ICM profile of the printer"
++msgid "Creates a postscript file that contains the ICM profile of the printer"
+ msgstr ""
+ 
+ #. DESC_PRINTER_CMS_BPC
+Index: trunk/po/zh.po
+===================================================================
+--- trunk.orig/po/zh.po
++++ trunk/po/zh.po
+@@ -2011,11 +2011,11 @@ msgid "Additional gamma value for blue c
+ msgstr ""
+ 
+ #. DESC_PRINTER_EMBED_CSA
+-msgid "Creates a postsciptfile that contains the ICM profile of the scanner"
++msgid "Creates a postscript file that contains the ICM profile of the scanner"
+ msgstr ""
+ 
+ #. DESC_PRINTER_EMBED_CRD
+-msgid "Creates a postsciptfile that contains the ICM profile of the printer"
++msgid "Creates a postscript file that contains the ICM profile of the printer"
+ msgstr ""
+ 
+ #. DESC_PRINTER_CMS_BPC
+Index: trunk/po/zh_CN.po
+===================================================================
+--- trunk.orig/po/zh_CN.po
++++ trunk/po/zh_CN.po
+@@ -1986,11 +1986,11 @@ msgid "Additional gamma value for blue c
+ msgstr ""
+ 
+ #. DESC_PRINTER_EMBED_CSA
+-msgid "Creates a postsciptfile that contains the ICM profile of the scanner"
++msgid "Creates a postscript file that contains the ICM profile of the scanner"
+ msgstr ""
+ 
+ #. DESC_PRINTER_EMBED_CRD
+-msgid "Creates a postsciptfile that contains the ICM profile of the printer"
++msgid "Creates a postscript file that contains the ICM profile of the printer"
+ msgstr ""
+ 
+ #. DESC_PRINTER_CMS_BPC
+Index: trunk/src/xsane-text.h
+===================================================================
+--- trunk.orig/src/xsane-text.h
++++ trunk/src/xsane-text.h
+@@ -579,8 +579,8 @@
+ #define DESC_PRINTER_GAMMA_RED		_("Additional gamma value for red component for photocopy")
+ #define DESC_PRINTER_GAMMA_GREEN	_("Additional gamma value for green component for photocopy")
+ #define DESC_PRINTER_GAMMA_BLUE		_("Additional gamma value for blue component for photocopy")
+-#define DESC_PRINTER_EMBED_CSA		_("Creates a postsciptfile that contains the ICM profile of the scanner")
+-#define DESC_PRINTER_EMBED_CRD		_("Creates a postsciptfile that contains the ICM profile of the printer")
++#define DESC_PRINTER_EMBED_CSA		_("Creates a postscript file that contains the ICM profile of the scanner")
++#define DESC_PRINTER_EMBED_CRD		_("Creates a postscript file that contains the ICM profile of the printer")
+ #define DESC_PRINTER_CMS_BPC		_("Applies black point compensation")
+ #define DESC_PRINTER_PS_FLATEDECODED	_("Create zlib compressed postscript image for printer (flatedecode).\n" \
+                                           "The printer has to understand postscript level 3!")

@@ -1,0 +1,20 @@
+Description: Fix update list of gettext source files
+Author: Jonas Smedegaard <dr@jones.dk>
+Last-Update: 2012-06-23
+Forwarded: https://github.com/unicap/unicap/pull/6
+
+--- unicap.orig/po/POTFILES.in
++++ unicap/po/POTFILES.in
+@@ -1,10 +1,8 @@
+ # List of source files which contain translatable strings.
+-libucil/ucil_theora.c
+-libunicapgtk/unicapgtk_device_property.c
+-libunicapgtk/unicapgtk_property_dialog.c
++cpi/euvccam/euvccam_devspec.c
+ cpi/v4l2cpi/v4l2.c
+ cpi/v4l2cpi/v4l2_i18n_strings.h
+ cpi/v4l2cpi/tiseuvccam.c
+ cpi/v4l2cpi/tisuvccam.c
+ cpi/dcam/dcam_property_table.h
+-
++cpi/aravis/aravis_properties.c

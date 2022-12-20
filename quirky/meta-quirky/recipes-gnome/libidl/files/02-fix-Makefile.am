@@ -1,0 +1,17 @@
+Description: Fix Makefile.am to remove warnings.
+Author: Paulo Roberto Alves de Oliveira (aka kretcheu) <kretcheu@gmail.com>
+Last-update: 2015-09-22
+Index: libidl-0.8.14/Makefile.am
+===================================================================
+--- libidl-0.8.14.orig/Makefile.am
++++ libidl-0.8.14/Makefile.am
+@@ -11,7 +11,8 @@ SUBDIRS = include
+ 
+ DISTCHECK_CONFIGURE_FLAGS = --disable-silent-rules
+ 
+-INCLUDES =                             \
++ACLOCAL_AMFLAGS= -I m4
++AM_CPPFLAGS =                          \
+ 	-DYYDEBUG=1                    \
+ 	-DYYERROR_VERBOSE=1            \
+ 	-I$(top_builddir)/include      \

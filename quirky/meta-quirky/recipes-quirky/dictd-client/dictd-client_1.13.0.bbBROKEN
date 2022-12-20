@@ -1,0 +1,56 @@
+# Recipe created by recipetool
+# recipetool create -o dictd-client_1.13.0.bb https://downloads.sourceforge.net/project/dict/dictd/dictd-1.13.0/dictd-1.13.0.tar.gz
+
+#20200920 have been messing around with this recipe. won't compile.
+
+LICENSE = "GPLv2"
+LIC_FILES_CHKSUM = "file://COPYING;md5=8ca43cbc842c2336e835926c2166c28b"
+
+SRC_URI = "https://downloads.sourceforge.net/project/dict/dictd/dictd-${PV}/dictd-${PV}.tar.gz"
+SRC_URI[md5sum] = "fa78dad93017611319a6f37bfbe11642"
+SRC_URI[sha1sum] = "3c2e09ec241c20633eeeddeefc0bd51e5419f02b"
+SRC_URI[sha256sum] = "eeba51af77e87bb1b166c6bc469aad463632d40fb2bdd65e6675288d8e1a81e4"
+SRC_URI[sha384sum] = "7caf518b09097d6eb45334394f0a38046a2c2280b85218300fe63a0356f3759365769ec60bb46d6c5d5b7d13da6fe190"
+SRC_URI[sha512sum] = "86871aaf34a182d1d7aac1a1282d4a75f2d7c112c762e92f303924c324f665dae75c51e7ca91e3cc1dde2053ad8e2d1fd50a76934a5f84ff70975aa858e26439"
+
+S = "${WORKDIR}/dictd-${PV}"
+
+# NOTE: the following prog dependencies are unknown, ignoring: expand cat troff nroff groff col gnroff
+# NOTE: the following library dependencies are unknown, ignoring: Judy dbi
+#       (this is based on recipes that have previously been built and packaged)
+DEPENDS = "libmaa bison-native flex-native zlib \
+ libtool intltool-native flex-native flex bison bison-native"
+
+# NOTE: if this software is not capable of being built in a separate build directory
+# from the source, you should replace autotools with autotools-brokensep in the
+# inherit line
+inherit autotools pkgconfig
+
+EXTRA_OECONF = "--disable-plugin"
+
+do_compile_prepend() {
+ #Makefile is broken...
+ #got this from the vte recipe...
+ LIBTOOL=${STAGING_BINDIR_CROSS}/${HOST_SYS}-libtool
+ #sed -i -e 's%^SHELL=%#SHELL=%' ${B}/Makefile
+ #sed -i -e 's%^CC=%#CC=%' ${B}/Makefile
+ #sed -i -e 's%^CXX=%#CXX=%' ${B}/Makefile
+ sed -i -e "s%^LIBTOOL=.*%LIBTOOL= ${LIBTOOL}%" ${B}/Makefile
+ #sed -i -e 's%^CFLAGS=%#CFLAGS=%' ${B}/Makefile
+ #sed -i -e 's%^LDFLAGS=%#LDFLAGS=%' ${B}/Makefile
+
+}
+
+do_compile() {
+    #only compile dict client...
+    oe_runmake dict
+}
+
+do_install() {
+    #only install client...
+    oe_runmake install.dict DESTDIR=${D}
+}
+
+HOMEPAGE = "https://sourceforge.net/projects/dict/"
+SUMMARY = "Client/server software, human language dictionary databases, and tools supporting the DICT protocol"
+

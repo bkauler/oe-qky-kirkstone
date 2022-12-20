@@ -1,0 +1,77 @@
+
+#20221207
+#if link when compile rox-filer, link against the specific version...
+do_install:append() {
+
+ echo 'prefix=/usr
+exec_prefix=/usr
+libdir=/usr/lib
+includedir=/usr/include
+Name: Pango Cairo
+Description: Cairo rendering support for Pango
+Version: 1.42.3
+Requires: pango cairo
+Requires.private: pangoft2
+Libs: -L${libdir} -lpangocairo-1.0retro
+Cflags: -I${includedir}/pango-1.0' > ${D}${libdir}/pkgconfig/pangocairo.pcRETRO
+
+ echo 'prefix=/usr
+exec_prefix=/usr
+libdir=/usr/lib
+includedir=/usr/include
+Name: Pango FT2 and Pango Fc
+Description: Freetype 2.0 and fontconfig font support for Pango
+Version: 1.42.3
+Requires: pango freetype2 fontconfig
+Requires.private: harfbuzz
+Libs: -L${libdir} -lpangoft2-1.0retro
+Cflags: -I${includedir}/pango-1.0' > ${D}${libdir}/pkgconfig/pangoft2.pcRETRO
+
+ echo 'prefix=/usr
+exec_prefix=/usr
+libdir=/usr/lib
+includedir=/usr/include
+Name: Pango
+Description: Internationalized text handling
+Version: 1.42.3
+Requires: glib-2.0 gobject-2.0
+Requires.private: fribidi
+Libs: -L${libdir} -lpango-1.0retro
+Libs.private: -lm
+Cflags: -I${includedir}/pango-1.0' > ${D}${libdir}/pkgconfig/pango.pcRETRO
+
+ echo 'prefix=/usr
+exec_prefix=/usr
+libdir=/usr/lib
+includedir=/usr/include
+Name: Pango Xft
+Description: Xft font support for Pango
+Version: 1.42.3
+Requires: pango pangoft2 xft
+Libs: -L${libdir} -lpangoxft-1.0retro
+Cflags: -I${includedir}/pango-1.0' > ${D}${libdir}/pkgconfig/pangoxft.pcRETRO
+
+ mv -f ${D}${libdir}/libpango-1.0.so.0.4200.3 ${D}${libdir}/libpango-1.0retro.so
+ rm -f ${D}${libdir}/libpango-1.0.so
+ rm -f ${D}${libdir}/libpango-1.0.so.0
+ mv -f ${D}${libdir}/libpangocairo-1.0.so.0.4200.3 ${D}${libdir}/libpangocairo-1.0retro.so
+ rm -f ${D}${libdir}/libpangocairo-1.0.so
+ rm -f ${D}${libdir}/libpangocairo-1.0.so.0
+ mv -f ${D}${libdir}/libpangoft2-1.0.so.0.4200.3 ${D}${libdir}/libpangoft2-1.0retro.so
+ rm -f ${D}${libdir}/libpangoft2-1.0.so
+ rm -f ${D}${libdir}/libpangoft2-1.0.so.0
+ mv -f ${D}${libdir}/libpangoxft-1.0.so.0.4200.3 ${D}${libdir}/libpangoxft-1.0retro.so
+ rm -f ${D}${libdir}/libpangoxft-1.0.so
+ rm -f ${D}${libdir}/libpangoxft-1.0.so.0
+ rm -rf ${D}/usr/bin
+ rm -rf ${D}/usr/share
+ rm -rf ${D}/${libdir}/girepository-1.0
+ 
+ rm -f ${D}${libdir}/pkgconfig/pangoxft.pc
+ rm -f ${D}${libdir}/pkgconfig/pango.pc
+ rm -f ${D}${libdir}/pkgconfig/pangoft2.pc
+ rm -f ${D}${libdir}/pkgconfig/pangocairo.pc
+ 
+ mv -f ${D}/usr/include/pango-1.0 ${D}/usr/include/pango-1.0RETRO
+
+}

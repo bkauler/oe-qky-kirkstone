@@ -1,0 +1,7 @@
+
+20190323
+thud has 9.26, compile failed. using 9.20.
+
+20221202
+kirkstone has 9.55, fails with my .bbappend
+stay with 9.20

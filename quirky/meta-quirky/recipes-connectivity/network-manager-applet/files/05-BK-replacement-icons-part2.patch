@@ -1,0 +1,180 @@
+diff -Naur network-manager-applet-1.8.20DIFF04/src/applet.c network-manager-applet-1.8.20/src/applet.c
+--- network-manager-applet-1.8.20DIFF04/src/applet.c	2019-09-21 21:58:26.583493741 +0800
++++ network-manager-applet-1.8.20/src/applet.c	2019-09-22 00:23:09.633796765 +0800
+@@ -63,6 +63,41 @@
+ GdkPixbuf *networkin_pixbuf;
+ GdkPixbuf *networkout_pixbuf;
+ 
++/*BK for bk_find_active func...*/
++//refer to pup_event_frontend_d.bac...
++char *netfile="/tmp/pup_event_backend/network_";
++FILE *fp;
++char ifname[64];
++char *pch;
++char *netdir="/sys/class/net";
++char buf1[1024];
++char char1;
++int flagactive=0;
++int flagactiveprev=0;
++char rxstr[52];
++long long int rxacc=0;
++char rxaccstr[64];
++char txstr[52];
++long long int txacc=0;
++char txaccstr[64];
++long long int rxaccprev=0;
++long long int txaccprev=0;
++int flagtransfer=0;
++int flagtransferprev=0;
++int loopcnt=0;
++int breakcnt=0;
++int flagdisconnect=0;
++/*more...*/
++char *rxmonthfile="/var/local/sns/rx_bytes_month";
++char *txmonthfile="/var/local/sns/tx_bytes_month";
++char rxstrmonth[52];
++long long int rxaccmonth=0;
++char txstrmonth[52];
++long long int txaccmonth=0;
++long long int rxaccmonth_updated=0;
++long long int txaccmonth_updated=0;
++
++
+ #define NOTIFY_CAPS_ACTIONS_KEY "actions"
+ 
+ extern gboolean shell_debug;
+@@ -3202,6 +3237,61 @@
+ 			button, activate_time);
+ }
+ 
++/*BK*/
++void bk_find_active(void);
++void bk_find_active(void) {
++	flagactive=0;
++	ifname[0]=0;
++	fp=fopen(netfile,"r");
++	if (fp!=NULL) {
++		fgets(ifname,63,fp); /*reads first line*/
++		fclose(fp);
++	}
++	if (ifname[0] != 0) {
++		//want to strip off any trailing newline char...
++		int len=strlen(ifname);
++		if (ifname[len-1] == '\n') ifname[len-1] = 0;
++		//also getting a space char on end...
++		len=strlen(ifname);
++		if (ifname[len-1] == ' ') ifname[len-1] = 0;
++		//this could be an array of interfaces, space-delimited...
++		pch=strtok(ifname," "); //gets first word.
++		while (pch != NULL)
++		{
++			flagactive=flagactive+1;
++			//accumulate bytes received...
++			buf1[0]=0;
++			strcat(buf1,netdir);
++			strcat(buf1,"/");
++			strcat(buf1,pch);
++			strcat(buf1,"/statistics/rx_bytes");
++			fp=fopen(buf1,"r");
++			if (fp!=NULL) {
++				fgets(rxstr,12,fp);
++				rxacc=atoll(rxstr)/1024;
++				fclose(fp);
++			}
++			rxaccmonth_updated=(rxaccmonth+rxacc)/1024; //in MB
++			//accumulate bytes transmitted...
++			buf1[0]=0;
++			strcat(buf1,netdir);
++			strcat(buf1,"/");
++			strcat(buf1,pch);
++			strcat(buf1,"/statistics/tx_bytes");
++			fp=fopen(buf1,"r");
++			if (fp!=NULL) {
++				fgets(txstr,12,fp);
++				txacc=atoll(txstr)/1024;
++				fclose(fp);
++			}
++			txaccmonth_updated=(txaccmonth+txacc)/1024; //in MB
++			//this gets the next interface, if any...
++			pch=strtok(NULL," ");
++		}
++	}
++}
++
++
+ /* BK */
+ gboolean easyos_popup_func(gpointer ptr);
+ NMApplet *bkapplet;
+@@ -3215,8 +3305,10 @@
+ 		remove("/tmp/easyos-trigger-nm-applet");
+ 		/*this brings up the menu, as though had clicked on the icon...*/
+ 		status_icon_activate_cb (bkicon, bkapplet);
++		return 1; /*must return non-0, otherwise timer stops*/
+ 	}
+-	else if (( file = fopen("/tmp/easyos-trigger-nm-applet-status", "r"))) {
++	
++	if (( file = fopen("/tmp/easyos-trigger-nm-applet-status", "r"))) {
+ 		fclose(file);
+ 		remove("/tmp/easyos-trigger-nm-applet-status");
+ 		/*this pops up the status menu...*/
+@@ -3225,8 +3317,39 @@
+ 		gtk_menu_popup (GTK_MENU (bkapplet->context_menu), NULL, NULL,
+ 			gtk_status_icon_position_menu, bkicon,
+ 			1, gtk_get_current_event_time ());
++		return 1; /*must return non-0, otherwise timer stops*/
+ 	}
+ 	
++	/*replacement icons, to indicate activity...*/
++	bk_find_active();
++	loopcnt=loopcnt+1;
++	if (flagactive==0) flagtransfer=0;
++	else {
++		flagtransfer=1;
++		if (rxacc!=rxaccprev) flagtransfer=2;
++		if (txacc!=txaccprev) flagtransfer=3;
++		if (txacc!=txaccprev && rxacc!=rxaccprev) flagtransfer=4;
++	}
++	//introduce breakcnt to force icon update if stuck...
++	if (flagtransferprev == flagtransfer) {
++		if (loopcnt != 1) { //want to update icon on first loop.
++			if (flagactive == flagactiveprev && flagtransfer == flagtransferprev && flagtransfer == 1) breakcnt=breakcnt+1; //no change.
++			if (flagactive == flagactiveprev && flagtransfer == flagtransferprev && flagactive == 0) breakcnt=breakcnt+1; //no change.
++		}
++		else breakcnt=0;
++		if (breakcnt != 0 && breakcnt < 8) return 1; //force update after 4 seconds. return non-0
++	}
++	breakcnt=0;
++	flagactiveprev=flagactive;
++	txaccprev=txacc;
++	rxaccprev=rxacc;
++	flagtransferprev=flagtransfer;
++	if (flagtransfer==0) gtk_status_icon_set_from_pixbuf(bkapplet->status_icon,networkdead_pixbuf);
++	else if (flagtransfer==1) gtk_status_icon_set_from_pixbuf(bkapplet->status_icon,networkblank_pixbuf);
++	else if (flagtransfer==2) gtk_status_icon_set_from_pixbuf(bkapplet->status_icon,networkin_pixbuf);
++	else if (flagtransfer==3) gtk_status_icon_set_from_pixbuf(bkapplet->status_icon,networkout_pixbuf);
++	else if (flagtransfer==4) gtk_status_icon_set_from_pixbuf(bkapplet->status_icon,networkboth_pixbuf);
++	
+ 	return 1; /*must return non-0, otherwise timer stops*/
+ }
+ 
+@@ -3271,6 +3394,20 @@
+ 		networkin_pixbuf=gdk_pixbuf_new_from_xpm_data((const char**)networkin_xpm);
+ 		networkout_pixbuf=gdk_pixbuf_new_from_xpm_data((const char**)networkout_xpm);
+ 
++		//BK monthly acc (see also /usr/local/simple_network_setup/rc.network and rc.shutdown)...
++		fp=fopen(rxmonthfile,"r");
++		if (fp!=NULL) {
++			fgets(rxstrmonth,12,fp);
++			rxaccmonth=atoll(rxstrmonth)/1024; //in KB.
++			fclose(fp);
++		}
++		fp=fopen(txmonthfile,"r");
++		if (fp!=NULL) {
++			fgets(txstrmonth,12,fp);
++			txaccmonth=atoll(txstrmonth)/1024; /*141105*/
++			fclose(fp);
++		}
++
+ 		/* BK want to invoke applet by external signal. 500 millisecond */
+ 		bkapplet=applet;
+ 		bkicon=applet->status_icon;

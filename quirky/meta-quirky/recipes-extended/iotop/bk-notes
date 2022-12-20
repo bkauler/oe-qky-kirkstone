@@ -1,0 +1,12 @@
+
+20220519
+--------
+oe dunfell has iotop python version, but it is broken in 5.15 kernel.
+
+oe master-next has iotop C version, but the UI is awful, and the "-a"
+option does not work well.
+
+so, i have updated to the latest python version, and named the recipe iotop-py
+
+20221209
+kirkstone compile fail.

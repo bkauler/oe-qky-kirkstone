@@ -1,0 +1,36 @@
+DESCRIPTION = "Console file manager."
+HOMEPAGE = "https://github.com/jarun/nnn"
+SECTION = "console/utils"
+PRIORITY = "optional"
+LICENSE = "BSD"
+
+LIC_FILES_CHKSUM = "file://LICENSE;md5=e92a6967cf73e012b099832a093348f7"
+
+DEPENDS = "ncurses"
+SRC_URI = "https://github.com/jarun/nnn/releases/download/v${PV}/nnn-v${PV}.tar.gz"
+
+SRC_URI[md5sum] = "08c00d529ab824329b1f30968c3037b0"
+SRC_URI[sha256sum] = "16b245cf984d81a7e35f1a6a6f52bede4810784f06074d69369f664efdf32aca"
+
+S = "${WORKDIR}/nnn-${PV}"
+
+#PR = "r0"
+# 20210121 PR_NUM is defined in local.conf...
+#PR = "r${@int(PR_NUM) + 1}"
+
+inherit base
+
+do_configure () {
+    true
+}
+
+do_compile() {
+	#oe_runmake
+	${CC} -DNORL -DNOMOUSE -DNOBATCH -DNOFIFO -std=c11 ${CFLAGS} ${LDFLAGS} -D_DEFAULT_SOURCE -D_XOPEN_SOURCE=600 -static -o nnn src/nnn.c -lncursesw -ltinfo
+}
+
+do_install() {
+	oe_runmake install DESTDIR=${D} PREFIX=/usr
+}
+
+SUMMARY = ""

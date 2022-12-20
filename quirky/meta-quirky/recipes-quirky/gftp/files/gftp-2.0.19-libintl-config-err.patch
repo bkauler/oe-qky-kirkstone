@@ -1,0 +1,17 @@
+diff -Naur gftp-2.0.19-patched_2ubuntu1_expandedpathsigsegvPREV/configure.in gftp-2.0.19-patched_2ubuntu1_expandedpathsigsegv/configure.in
+--- gftp-2.0.19-patched_2ubuntu1_expandedpathsigsegvPREV/configure.in	2021-04-17 08:38:15.739861936 +0800
++++ gftp-2.0.19-patched_2ubuntu1_expandedpathsigsegv/configure.in	2021-04-17 09:08:09.416487292 +0800
+@@ -283,7 +283,12 @@
+ fi
+ AC_SUBST(SSL_LIBS)
+ 
+-AM_GNU_GETTEXT
++AM_GNU_GETTEXT_VERSION(0.20)
++AM_GNU_GETTEXT([external])
++USE_INCLUDED_LIBINTL="no"
++AC_SUBST(USE_INCLUDED_LIBINTL)
++BUILD_INCLUDED_LIBINTL="no"
++AC_SUBST(BUILD_INCLUDED_LIBINTL)
+ 
+ AC_CHECK_PROG(DB2HTML, db2html, true, false)
+ AM_CONDITIONAL(HAVE_DOCBOOK, $DB2HTML)

@@ -1,0 +1,29 @@
+diff -Naur linux-5.10/include/uapi/linux/capability.h linux-5.10P1/include/uapi/linux/capability.h
+--- linux-5.10/include/uapi/linux/capability.h	2020-12-07 06:25:12.000000000 +0800
++++ linux-5.10P1/include/uapi/linux/capability.h	2020-12-14 11:03:39.127180439 +0800
+@@ -417,7 +417,9 @@
+ 
+ #define CAP_CHECKPOINT_RESTORE	40
+ 
+-#define CAP_LAST_CAP         CAP_CHECKPOINT_RESTORE
++#define CAP_SYS_MOUNT		41
++
++#define CAP_LAST_CAP         CAP_SYS_MOUNT
+ 
+ #define cap_valid(x) ((x) >= 0 && (x) <= CAP_LAST_CAP)
+ 
+diff -Naur linux-5.10/security/selinux/include/classmap.h linux-5.10P1/security/selinux/include/classmap.h
+--- linux-5.10/security/selinux/include/classmap.h	2020-12-07 06:25:12.000000000 +0800
++++ linux-5.10P1/security/selinux/include/classmap.h	2020-12-14 11:09:33.393857376 +0800
+@@ -28,9 +28,9 @@
+ 
+ #define COMMON_CAP2_PERMS  "mac_override", "mac_admin", "syslog", \
+ 		"wake_alarm", "block_suspend", "audit_read", "perfmon", "bpf", \
+-		"checkpoint_restore"
++		"checkpoint_restore", "sys_mount"
+ 
+-#if CAP_LAST_CAP > CAP_CHECKPOINT_RESTORE
++#if CAP_LAST_CAP > CAP_SYS_MOUNT
+ #error New capability defined, please update COMMON_CAP2_PERMS.
+ #endif
+ 

@@ -1,0 +1,67 @@
+From 15fb989154e0eacde8c63222b60f731ed7a462b1 Mon Sep 17 00:00:00 2001
+From: David Faure <faure@kde.org>
+Date: Sat, 13 Jun 2020 15:30:53 +0200
+Subject: [PATCH] Rmove ELF magic for application/x-sharedlib, generalize
+ x-executable magic.
+
+PIE executables have the same header as ELF shared libs and therefore
+were being detected as shared libraries.
+
+The magic for executables was too specific, I removed the check
+for the value at offset 16 since it's actually 3 for /usr/bin/ls, not 2.
+
+Fixes gitlab issue #11.
+https://gitlab.freedesktop.org/xdg/shared-mime-info/-/issues/11
+---
+ freedesktop.org.xml.in |  19 ++-----------------
+ tests/mime-detection/list   |   4 ++++
+ tests/mime-detection/ls     | Bin 0 -> 130792 bytes
+ 3 files changed, 6 insertions(+), 17 deletions(-)
+ create mode 100644 tests/mime-detection/ls
+
+diff --git a/freedesktop.org.xml.in b/freedesktop.org.xml.in
+index 1c17b8d4..822c88cf 100644
+--- a/freedesktop.org.xml.in
++++ b/freedesktop.org.xml.in
+@@ -1998,14 +1998,10 @@ command to generate the output files.
+     <generic-icon name="application-x-executable"/>
+     <magic priority="40">
+       <match type="string" value="\177ELF" offset="0">
+-        <match type="byte" value="1" offset="5">
+-          <match type="little16" value="2" offset="16"/>
+-        </match>
++        <match type="byte" value="1" offset="5"/>
+       </match>
+       <match type="string" value="\177ELF" offset="0">
+-        <match type="byte" value="2" offset="5">
+-          <match type="big16" value="2" offset="16"/>
+-        </match>
++        <match type="byte" value="2" offset="5"/>
+       </match>
+       <match type="string" value="MZ" offset="0"/>
+       <match type="little16" value="0x521c" offset="0"/>
+@@ -3571,20 +3567,9 @@ command to generate the output files.
+   <mime-type type="application/x-sharedlib">
+     <comment>shared library</comment>
+     <magic priority="50">
+-      <match type="string" value="\177ELF" offset="0">
+-        <match type="byte" value="1" offset="5">
+-          <match type="little16" value="3" offset="16"/>
+-        </match>
+-      </match>
+-      <match type="string" value="\177ELF" offset="0">
+-        <match type="byte" value="2" offset="5">
+-          <match type="big16" value="3" offset="16"/>
+-        </match>
+-      </match>
+       <match type="little16" value="0603" offset="0">
+         <match type="little16" mask="030000" value="020000" offset="22"/>
+       </match>
+-      <match type="string" mask="0xffffffff000000000000000000000000ff" value="\177ELF            \003" offset="0"/>
+     </magic>
+     <glob pattern="*.so"/>
+   </mime-type>
+
+-- 
+GitLab
+

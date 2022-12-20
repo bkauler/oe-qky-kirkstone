@@ -1,0 +1,78 @@
+Description: add support to exFAT filesystem
+Author: not declared
+Origin: https://github.com/ericpaulbishop/gargoyle/tree/master/package/disktype/patches
+Origin: http://svn.exactcode.de/t2/trunk/package/filesystem/disktype/
+Reviewed-by: Joao Eriberto Mota Filho <eriberto@debian.org>
+Last-Update: 2020-11-07
+Index: disktype/detect.c
+===================================================================
+--- disktype.orig/detect.c
++++ disktype/detect.c
+@@ -47,6 +47,7 @@ void detect_atari_partmap(SECTION *secti
+ void detect_dos_partmap(SECTION *section, int level);
+ void detect_gpt_partmap(SECTION *section, int level);
+ void detect_fat(SECTION *section, int level);
++void detect_exfat(SECTION *section, int level);
+ void detect_ntfs(SECTION *section, int level);
+ void detect_hpfs(SECTION *section, int level);
+ void detect_dos_loader(SECTION *section, int level);
+@@ -132,6 +133,7 @@ DETECTOR detectors[] = {
+   detect_amiga_fs,
+   detect_apple_volume,
+   detect_fat,
++  detect_exfat,
+   detect_ntfs,
+   detect_hpfs,
+   detect_udf,
+Index: disktype/dos.c
+===================================================================
+--- disktype.orig/dos.c
++++ disktype/dos.c
+@@ -429,6 +429,8 @@ void detect_fat(SECTION *section, int le
+   /* since the above is also present on NTFS, make sure it's not NTFS... */
+   if (memcmp(buf + 3, "NTFS    ", 8) == 0)
+     return;
++  if (memcmp(buf + 3, "EXFAT   ", 8) == 0)
++    return;
+ 
+   /* next, some soft tests, taking score */
+   score = 0;
+@@ -516,6 +518,25 @@ void detect_fat(SECTION *section, int le
+ }
+ 
+ /*
++ * exFAT file system
++ */
++
++void detect_exfat(SECTION *section, int level)
++{
++  unsigned char *buf;
++
++  if (get_buffer(section, 0, 512, (void **)&buf) < 512)
++    return;
++
++  /* check signatures */
++  if (memcmp(buf + 3, "EXFAT   ", 8) != 0)
++    return;
++
++  /* tell the user */
++  print_line(level, "exFAT file system");
++}
++
++/*
+  * NTFS file system
+  */
+ 
+Index: disktype/disktype.1
+===================================================================
+--- disktype.orig/disktype.1
++++ disktype/disktype.1
+@@ -35,7 +35,7 @@ The following formats are recognized by
+ .No .
+ .Bl -tag -width flag
+ .It File systems:
+-FAT12/FAT16/FAT32, NTFS, HPFS, MFS, HFS, HFS Plus,
++FAT12/FAT16/FAT32/exFAT, NTFS, HPFS, MFS, HFS, HFS Plus,
+ ISO9660, ext2/ext3/ext4, btrfs, Minix, ReiserFS, Reiser4, Linux romfs, Linux
+ cramfs, Linux squashfs, UFS (some variations), SysV FS (some
+ variations), JFS, XFS, Amiga FS/FFS, BeOS BFS, QNX4 FS, UDF, 3DO

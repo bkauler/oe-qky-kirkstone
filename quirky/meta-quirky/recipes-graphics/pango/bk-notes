@@ -1,0 +1,18 @@
+
+ref:
+https://bkhome.org/news/202009/pango-version-144-is-a-disaster.html
+
+I have rolled back, 1.44.7 to 1.42.4.
+
+20221203
+pangomm 2.46.2 needs pango >= 1.45.1
+have rolled back to pangomm 2.42.1
+
+20221205
+i give up, too many pkgs want later pango!
+however, will rename pango 1.42.4 as "pango-retro", can link to it with rox-filer.
+...well, no, cannot do it with rox.
+but, for any app to use the pango-retro, can do this:
+export LD_PRELOAD="/usr/lib/libpango-1.0.so.0.4200.3:/usr/lib/libpangocairo-1.0.so.0.4200.3:/usr/lib/libpangoft2-1.0.so.0.4200.3:/usr/lib/libpangoxft-1.0.so.0.4200.3"
+
+no. disaster.

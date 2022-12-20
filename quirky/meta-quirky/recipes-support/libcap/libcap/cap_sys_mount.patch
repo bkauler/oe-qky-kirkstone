@@ -1,0 +1,14 @@
+diff -Naur libcap-2.45ORIG/libcap/include/uapi/linux/capability.h libcap-2.45/libcap/include/uapi/linux/capability.h
+--- libcap-2.45ORIG/libcap/include/uapi/linux/capability.h	2020-11-03 09:49:24.000000000 +0800
++++ libcap-2.45/libcap/include/uapi/linux/capability.h	2020-12-14 21:15:50.769959293 +0800
+@@ -411,7 +411,9 @@
+ 
+ #define CAP_CHECKPOINT_RESTORE 40
+ 
+-#define CAP_LAST_CAP         CAP_CHECKPOINT_RESTORE
++#define CAP_SYS_MOUNT 41
++
++#define CAP_LAST_CAP         CAP_SYS_MOUNT
+ 
+ #define cap_valid(x) ((x) >= 0 && (x) <= CAP_LAST_CAP)
+ 

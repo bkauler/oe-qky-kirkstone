@@ -1,0 +1,19 @@
+Description: drop '--source-dir' from DOC_SOURCE_DIR
+ modern gtkdocize Makefile snippets automatically add this flag.
+ having it preset in the original variable, will double set it, leading to FTBFS
+Author: IOhannes m zmölnig
+Forwarded: https://github.com/unicap/unicap/pull/6
+Last-Update: 2017-10-03
+---
+This patch header follows DEP-3: http://dep.debian.net/deps/dep3/
+--- unicap.orig/doc/libunicap/Makefile.am
++++ unicap/doc/libunicap/Makefile.am
+@@ -18,7 +18,7 @@
+ # gtk-doc will search all .c & .h files beneath here for inline comments
+ # documenting the functions and macros.
+ # e.g. DOC_SOURCE_DIR=../../../gtk
+-DOC_SOURCE_DIR=../../src --source-dir=../../include
++DOC_SOURCE_DIR=../../src ../../include
+ 
+ # Extra options to pass to gtkdoc-scangobj. Not normally needed.
+ SCANGOBJ_OPTIONS=

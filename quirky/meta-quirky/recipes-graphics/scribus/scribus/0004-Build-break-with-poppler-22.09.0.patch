@@ -1,0 +1,39 @@
+From 8acd29e97813b9132e3b51b2f05e8fac65819ed7 Mon Sep 17 00:00:00 2001
+From: Jean Ghali <jghali@libertysurf.fr>
+Date: Thu, 1 Sep 2022 12:12:45 +0000
+Subject: [PATCH] Fix build with poppler 22.09.0
+
+git-svn-id: svn://scribus.net/trunk/Scribus@25140 11d20701-8431-0410-a711-e3c959e3b870
+---
+ scribus/plugins/import/pdf/slaoutput.cpp | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/scribus/plugins/import/pdf/slaoutput.cpp b/scribus/plugins/import/pdf/slaoutput.cpp
+index 14a3e2f..c47840b 100644
+--- a/scribus/plugins/import/pdf/slaoutput.cpp
++++ b/scribus/plugins/import/pdf/slaoutput.cpp
+@@ -3741,6 +3741,13 @@ void SlaOutputDev::getPenState(GfxState *state)
+ 			break;
+ 	}
+ 	double lw = state->getLineWidth();
++#if POPPLER_ENCODED_VERSION >= POPPLER_VERSION_ENCODE(22, 9, 0)
++	const auto& dashPattern = state->getLineDash(&DashOffset);
++	QVector<double> pattern(dashPattern.size());
++	for (size_t i = 0; i < dashPattern.size(); ++i)
++		pattern[i] = dashPattern[i];
++	DashValues = pattern;
++#else
+ 	double *dashPattern;
+ 	int dashLength;
+ 	state->getLineDash(&dashPattern, &dashLength, &DashOffset);
+@@ -3750,6 +3757,7 @@ void SlaOutputDev::getPenState(GfxState *state)
+ 		pattern[i] = dashPattern[i] / lw;
+ 	}
+ 	DashValues = pattern;
++#endif
+ }
+ 
+ int SlaOutputDev::getBlendMode(GfxState *state)
+-- 
+2.35.3
+

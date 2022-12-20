@@ -1,0 +1,662 @@
+Description: correct some typos in source
+Author: Jörg Frings-Fürst <debian@jff-webhosting.net>
+Forwarded: not-needed
+Last-Update: 2016-10-15
+---
+This patch header follows DEP-3: http://dep.debian.net/deps/dep3/
+Index: trunk/src/xsane-text.h
+===================================================================
+--- trunk.orig/src/xsane-text.h
++++ trunk/src/xsane-text.h
+@@ -593,7 +593,7 @@
+ #define DESC_TIFF_COMPRESSION_16	_("Compression type if 16 bit image is saved as TIFF")
+ #define DESC_TIFF_COMPRESSION_8		_("Compression type if 8 bit image is saved as TIFF")
+ #define DESC_TIFF_COMPRESSION_1		_("Compression type if lineart image is saved as TIFF")
+-#define DESC_SAVE_DEVPREFS_AT_EXIT	_("Save device dependant preferences in default file at exit of xsane")
++#define DESC_SAVE_DEVPREFS_AT_EXIT	_("Save device dependent preferences in default file at exit of xsane")
+ #define DESC_OVERWRITE_WARNING		_("Warn before overwriting an existing file")
+ #define DESC_SKIP_EXISTING		_("If filename counter is automatically increased, used numbers are skipped")
+ #define DESC_SAVE_PS_FLATEDECODED	_("compress postscript image with zlib algorithm (flatedecode). " \
+@@ -737,7 +737,7 @@
+ #define ERR_CHANGE_WORKING_DIR		_("Failed to change working directory to")
+ #define ERR_FILENAME_TOO_LONG		_("Filename too long")
+ #define ERR_CREATE_TEMP_FILE		_("Could not create temporary file.\n\
+-Open Menue Preferences->Setup Tab Save and\n\
++Open Menu Preferences->Setup Tab Save and\n\
+ select a temporary directory where you have\n\
+ write permissions." )
+ #define ERR_SET_OPTION			_("Failed to set value of option")
+@@ -854,7 +854,7 @@ The format of [DEVICE] is backendname:de
+  -n, --no-mode-selection      disable menu for XSane mode selection\n\
+ \n\
+  -F, --Fixed                  fixed main window size (overwrite preferences value)\n\
+- -R, --Resizeable             resizable, scrolled main window (overwrite preferences value)\n\
++ -R, --Resizable              resizable, scrolled main window (overwrite preferences value)\n\
+ \n\
+  -p, --print-filenames        print image filenames created by XSane\n\
+  -N, --force-filename name    force filename and disable user filename selection\n\
+Index: trunk/src/xsane.c
+===================================================================
+--- trunk.orig/src/xsane.c
++++ trunk/src/xsane.c
+@@ -67,7 +67,7 @@ struct option long_options[] =
+ #endif
+   {"no-mode-selection", no_argument, 0, 'n'},
+   {"Fixed", no_argument, 0, 'F'},
+-  {"Resizeable", no_argument, 0, 'R'},
++  {"Resizable", no_argument, 0, 'R'},
+   {"print-filenames", no_argument, 0, 'p'},
+   {"force-filename", required_argument, 0, 'N'},
+   {0, }
+@@ -2324,7 +2324,7 @@ static RETSIGTYPE xsane_sigchld_handler(
+     pid = waitpid(childprocess->pid, &status, WNOHANG);
+     if ( (WIFEXITED(status)) && (pid == childprocess->pid) )
+     {
+-      DBG(DBG_info, "deleteing pid %d from list\n", childprocess->pid);
++      DBG(DBG_info, "deleting pid %d from list\n", childprocess->pid);
+ 
+       nextprocess = childprocess->next;
+       free(childprocess); /* free memory of element */
+@@ -5787,7 +5787,7 @@ static int xsane_init(int argc, char **a
+            xsane.main_window_fixed = 1;
+          break;
+ 
+-        case 'R': /* --Resizeable */
++        case 'R': /* --Resizable */
+            xsane.main_window_fixed = 0;
+          break;
+ 
+Index: trunk/src/xsane-preview.c
+===================================================================
+--- trunk.orig/src/xsane-preview.c
++++ trunk/src/xsane-preview.c
+@@ -7575,7 +7575,7 @@ void preview_display_valid(Preview *p)
+   }
+   else if ((xsane.medium_changed) || (xsane.xsane_channels != p->preview_channels) || (p->invalid) ) /* preview is not valid */
+   {
+-    DBG(DBG_info, "preview not vaild\n");
++    DBG(DBG_info, "preview not valid\n");
+ 
+     gtk_widget_show(p->invalid_pixmap);
+     gtk_widget_hide(p->scanning_pixmap);
+@@ -7593,7 +7593,7 @@ void preview_display_valid(Preview *p)
+   }
+   else /* preview is valid */
+   {
+-    DBG(DBG_info, "preview vaild\n");
++    DBG(DBG_info, "preview valid\n");
+ 
+     gtk_widget_show(p->valid_pixmap);
+     gtk_widget_hide(p->scanning_pixmap);
+Index: trunk/po/sv.po
+===================================================================
+--- trunk.orig/po/sv.po
++++ trunk/po/sv.po
+@@ -2105,7 +2105,7 @@ msgid "Compression type if lineart image
+ msgstr "Kompressionstyp om grafisk bild sparas som tiff"
+ 
+ #. DESC_SAVE_DEVPREFS_AT_EXIT
+-msgid "Save device dependant preferences in default file at exit of xsane"
++msgid "Save device dependent preferences in default file at exit of xsane"
+ msgstr "Spara enhetsberoende inställningar i standardfilen när xsane avslutas"
+ 
+ #. DESC_OVERWRITE_WARNING
+@@ -2632,7 +2632,7 @@ msgstr "Filnamnet är för långt"
+ #. ERR_CREATE_TEMP_FILE
+ msgid ""
+ "Could not create temporary file.\n"
+-"Open Menue Preferences->Setup Tab Save and\n"
++"Open Menu Preferences->Setup Tab Save and\n"
+ "select a temporary directory where you have\n"
+ "write permissions."
+ msgstr ""
+Index: trunk/po/tr.po
+===================================================================
+--- trunk.orig/po/tr.po
++++ trunk/po/tr.po
+@@ -2089,7 +2089,7 @@ msgid "Compression type if lineart image
+ msgstr "Eğer lineart resim tiff olarak saklanacaksa sıkıştırma tipi"
+ 
+ #. DESC_SAVE_DEVPREFS_AT_EXIT
+-msgid "Save device dependant preferences in default file at exit of xsane"
++msgid "Save device dependent preferences in default file at exit of xsane"
+ msgstr "Xsane'den çıkarken öntanımlı dosyadaki aygıt bağımlı tercihleri sakla"
+ 
+ #. DESC_OVERWRITE_WARNING
+@@ -2617,7 +2617,7 @@ msgstr "Dosya adı çok uzun"
+ #. ERR_CREATE_TEMP_FILE
+ msgid ""
+ "Could not create temporary file.\n"
+-"Open Menue Preferences->Setup Tab Save and\n"
++"Open Menu Preferences->Setup Tab Save and\n"
+ "select a temporary directory where you have\n"
+ "write permissions."
+ msgstr ""
+Index: trunk/po/vi.po
+===================================================================
+--- trunk.orig/po/vi.po
++++ trunk/po/vi.po
+@@ -2123,7 +2123,7 @@ msgid "Compression type if lineart image
+ msgstr "Kiểu nén nếu ảnh lineart được lưu là tiff"
+ 
+ #. DESC_SAVE_DEVPREFS_AT_EXIT
+-msgid "Save device dependant preferences in default file at exit of xsane"
++msgid "Save device dependent preferences in default file at exit of xsane"
+ msgstr ""
+ "Lưu các tùy thích phụ thuộc thiết bị vào tập tin mặc định khi thoát khỏi "
+ "XSane"
+@@ -2646,7 +2646,7 @@ msgstr "Tên tập tin quá dài"
+ #. ERR_CREATE_TEMP_FILE
+ msgid ""
+ "Could not create temporary file.\n"
+-"Open Menue Preferences->Setup Tab Save and\n"
++"Open Menu Preferences->Setup Tab Save and\n"
+ "select a temporary directory where you have\n"
+ "write permissions."
+ msgstr ""
+Index: trunk/po/zh.po
+===================================================================
+--- trunk.orig/po/zh.po
++++ trunk/po/zh.po
+@@ -2070,7 +2070,7 @@ msgid "Compression type if lineart image
+ msgstr "如果存成png檔的話,就壓縮"
+ 
+ #. DESC_SAVE_DEVPREFS_AT_EXIT
+-msgid "Save device dependant preferences in default file at exit of xsane"
++msgid "Save device dependent preferences in default file at exit of xsane"
+ msgstr ""
+ 
+ #. DESC_OVERWRITE_WARNING
+@@ -2562,7 +2562,7 @@ msgstr "檔名太長"
+ #. ERR_CREATE_TEMP_FILE
+ msgid ""
+ "Could not create temporary file.\n"
+-"Open Menue Preferences->Setup Tab Save and\n"
++"Open Menu Preferences->Setup Tab Save and\n"
+ "select a temporary directory where you have\n"
+ "write permissions."
+ msgstr ""
+Index: trunk/po/zh_CN.po
+===================================================================
+--- trunk.orig/po/zh_CN.po
++++ trunk/po/zh_CN.po
+@@ -2045,7 +2045,7 @@ msgid "Compression type if lineart image
+ msgstr "如果存成png档的话,就压缩"
+ 
+ #. DESC_SAVE_DEVPREFS_AT_EXIT
+-msgid "Save device dependant preferences in default file at exit of xsane"
++msgid "Save device dependent preferences in default file at exit of xsane"
+ msgstr ""
+ 
+ #. DESC_OVERWRITE_WARNING
+@@ -2537,7 +2537,7 @@ msgstr "档名太长"
+ #. ERR_CREATE_TEMP_FILE
+ msgid ""
+ "Could not create temporary file.\n"
+-"Open Menue Preferences->Setup Tab Save and\n"
++"Open Menu Preferences->Setup Tab Save and\n"
+ "select a temporary directory where you have\n"
+ "write permissions."
+ msgstr ""
+Index: trunk/po/ca.po
+===================================================================
+--- trunk.orig/po/ca.po
++++ trunk/po/ca.po
+@@ -2032,7 +2032,7 @@ msgstr ""
+ "(mode línia)"
+ 
+ #. DESC_SAVE_DEVPREFS_AT_EXIT
+-msgid "Save device dependant preferences in default file at exit of xsane"
++msgid "Save device dependent preferences in default file at exit of xsane"
+ msgstr ""
+ "En sortir de l'XSane, desa les preferències que depenen del dispositiu en el "
+ "fitxer per defecte"
+@@ -2553,7 +2553,7 @@ msgstr "Nom de fitxer massa llarg"
+ #. ERR_CREATE_TEMP_FILE
+ msgid ""
+ "Could not create temporary file.\n"
+-"Open Menue Preferences->Setup Tab Save and\n"
++"Open Menu Preferences->Setup Tab Save and\n"
+ "select a temporary directory where you have\n"
+ "write permissions."
+ msgstr ""
+Index: trunk/po/cs.po
+===================================================================
+--- trunk.orig/po/cs.po
++++ trunk/po/cs.po
+@@ -2081,7 +2081,7 @@ msgid "Compression type if lineart image
+ msgstr "Typ komprese, je-li obrázek zapisován jako TIFF čárová grafika"
+ 
+ #. DESC_SAVE_DEVPREFS_AT_EXIT
+-msgid "Save device dependant preferences in default file at exit of xsane"
++msgid "Save device dependent preferences in default file at exit of xsane"
+ msgstr ""
+ "Při skončení zapsat do standardního souboru předvolby závislé na zařízení"
+ 
+@@ -2603,7 +2603,7 @@ msgstr "Jméno souboru je příliš dlou
+ #. ERR_CREATE_TEMP_FILE
+ msgid ""
+ "Could not create temporary file.\n"
+-"Open Menue Preferences->Setup Tab Save and\n"
++"Open Menu Preferences->Setup Tab Save and\n"
+ "select a temporary directory where you have\n"
+ "write permissions."
+ msgstr ""
+Index: trunk/po/da.po
+===================================================================
+--- trunk.orig/po/da.po
++++ trunk/po/da.po
+@@ -2019,7 +2019,7 @@ msgid "Compression type if lineart image
+ msgstr "Kompressionstype når stregtegningsbilleder gemmes som TIFF"
+ 
+ #. DESC_SAVE_DEVPREFS_AT_EXIT
+-msgid "Save device dependant preferences in default file at exit of xsane"
++msgid "Save device dependent preferences in default file at exit of xsane"
+ msgstr "Gem enhedsafhængige værdier i standardfil, ved afslutning af XSane"
+ 
+ #. DESC_OVERWRITE_WARNING
+@@ -2516,7 +2516,7 @@ msgstr "Filnavn er for langt"
+ #. ERR_CREATE_TEMP_FILE
+ msgid ""
+ "Could not create temporary file.\n"
+-"Open Menue Preferences->Setup Tab Save and\n"
++"Open Menu Preferences->Setup Tab Save and\n"
+ "select a temporary directory where you have\n"
+ "write permissions."
+ msgstr ""
+Index: trunk/po/de.po
+===================================================================
+--- trunk.orig/po/de.po
++++ trunk/po/de.po
+@@ -2022,7 +2022,7 @@ msgid "Compression type if lineart image
+ msgstr "Kompression wenn lineart Bild im TIFF-Format gespeichert wird"
+ 
+ #. DESC_SAVE_DEVPREFS_AT_EXIT
+-msgid "Save device dependant preferences in default file at exit of xsane"
++msgid "Save device dependent preferences in default file at exit of xsane"
+ msgstr ""
+ "Geräteabhängige Einstellungen werden in der Default-Datei beim Beenden von "
+ "xsane gespeichert"
+@@ -2530,7 +2530,7 @@ msgstr "Dateiname zu lang"
+ #. ERR_CREATE_TEMP_FILE
+ msgid ""
+ "Could not create temporary file.\n"
+-"Open Menue Preferences->Setup Tab Save and\n"
++"Open Menu Preferences->Setup Tab Save and\n"
+ "select a temporary directory where you have\n"
+ "write permissions."
+ msgstr ""
+Index: trunk/po/es.po
+===================================================================
+--- trunk.orig/po/es.po
++++ trunk/po/es.po
+@@ -2111,7 +2111,7 @@ msgid "Compression type if lineart image
+ msgstr "Tipo de compresión si la imagen de línea de arte es guardada como tiff"
+ 
+ #. DESC_SAVE_DEVPREFS_AT_EXIT
+-msgid "Save device dependant preferences in default file at exit of xsane"
++msgid "Save device dependent preferences in default file at exit of xsane"
+ msgstr ""
+ "Guardar preferencias dependientes del dispositivo en archivo por omisión al "
+ "salir de XSane"
+@@ -2660,7 +2660,7 @@ msgstr "Archivo demasiado grande"
+ #. ERR_CREATE_TEMP_FILE
+ msgid ""
+ "Could not create temporary file.\n"
+-"Open Menue Preferences->Setup Tab Save and\n"
++"Open Menu Preferences->Setup Tab Save and\n"
+ "select a temporary directory where you have\n"
+ "write permissions."
+ msgstr ""
+Index: trunk/po/fi.po
+===================================================================
+--- trunk.orig/po/fi.po
++++ trunk/po/fi.po
+@@ -2005,7 +2005,7 @@ msgid "Compression type if lineart image
+ msgstr "Pakkaustapa tallennettaessa 8-bittistä kuvaa TIFFinä"
+ 
+ #. DESC_SAVE_DEVPREFS_AT_EXIT
+-msgid "Save device dependant preferences in default file at exit of xsane"
++msgid "Save device dependent preferences in default file at exit of xsane"
+ msgstr ""
+ "Tallenna laiteriippuvaiset asetukset oletustiedostoon poistuttaessa xsanesta"
+ 
+@@ -2506,7 +2506,7 @@ msgstr "Liian pitkä tiedostonimi"
+ #. ERR_CREATE_TEMP_FILE
+ msgid ""
+ "Could not create temporary file.\n"
+-"Open Menue Preferences->Setup Tab Save and\n"
++"Open Menu Preferences->Setup Tab Save and\n"
+ "select a temporary directory where you have\n"
+ "write permissions."
+ msgstr ""
+Index: trunk/po/fr.po
+===================================================================
+--- trunk.orig/po/fr.po
++++ trunk/po/fr.po
+@@ -2105,7 +2105,7 @@ msgid "Compression type if lineart image
+ msgstr "Type de compression si l'image trait est enregistrée en tiff"
+ 
+ #. DESC_SAVE_DEVPREFS_AT_EXIT
+-msgid "Save device dependant preferences in default file at exit of xsane"
++msgid "Save device dependent preferences in default file at exit of xsane"
+ msgstr ""
+ "Enregister les paramètres du scanner dans le fichier par défaut en quittant "
+ "XSane"
+@@ -2648,7 +2648,7 @@ msgstr "Nom de fichier trop long"
+ #. ERR_CREATE_TEMP_FILE
+ msgid ""
+ "Could not create temporary file.\n"
+-"Open Menue Preferences->Setup Tab Save and\n"
++"Open Menu Preferences->Setup Tab Save and\n"
+ "select a temporary directory where you have\n"
+ "write permissions."
+ msgstr ""
+Index: trunk/po/hu.po
+===================================================================
+--- trunk.orig/po/hu.po
++++ trunk/po/hu.po
+@@ -2078,7 +2078,7 @@ msgid "Compression type if lineart image
+ msgstr "A tömörítés módja vonalas tiff kép esetén"
+ 
+ #. DESC_SAVE_DEVPREFS_AT_EXIT
+-msgid "Save device dependant preferences in default file at exit of xsane"
++msgid "Save device dependent preferences in default file at exit of xsane"
+ msgstr ""
+ "Az eszközfüggő beállításokat kilépéskor mentsük el az alapértelmezett fájlba"
+ 
+@@ -2596,7 +2596,7 @@ msgstr "A fájlnév túl hosszú"
+ #. ERR_CREATE_TEMP_FILE
+ msgid ""
+ "Could not create temporary file.\n"
+-"Open Menue Preferences->Setup Tab Save and\n"
++"Open Menu Preferences->Setup Tab Save and\n"
+ "select a temporary directory where you have\n"
+ "write permissions."
+ msgstr ""
+Index: trunk/po/it.po
+===================================================================
+--- trunk.orig/po/it.po
++++ trunk/po/it.po
+@@ -2024,7 +2024,7 @@ msgid "Compression type if lineart image
+ msgstr "Tipo compressione se l'immagine lineart viene salvata come TIFF"
+ 
+ #. DESC_SAVE_DEVPREFS_AT_EXIT
+-msgid "Save device dependant preferences in default file at exit of xsane"
++msgid "Save device dependent preferences in default file at exit of xsane"
+ msgstr ""
+ "Salva le impostazioni del dispositivo nel file prestabilito all'uscita da "
+ "XSane"
+@@ -2546,7 +2546,7 @@ msgstr "Il nome file è troppo lungo"
+ #. ERR_CREATE_TEMP_FILE
+ msgid ""
+ "Could not create temporary file.\n"
+-"Open Menue Preferences->Setup Tab Save and\n"
++"Open Menu Preferences->Setup Tab Save and\n"
+ "select a temporary directory where you have\n"
+ "write permissions."
+ msgstr ""
+Index: trunk/po/ja.po
+===================================================================
+--- trunk.orig/po/ja.po
++++ trunk/po/ja.po
+@@ -2093,7 +2093,7 @@ msgid "Compression type if lineart image
+ msgstr "ラインアート画像がTIFFで保存されている場合の圧縮タイプ"
+ 
+ #. DESC_SAVE_DEVPREFS_AT_EXIT
+-msgid "Save device dependant preferences in default file at exit of xsane"
++msgid "Save device dependent preferences in default file at exit of xsane"
+ msgstr "XSane終了時にデバイス依存の設定を既定値としてファイル保存"
+ 
+ #. DESC_OVERWRITE_WARNING
+@@ -2602,7 +2602,7 @@ msgstr "ファイル名が長すぎま�
+ #. ERR_CREATE_TEMP_FILE
+ msgid ""
+ "Could not create temporary file.\n"
+-"Open Menue Preferences->Setup Tab Save and\n"
++"Open Menu Preferences->Setup Tab Save and\n"
+ "select a temporary directory where you have\n"
+ "write permissions."
+ msgstr ""
+Index: trunk/po/nl.po
+===================================================================
+--- trunk.orig/po/nl.po
++++ trunk/po/nl.po
+@@ -2091,7 +2091,7 @@ msgid "Compression type if lineart image
+ msgstr "Compressie van zwart wit TIFF afbeeldingen"
+ 
+ #. DESC_SAVE_DEVPREFS_AT_EXIT
+-msgid "Save device dependant preferences in default file at exit of xsane"
++msgid "Save device dependent preferences in default file at exit of xsane"
+ msgstr ""
+ "Bewaar apparaatspecifieke instellingen in standaard bestand als XSane eindigt"
+ 
+@@ -2612,7 +2612,7 @@ msgstr "Bestandsnaam te lang"
+ #. ERR_CREATE_TEMP_FILE
+ msgid ""
+ "Could not create temporary file.\n"
+-"Open Menue Preferences->Setup Tab Save and\n"
++"Open Menu Preferences->Setup Tab Save and\n"
+ "select a temporary directory where you have\n"
+ "write permissions."
+ msgstr ""
+Index: trunk/po/pa.po
+===================================================================
+--- trunk.orig/po/pa.po
++++ trunk/po/pa.po
+@@ -2008,7 +2008,7 @@ msgid "Compression type if lineart image
+ msgstr "ਜੇ ਲੀਨੀਅਰਟ ਚਿੱਤਰ ਨੂੰ TIFF ਵਾਂਗ ਸੰਭਾਲਣ ਹੋਵੇ ਤਾਂ ਕੰਪਰੈੱਸਨ ਕਿਸਮ"
+ 
+ #. DESC_SAVE_DEVPREFS_AT_EXIT
+-msgid "Save device dependant preferences in default file at exit of xsane"
++msgid "Save device dependent preferences in default file at exit of xsane"
+ msgstr "xsane ਬੰਦ ਕਰਨ ਸਮੇਂ ਡਿਫਾਲਟ ਫਾਇਲ ਵਿੱਚ ਜੰਤਰ ਨਿਰਭਰਤਾ ਪਸੰਦ ਸੰਭਾਲੋ"
+ 
+ #. DESC_OVERWRITE_WARNING
+@@ -2483,7 +2483,7 @@ msgstr "ਫਾਇਲ ਨਾਂ ਬਹੁ
+ #. ERR_CREATE_TEMP_FILE
+ msgid ""
+ "Could not create temporary file.\n"
+-"Open Menue Preferences->Setup Tab Save and\n"
++"Open Menu Preferences->Setup Tab Save and\n"
+ "select a temporary directory where you have\n"
+ "write permissions."
+ msgstr ""
+Index: trunk/po/pl.po
+===================================================================
+--- trunk.orig/po/pl.po
++++ trunk/po/pl.po
+@@ -2096,7 +2096,7 @@ msgid "Compression type if lineart image
+ msgstr "Typ kompresji przy zapisie jako TIFF obrazka w trybie kreski"
+ 
+ #. DESC_SAVE_DEVPREFS_AT_EXIT
+-msgid "Save device dependant preferences in default file at exit of xsane"
++msgid "Save device dependent preferences in default file at exit of xsane"
+ msgstr ""
+ "Zapisz ustawienia urządzenia w domyślnym pliku przy wychodzeniu z XSane"
+ 
+@@ -2630,7 +2630,7 @@ msgstr "Zbyt długa nazwa pliku"
+ #. ERR_CREATE_TEMP_FILE
+ msgid ""
+ "Could not create temporary file.\n"
+-"Open Menue Preferences->Setup Tab Save and\n"
++"Open Menu Preferences->Setup Tab Save and\n"
+ "select a temporary directory where you have\n"
+ "write permissions."
+ msgstr ""
+Index: trunk/po/pt.po
+===================================================================
+--- trunk.orig/po/pt.po
++++ trunk/po/pt.po
+@@ -2103,7 +2103,7 @@ msgid "Compression type if lineart image
+ msgstr "Tipo de compressão se imagem em linha artística é salvada como tiff"
+ 
+ #. DESC_SAVE_DEVPREFS_AT_EXIT
+-msgid "Save device dependant preferences in default file at exit of xsane"
++msgid "Save device dependent preferences in default file at exit of xsane"
+ msgstr ""
+ "Salva preferências dependentes do dispositivo em arquivo padrão na saída do "
+ "xsane"
+@@ -2643,7 +2643,7 @@ msgstr "Nome de arquivo longo demais"
+ #. ERR_CREATE_TEMP_FILE
+ msgid ""
+ "Could not create temporary file.\n"
+-"Open Menue Preferences->Setup Tab Save and\n"
++"Open Menu Preferences->Setup Tab Save and\n"
+ "select a temporary directory where you have\n"
+ "write permissions."
+ msgstr ""
+Index: trunk/po/pt_BR.po
+===================================================================
+--- trunk.orig/po/pt_BR.po
++++ trunk/po/pt_BR.po
+@@ -2103,7 +2103,7 @@ msgid "Compression type if lineart image
+ msgstr "Tipo de compressão se imagem em linha artística é salvada como tiff"
+ 
+ #. DESC_SAVE_DEVPREFS_AT_EXIT
+-msgid "Save device dependant preferences in default file at exit of xsane"
++msgid "Save device dependent preferences in default file at exit of xsane"
+ msgstr ""
+ "Salva preferências dependentes do dispositivo em arquivo padrão na saída do "
+ "xsane"
+@@ -2643,7 +2643,7 @@ msgstr "Nome de arquivo longo demais"
+ #. ERR_CREATE_TEMP_FILE
+ msgid ""
+ "Could not create temporary file.\n"
+-"Open Menue Preferences->Setup Tab Save and\n"
++"Open Menu Preferences->Setup Tab Save and\n"
+ "select a temporary directory where you have\n"
+ "write permissions."
+ msgstr ""
+Index: trunk/po/ro.po
+===================================================================
+--- trunk.orig/po/ro.po
++++ trunk/po/ro.po
+@@ -2106,7 +2106,7 @@ msgid "Compression type if lineart image
+ msgstr "Tip compresie dacă o imagine alb/negru este salvată ca TIFF"
+ 
+ #. DESC_SAVE_DEVPREFS_AT_EXIT
+-msgid "Save device dependant preferences in default file at exit of xsane"
++msgid "Save device dependent preferences in default file at exit of xsane"
+ msgstr ""
+ "Salvează preferinţele dependente de dispozitiv în fişierul implicit la "
+ "terminarea XSane"
+@@ -2648,7 +2648,7 @@ msgstr "Nume fişier prea lung"
+ #. ERR_CREATE_TEMP_FILE
+ msgid ""
+ "Could not create temporary file.\n"
+-"Open Menue Preferences->Setup Tab Save and\n"
++"Open Menu Preferences->Setup Tab Save and\n"
+ "select a temporary directory where you have\n"
+ "write permissions."
+ msgstr ""
+Index: trunk/po/ru.po
+===================================================================
+--- trunk.orig/po/ru.po
++++ trunk/po/ru.po
+@@ -2089,7 +2089,7 @@ msgid "Compression type if lineart image
+ msgstr "Тип сжатия для формата TIFF при сохранении штриховых изображений"
+ 
+ #. DESC_SAVE_DEVPREFS_AT_EXIT
+-msgid "Save device dependant preferences in default file at exit of xsane"
++msgid "Save device dependent preferences in default file at exit of xsane"
+ msgstr ""
+ "Сохранять параметры устройства в файле по умолчанию при выходе из XSane"
+ 
+@@ -2629,7 +2629,7 @@ msgstr "Название файла сл
+ #. ERR_CREATE_TEMP_FILE
+ msgid ""
+ "Could not create temporary file.\n"
+-"Open Menue Preferences->Setup Tab Save and\n"
++"Open Menu Preferences->Setup Tab Save and\n"
+ "select a temporary directory where you have\n"
+ "write permissions."
+ msgstr ""
+Index: trunk/po/sk.po
+===================================================================
+--- trunk.orig/po/sk.po
++++ trunk/po/sk.po
+@@ -2030,7 +2030,7 @@ msgid "Compression type if lineart image
+ msgstr "Typ kompresie, ak je obrázok čiarovej grafiky uložený ako TIFF "
+ 
+ #. DESC_SAVE_DEVPREFS_AT_EXIT
+-msgid "Save device dependant preferences in default file at exit of xsane"
++msgid "Save device dependent preferences in default file at exit of xsane"
+ msgstr ""
+ "Uložiť nastavenia závislé na zariadení v štandardnom súbore pri ukončení "
+ "XSane"
+@@ -2528,7 +2528,7 @@ msgstr "Názov súboru príliš dlhý"
+ #, fuzzy
+ msgid ""
+ "Could not create temporary file.\n"
+-"Open Menue Preferences->Setup Tab Save and\n"
++"Open Menu Preferences->Setup Tab Save and\n"
+ "select a temporary directory where you have\n"
+ "write permissions."
+ msgstr ""
+Index: trunk/po/sl.po
+===================================================================
+--- trunk.orig/po/sl.po
++++ trunk/po/sl.po
+@@ -2081,7 +2081,7 @@ msgid "Compression type if lineart image
+ msgstr "Vrsta stiskanja pri shranjevanju slik v načinu lineart v zapisu TIFF"
+ 
+ #. DESC_SAVE_DEVPREFS_AT_EXIT
+-msgid "Save device dependant preferences in default file at exit of xsane"
++msgid "Save device dependent preferences in default file at exit of xsane"
+ msgstr "Shrani odgovarjajoče nastavitve naprave v privzeto datoteko ob izhodu"
+ 
+ #. DESC_OVERWRITE_WARNING
+@@ -2602,7 +2602,7 @@ msgstr "Predolgo ime datoteke"
+ #. ERR_CREATE_TEMP_FILE
+ msgid ""
+ "Could not create temporary file.\n"
+-"Open Menue Preferences->Setup Tab Save and\n"
++"Open Menu Preferences->Setup Tab Save and\n"
+ "select a temporary directory where you have\n"
+ "write permissions."
+ msgstr ""
+Index: trunk/po/sr.po
+===================================================================
+--- trunk.orig/po/sr.po
++++ trunk/po/sr.po
+@@ -2017,7 +2017,7 @@ msgid "Compression type if lineart image
+ msgstr "Врста компресије ако се lineart слика памти као TIFF"
+ 
+ #. DESC_SAVE_DEVPREFS_AT_EXIT
+-msgid "Save device dependant preferences in default file at exit of xsane"
++msgid "Save device dependent preferences in default file at exit of xsane"
+ msgstr ""
+ "Памти одговарајуће конфигурације уређаја у подразумеваној фајли при "
+ "напуштању XSane"
+@@ -2506,7 +2506,7 @@ msgstr "Назив фајле је пр�
+ #. ERR_CREATE_TEMP_FILE
+ msgid ""
+ "Could not create temporary file.\n"
+-"Open Menue Preferences->Setup Tab Save and\n"
++"Open Menu Preferences->Setup Tab Save and\n"
+ "select a temporary directory where you have\n"
+ "write permissions."
+ msgstr ""
+Index: trunk/po/xsane.pot
+===================================================================
+--- trunk.orig/po/xsane.pot
++++ trunk/po/xsane.pot
+@@ -1967,7 +1967,7 @@ msgid "Compression type if lineart image
+ msgstr ""
+ 
+ #. DESC_SAVE_DEVPREFS_AT_EXIT
+-msgid "Save device dependant preferences in default file at exit of xsane"
++msgid "Save device dependent preferences in default file at exit of xsane"
+ msgstr ""
+ 
+ #. DESC_OVERWRITE_WARNING
+@@ -2433,7 +2433,7 @@ msgstr ""
+ #. ERR_CREATE_TEMP_FILE
+ msgid ""
+ "Could not create temporary file.\n"
+-"Open Menue Preferences->Setup Tab Save and\n"
++"Open Menu Preferences->Setup Tab Save and\n"
+ "select a temporary directory where you have\n"
+ "write permissions."
+ msgstr ""

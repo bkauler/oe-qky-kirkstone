@@ -1,0 +1,14 @@
+diff -Naur gftp-2.0.19-patched_2ubuntu1_expandedpathsigsegvPREV/lib/pty.c gftp-2.0.19-patched_2ubuntu1_expandedpathsigsegv/lib/pty.c
+--- gftp-2.0.19-patched_2ubuntu1_expandedpathsigsegvPREV/lib/pty.c	2007-03-13 10:56:43.000000000 +0900
++++ gftp-2.0.19-patched_2ubuntu1_expandedpathsigsegv/lib/pty.c	2021-04-17 09:22:08.646468011 +0800
+@@ -61,10 +61,6 @@
+ 
+ #elif HAVE_GRANTPT
+ 
+-#if !(defined(__FreeBSD__) || defined(__NetBSD__) || defined(__APPLE__))
+-#include <stropts.h>
+-#endif
+-
+ char *
+ gftp_get_pty_impl (void)
+ {

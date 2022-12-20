@@ -1,0 +1,2975 @@
+REM
+REM H.U.G. - Highlevel Universal GUI implementation for BaCon based on GTK
+REM (c) Peter van Eerten - August 2009 / April 2015, MIT License.
+REM
+REM ------------------------------------------------------------------------------------------------
+REM MacOSX notes: the previous installer for GTK in Quartz puts the libraries in
+REM
+REM - /Library/Frameworks/Gtk.framework/Libraries/
+REM - /Library/Frameworks/Glib.framework/Libraries/
+REM
+REM HUG expects the above generic directories also. The new GTK builder from
+REM http://gtk-osx.sourceforge.net/ puts the libraries in some local directory.
+REM
+REM Please create the above directories as symlinks to this local directory if using this builder.
+REM
+REM --------------------------------------------------------------------------------------------------
+REM Version 0.5 - MAJOR RELEASE
+REM			- implemented optional OpenGL canvas using GtkGlArea
+REM			- ported PIXEL, LINE, CIRCLE and SQUARE to OpenGL
+REM			- no scaling for canvas, more preparations for selective INCLUDE functionality
+REM			- changed internal housekeeping to associative arrays which saves almost 900 lines of code
+REM Version 0.51 - implemented GtkGlExt as a backend for canvas
+REM Version 0.52 - renamed variables in function arguments to avoid clash with CONST
+REM Version 0.53 - improved DRAW and SYNC for OpenGL for non-HUG drawing
+REM Version 0.54 - ported the OUT directive to OpenGL
+REM Version 0.55 - improved heuristic library search, code shrunk about 150 lines more
+REM Version 0.56 - ability to explicitly choose which GL library to use, bugfix in HUGLIB$
+REM Version 0.57 - better GL drawing, option GL FREEZE/UNFREEZE to improve GL drawing performance
+REM Version 0.58 - resizable canvas when using the TABLE layer
+REM Version 0.59 - REGISTER to register external widgets into HUG, fixed bug with GRAB$
+REM Version 0.60 - METHOD to register the default GRAB$/TEXT/GET/SET functions to external widgets
+REM Version 0.61 - fixed titles for FILEDIALOG
+REM Version 0.62 - TEXT can delete last added entry to COMBO
+REM Version 0.63 - More bugfixes with COMBOBOX
+REM Version 0.64 - fixed issue with setting text on button-like widgets (thx Sunburnt for reporting this)
+REM Version 0.65 - now really fixed issue with text on button-like widgets (also for GRAB$)
+REM Version 0.66 - by popular demand added sliders (thx l2ss and vovchik)
+REM Version 0.67 - Windows can be repositioned on the screen using ATTACH (thx vovchik)
+REM Version 0.68 - TEXT can set new image in IMAGE widget
+REM Version 0.69 - changed HSLIDE to HSLIDER/VSLIDE to VSLIDER. GRAB$ can get image from IMAGE widget
+REM Version 0.70 - adaptations for Cygwin/X
+REM Version 0.71 - REGISTER should specify the signal name instead of internal numbering
+REM Version 0.72 - OUT allows Pango Markup Format syntax (GTK canvas only)
+REM Version 0.73 - MARK by default uses Pango Markup Format syntax, FILEDIALOG can select multiple files
+REM Version 0.74 - MSGDIALOG also uses Pango Markup Format syntax by default
+REM Version 0.75 - improved signalling for CANVAS
+REM Version 0.76 - MOUSE(4) can return the actual CanvasID where mouse is active
+REM Version 0.77 - fixed problem assigning foreign functions for GET/SET/GRAB$/TEXT using METHOD
+REM Version 0.78 - fixed crash with GRAB$ when clipboard is empty
+REM Version 0.79 - fixed bug with setting type of FILEDIALOG
+REM Version 0.80 - added GETPROPERTY and SETPROPERTY
+REM Version 0.81 - corrected signal handling when releasing mousebutton above canvas
+REM Version 0.82 - worked around ENTRY name clash in BaCon 1.0b29
+REM Version 0.83 - fixed name clash with 'y1' in CIRCLE directive
+REM Version 0.84 - cleaned up TRAP settings, added HUGVERSION$
+REM Version 0.85 - performance improvements in drawing functions
+REM Version 0.86 - added GooCanvas as backend for CANVAS. WIDGET contains last created widget. RESETKEY to set KEY to 0.
+REM Version 0.87 - added HUGOPTION to select type of clipboard, default = 0 = "CLIPBOARD"
+REM Version 0.88 - fixed bug setting FONT to ENTRY
+REM Version 0.89 - ability to set font in a FRAME, fixed problem with FOCUS for LIST widget
+REM Version 0.90 - fixed problem with missing variable declarations
+REM Version 0.91 - fixed issue with mixed IF type in GRAB$ which is not allowed since BaCon 3.0
+REM Version 0.92 - fixed issue with redundant FLOATING cast
+REM Version 0.93 - use ALIAS instead of USEC/ENDUSEC
+REM Version 0.94 - introducing MARKUP object for multine text edit (can be set with PROPERTY).
+REM Version 0.95 - Replaced MARKUP for HUGOPTION("MARKUP") to allow individual coloring of multiline text widgets
+REM              - Deleted HUGENTRY alias as BaCon does not need <search.h> header file anymore
+REM Version 0.96 - fixed bug in SET for the EDIT widget
+REM Version 0.97 - define HUGENTRY for backwards compatibility
+REM Version 0.98 - Code cleaning
+REM Version 0.99 - added GETCOLOR$ function for canvas
+REM Version 0.100 - GETCOLOR$ now also works for OpenGL canvas
+REM Version 0.101 - implemented workaround for reported memory issues
+REM Version 0.102 - fixed SET for PROGRESSBAR by adding 0.0
+REM Version 0.103 - declare variable locally in GRAB$
+REM Version 0.104 - change variable type to prevent segfault in RaspberryPI
+REM Version 0.105 - another name clash with 'y1' variable which is a C function
+REM Version 0.106 - fix compile error in FreeBSD
+REM Version 0.107 - default message in case somebody accidentally compiles this context
+REM Version 0.108 - fix: canvas did not listen to button click events
+REM Version 0.109 - fix: mouse button event handler should return FALSE
+REM --------------------------------------------------------------------------------------------------
+
+' Default message in case accidentally compiled as a standalone program
+IF BASENAME$(ME$) = "hug" THEN PRINT "This is the HUG include file."
+
+' When used as an include file, always call Init
+CALL INIT
+
+REM --------------------------------------------------------------------------------------------------
+
+FUNCTION hug_Get_Gtk$ : REM INCLUDE
+
+	LOCAL hug_lib$
+	LOCAL hug_sequence = -1
+
+	IF INSTR(OS$, "Darwin") THEN
+		hug_lib$ = "/opt/local/lib/libgtk-x11-2.0.0.dylib"
+		IF NOT(FILEEXISTS(hug_lib$)) THEN
+			hug_lib$ = "/Library/Frameworks/Gtk.framework/Libraries/libgtk-quartz-2.0.0.dylib"
+		END IF
+	ELIF INSTR(OS$, "CYGWIN") THEN
+		hug_lib$ = "cyggtk-x11-2.0-0.dll"
+	END IF
+
+	CATCH GOTO Redo_Import
+
+	LABEL Redo_Import
+		INCR hug_sequence
+		IF hug_sequence = HUG_MAX_LIB_SEQ THEN GOTO Print_Error
+		IF NOT(INSTR(hug_lib$, "dylib")) AND NOT (INSTR(hug_lib$, "dll")) THEN hug_lib$ = CONCAT$("libgtk-x11-2.0.so.", STR$(hug_sequence))
+		IMPORT "gtk_init(int*,void*)" FROM hug_lib$ TYPE void
+
+	RETURN hug_lib$
+
+	LABEL Print_Error
+		PRINT "Gtk library not found!"
+		END
+
+END FUNCTION
+
+REM --------------------------------------------------------------------------------------------------
+
+FUNCTION hug_Get_Gdk$ : REM INCLUDE
+
+	LOCAL hug_lib$
+	LOCAL hug_sequence = -1
+
+	IF INSTR(OS$, "Darwin") THEN
+		hug_lib$ = "/opt/local/lib/libgdk-x11-2.0.0.dylib"
+		IF NOT(FILEEXISTS(hug_lib$)) THEN
+			hug_lib$ = "/Library/Frameworks/Gtk.framework/Libraries/libgdk-quartz-2.0.0.dylib"
+		END IF
+	ELIF INSTR(OS$, "CYGWIN") THEN
+		hug_lib$ = "cyggdk-x11-2.0-0.dll"
+	END IF
+
+	CATCH GOTO Redo_Import
+
+	LABEL Redo_Import
+		INCR hug_sequence
+		IF hug_sequence = HUG_MAX_LIB_SEQ THEN GOTO Print_Error
+		IF NOT(INSTR(hug_lib$, "dylib")) AND NOT (INSTR(hug_lib$, "dll")) THEN hug_lib$ = CONCAT$("libgdk-x11-2.0.so.", STR$(hug_sequence))
+		IMPORT "gdk_atom_intern(char*,int)" FROM hug_lib$ TYPE long
+
+	RETURN hug_lib$
+
+	LABEL Print_Error
+		PRINT "Gdk library not found!"
+		END
+
+END FUNCTION
+
+REM --------------------------------------------------------------------------------------------------
+
+FUNCTION hug_Get_Gdkpixbuf$ : REM INCLUDE
+
+	LOCAL hug_lib$
+	LOCAL hug_sequence = -1
+
+	IF INSTR(OS$, "Darwin") THEN
+		hug_lib$ = "/opt/local/lib/libgdk_pixbuf-2.0.dylib"
+		IF NOT(FILEEXISTS(hug_lib$)) THEN
+			hug_lib$ = "/Library/Frameworks/Gtk.framework/Libraries/libgdk_pixbuf-2.0.dylib"
+		END IF
+	ELIF INSTR(OS$, "CYGWIN") THEN
+		hug_lib$ = "cyggdk_pixbuf-2.0-0.dll"
+	END IF
+
+	CATCH GOTO Redo_Import
+
+	LABEL Redo_Import
+		INCR hug_sequence
+		IF hug_sequence = HUG_MAX_LIB_SEQ THEN GOTO Print_Error
+		IF NOT(INSTR(hug_lib$, "dylib")) AND NOT (INSTR(hug_lib$, "dll")) THEN hug_lib$ = CONCAT$("libgdk_pixbuf-2.0.so.", STR$(hug_sequence))
+		IMPORT "gdk_pixbuf_new_from_file(char*,void**)" FROM hug_lib$ TYPE long
+
+	RETURN hug_lib$
+
+	LABEL Print_Error
+		PRINT "Gdk_pixbuf library not found!"
+		END
+
+END FUNCTION
+
+
+REM --------------------------------------------------------------------------------------------------
+
+FUNCTION hug_Get_Glib$ : REM INCLUDE
+
+	LOCAL hug_lib$
+	LOCAL hug_sequence = -1
+
+	IF INSTR(OS$, "Darwin") THEN
+		hug_lib$ = "/opt/local/lib/libglib-2.0.0.dylib"
+		IF NOT(FILEEXISTS(hug_lib$)) THEN
+			hug_lib$ = "/Library/Frameworks/Glib.framework/Libraries/libglib-2.0.0.dylib"
+		END IF
+	ELIF INSTR(OS$, "CYGWIN") THEN
+		hug_lib$ = "cygglib-2.0-0.dll"
+	END IF
+
+	CATCH GOTO Redo_Import
+
+	LABEL Redo_Import
+		INCR hug_sequence
+		IF hug_sequence = HUG_MAX_LIB_SEQ THEN GOTO Print_Error
+		IF NOT(INSTR(hug_lib$, "dylib")) AND NOT (INSTR(hug_lib$, "dll")) THEN hug_lib$ = CONCAT$("libglib-2.0.so.", STR$(hug_sequence))
+		IMPORT "g_timeout_add(int,void*,long)" FROM hug_lib$ TYPE int
+
+	RETURN hug_lib$
+
+	LABEL Print_Error
+		PRINT "Glib library not found!"
+		END
+
+END FUNCTION
+
+REM --------------------------------------------------------------------------------------------------
+
+FUNCTION hug_Get_Gobject$ : REM INCLUDE
+
+	LOCAL hug_lib$
+	LOCAL hug_sequence = -1
+
+	IF INSTR(OS$, "Darwin") THEN
+		hug_lib$ = "/opt/local/lib/libgobject-2.0.0.dylib"
+		IF NOT(FILEEXISTS(hug_lib$)) THEN
+			hug_lib$ = "/Library/Frameworks/Glib.framework/Libraries/libgobject-2.0.0.dylib"
+		END IF
+	ELIF INSTR(OS$, "CYGWIN") THEN
+		hug_lib$ = "cyggobject-2.0-0.dll"
+	END IF
+
+	CATCH GOTO Redo_Import
+
+	LABEL Redo_Import
+		INCR hug_sequence
+		IF hug_sequence = HUG_MAX_LIB_SEQ THEN GOTO Print_Error
+		IF NOT(INSTR(hug_lib$, "dylib")) AND NOT (INSTR(hug_lib$, "dll")) THEN hug_lib$ = CONCAT$("libgobject-2.0.so.", STR$(hug_sequence))
+		IMPORT "g_object_unref(long)" FROM hug_lib$ TYPE void
+
+	RETURN hug_lib$
+
+	LABEL Print_Error
+		PRINT "Gobject library not found!"
+		END
+
+END FUNCTION
+
+REM --------------------------------------------------------------------------------------------------
+
+FUNCTION hug_Get_Pango$ : REM INCLUDE
+
+	LOCAL hug_lib$
+	LOCAL hug_sequence = -1
+
+	IF INSTR(OS$, "Darwin") THEN
+		hug_lib$ = "/opt/local/lib/libpango-1.0.0.dylib"
+		IF NOT(FILEEXISTS(hug_lib$)) THEN
+			hug_lib$ = "/Library/Frameworks/Gtk.framework/Libraries/libpango-1.0.0.dylib"
+		END IF
+	ELIF INSTR(OS$, "CYGWIN") THEN
+		hug_lib$ = "cygpango-1.0-0.dll"
+	END IF
+
+	CATCH GOTO Redo_Import
+
+	LABEL Redo_Import
+		INCR hug_sequence
+		IF hug_sequence = HUG_MAX_LIB_SEQ THEN GOTO Print_Error
+		IF NOT(INSTR(hug_lib$, "dylib")) AND NOT (INSTR(hug_lib$, "dll")) THEN hug_lib$ = CONCAT$("libpango-1.0.so.", STR$(hug_sequence))
+		IMPORT "pango_font_description_from_string(char*)" FROM hug_lib$ TYPE long
+
+	RETURN hug_lib$
+
+	LABEL Print_Error
+		PRINT "Pango library not found!"
+		END
+
+END FUNCTION
+
+REM --------------------------------------------------------------------------------------------------
+
+FUNCTION hug_Get_GtkGlArea$ : REM INCLUDE
+
+	LOCAL hug_lib$
+	LOCAL hug_sequence = -1
+
+	IF INSTR(OS$, "Darwin") THEN
+		hug_lib$ = "/opt/local/lib/libgtkgl-2.0.dylib"
+		IF NOT(FILEEXISTS(hug_lib$)) THEN
+			hug_lib$ = "/Library/Frameworks/Gtk.framework/Libraries/libgtkgl-quartz-2.0.dylib"
+		END IF
+	END IF
+
+	CATCH GOTO Redo_Import
+
+	LABEL Redo_Import
+		INCR hug_sequence
+		IF hug_sequence = HUG_MAX_LIB_SEQ THEN GOTO Print_Error
+		IF NOT(INSTR(hug_lib$, "dylib")) THEN hug_lib$ = CONCAT$("libgtkgl-2.0.so.", STR$(hug_sequence))
+		IMPORT "gtk_gl_area_new(long)" FROM hug_lib$ TYPE long
+
+	RETURN hug_lib$
+
+	LABEL Print_Error
+		RETURN "notfound"
+
+END FUNCTION
+
+REM --------------------------------------------------------------------------------------------------
+
+FUNCTION hug_Get_GtkGlExt$ : REM INCLUDE
+
+	LOCAL hug_lib$
+	LOCAL hug_sequence = -1
+
+	IF INSTR(OS$, "Darwin") THEN
+		hug_lib$ = "/opt/local/lib/libgtkglext-x11-1.0.dylib"
+		IF NOT(FILEEXISTS(hug_lib$)) THEN
+			hug_lib$ = "/Library/Frameworks/Gtk.framework/Libraries/libgtkglext-quartz-1.0.dylib"
+		END IF
+	END IF
+
+	CATCH GOTO Redo_Import
+
+	LABEL Redo_Import
+		INCR hug_sequence
+		IF hug_sequence = HUG_MAX_LIB_SEQ THEN GOTO Print_Error
+		IF NOT(INSTR(hug_lib$, "dylib")) THEN hug_lib$ = CONCAT$("libgtkglext-x11-1.0.so.", STR$(hug_sequence))
+		IMPORT "gtk_gl_init(int*,void*)" FROM hug_lib$ TYPE void
+
+	RETURN hug_lib$
+
+	LABEL Print_Error
+		RETURN "notfound"
+
+END FUNCTION
+
+REM --------------------------------------------------------------------------------------------------
+
+FUNCTION hug_Get_Goocanvas$ : REM INCLUDE
+
+	LOCAL hug_lib$
+	LOCAL hug_sequence = -1
+
+	CATCH GOTO Redo_Import
+
+	LABEL Redo_Import
+		INCR hug_sequence
+		IF hug_sequence = HUG_MAX_LIB_SEQ THEN GOTO Print_Error
+		hug_lib$ = "libgoocanvas.so." & STR$(hug_sequence)
+		IMPORT "goo_canvas_new" FROM hug_lib$ TYPE long
+
+	RETURN hug_lib$
+
+	LABEL Print_Error
+		RETURN "notfound"
+
+END FUNCTION
+
+REM --------------------------------------------------------------------------------------------------
+
+FUNCTION hug_Get_Gl$ : REM INCLUDE
+
+	LOCAL hug_lib$
+	LOCAL hug_sequence = -1
+
+	IF INSTR(OS$, "Darwin") THEN hug_lib$ = "/System/Library/Frameworks/OpenGL.framework/Libraries/libGL.dylib"
+
+	CATCH GOTO Redo_Import
+
+	LABEL Redo_Import
+		INCR hug_sequence
+		IF hug_sequence = HUG_MAX_LIB_SEQ THEN GOTO Print_Error
+		IF NOT(INSTR(hug_lib$, "dylib")) THEN hug_lib$ = CONCAT$("libGL.so.", STR$(hug_sequence))
+		IMPORT "glBegin(int)" FROM hug_lib$ TYPE void
+
+	RETURN hug_lib$
+
+	LABEL Print_Error
+		PRINT "OpenGL canvas requested but no OpenGL library found! Exiting..."
+		END
+
+END FUNCTION
+
+REM --------------------------------------------------------------------------------------------------
+
+SUB INIT
+
+	LOCAL hug_Gtk$, hug_Gdk$, hug_Glib$, hug_Gobject$, hug_Pango$, hug_GtkGlArea$, hug_GtkGlExt$, hug_Gl$, hug_Gdkpixbuf$
+	LOCAL hug_x, hug_y
+
+	' Define current version
+	CONST HUGVERSION$ = "0.105"
+
+	' Max sequence number in lib naming
+	CONST HUG_MAX_LIB_SEQ = 50
+
+	hug_Gtk$ = hug_Get_Gtk$()
+	hug_Gdk$ = hug_Get_Gdk$()
+	hug_Gdkpixbuf$ = hug_Get_Gdkpixbuf$()
+	hug_Glib$ = hug_Get_Glib$()
+	hug_Gobject$ = hug_Get_Gobject$()
+	hug_Pango$ = hug_Get_Pango$()
+	hug_GtkGlArea$ = hug_Get_GtkGlArea$()
+	hug_GtkGlExt$ = hug_Get_GtkGlExt$()
+	hug_Goocanvas$ = hug_Get_Goocanvas$()
+
+	' Do not forget to RESET the ERROR variable after all those erroneous IMPORT probing when running in TRAP LOCAL mode
+	ERROR = 0
+
+	REM Global properties of the HUG GUI
+	GLOBAL RECORD hug_gui_properties
+		LOCAL last_key_pressed, timeout_id, canvas, freeze, canvasid
+		LOCAL mousex, mousey, scroll, button TYPE int
+		LOCAL options$, gl$, clip$, markup$ TYPE STRING
+	END RECORD
+	hug_gui_properties.gl$ = "NONE"
+	hug_gui_properties.scroll = -1
+	hug_gui_properties.button = -1
+	hug_gui_properties.mousex = -1
+	hug_gui_properties.mousey = -1
+	hug_gui_properties.canvasid = 0
+	hug_gui_properties.clip$ = "CLIPBOARD"
+
+	CATCH GOTO lookup_error
+
+	IMPORT "gtk_bin_get_child(long)" FROM hug_Gtk$ TYPE long
+	IMPORT "gtk_button_new_from_stock(char*)" FROM hug_Gtk$ TYPE long
+	IMPORT "gtk_button_new_with_mnemonic(char*)" FROM hug_Gtk$ TYPE long
+	IMPORT "gtk_cell_renderer_text_new" FROM hug_Gtk$ TYPE long
+	IMPORT "gtk_check_button_new_with_label(char*)" FROM hug_Gtk$ TYPE long
+	IMPORT "gtk_clipboard_get(long)" FROM hug_Gtk$ TYPE long
+	IMPORT "gtk_clipboard_set_text(long,char*,int)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_clipboard_wait_for_text (long)" FROM hug_Gtk$ TYPE char*
+	IMPORT "gtk_combo_box_append_text(long,char*)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_combo_box_get_active(long)" FROM hug_Gtk$ TYPE int
+	IMPORT "gtk_combo_box_get_active_text(long)" FROM hug_Gtk$ TYPE char* ALIAS gtk_combo_box_get_active_text$
+	IMPORT "gtk_combo_box_new_text" FROM hug_Gtk$ TYPE long
+	IMPORT "gtk_combo_box_remove_text(long,int)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_combo_box_set_active(long,int)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_container_add(long,long)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_drawing_area_new(void)" FROM hug_Gtk$ TYPE long
+	IMPORT "gtk_entry_get_text(long)" FROM hug_Gtk$ TYPE char*
+	IMPORT "gtk_entry_get_visibility(long)" FROM hug_Gtk$ TYPE int
+	IMPORT "gtk_entry_new" FROM hug_Gtk$ TYPE long
+	IMPORT "gtk_entry_set_text(long,char*)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_entry_set_visibility(long,int)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_event_box_new" FROM hug_Gtk$ TYPE long
+	IMPORT "gtk_events_pending" FROM hug_Gtk$ TYPE int
+	IMPORT "gtk_file_chooser_dialog_new(char*,long,int,char*,...)" FROM hug_Gtk$ TYPE long
+	IMPORT "gtk_file_chooser_set_filename(long,char*)" FROM hug_Gtk$ TYPE int
+	IMPORT "gtk_file_chooser_set_select_multiple(long,int)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_file_chooser_get_uris(long)" FROM hug_Gtk$ TYPE long
+	IMPORT "gtk_fixed_new" FROM hug_Gtk$ TYPE long
+	IMPORT "gtk_fixed_put(long,long,int,int)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_frame_get_label(long)" FROM hug_Gtk$ TYPE char*
+	IMPORT "gtk_frame_get_label_widget(long)" FROM hug_Gtk$ TYPE long
+	IMPORT "gtk_frame_new(char*)" FROM hug_Gtk$ TYPE long
+	IMPORT "gtk_frame_set_label(long,char*)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_hscale_new_with_range(double,double,double)" FROM hug_Gtk$ TYPE long
+	IMPORT "gtk_hseparator_new" FROM hug_Gtk$ TYPE long
+	IMPORT "gtk_image_new" FROM hug_Gtk$ TYPE long
+	IMPORT "gtk_image_new_from_file(char*)" FROM hug_Gtk$ TYPE long
+	IMPORT "gtk_image_set_from_pixmap(long,long,void*)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_image_set_from_file(long,char*)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_label_get_text(long)" FROM hug_Gtk$ TYPE char*
+	IMPORT "gtk_label_new(char*)" FROM hug_Gtk$ TYPE long
+	IMPORT "gtk_label_get_selectable(long)" FROM hug_Gtk$ TYPE int
+	IMPORT "gtk_label_set_markup(long,char*)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_label_set_selectable(long,int)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_label_set_text(long,char*)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_list_store_append(long,long)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_list_store_clear(long)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_list_store_new(int,...)" FROM hug_Gtk$ TYPE long
+	IMPORT "gtk_list_store_set(long,long,...)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_main" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_main_iteration_do(int)" FROM hug_Gtk$ TYPE int
+	IMPORT "gtk_message_dialog_new_with_markup(long,int,int,int,char*,...)" FROM hug_Gtk$ TYPE long
+	IMPORT "gtk_misc_set_alignment(long,float,float)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_notebook_append_page(long,long,long)" FROM hug_Gtk$ TYPE int
+	IMPORT "gtk_notebook_get_tab_label_text(long,long)" FROM hug_Gtk$ TYPE char*
+	IMPORT "gtk_notebook_get_current_page(long)" FROM hug_Gtk$ TYPE int
+	IMPORT "gtk_notebook_new" FROM hug_Gtk$ TYPE long
+	IMPORT "gtk_notebook_set_current_page(long,int)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_progress_bar_get_fraction(long)" FROM hug_Gtk$ TYPE double
+	IMPORT "gtk_progress_bar_get_text(long)" FROM hug_Gtk$ TYPE char*
+	IMPORT "gtk_progress_bar_new" FROM hug_Gtk$ TYPE long
+	IMPORT "gtk_progress_bar_set_fraction(long,double)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_progress_bar_set_text(long,char*)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_radio_button_new_with_label_from_widget(long,char*)" FROM hug_Gtk$ TYPE long
+	IMPORT "gtk_range_get_value(long)" FROM hug_Gtk$ TYPE double
+	IMPORT "gtk_range_set_value(long,double)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_rc_parse_string(char*)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_rc_reset_styles(long)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_scrolled_window_new(long,long)" FROM hug_Gtk$ TYPE long
+	IMPORT "gtk_scrolled_window_set_policy(long,int,int)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_scrolled_window_set_shadow_type(long,int)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_settings_get_default" FROM hug_Gtk$ TYPE long
+	IMPORT "gtk_spin_button_get_value_as_int(long)" FROM hug_Gtk$ TYPE int
+	IMPORT "gtk_spin_button_new_with_range(double,double,double)" FROM hug_Gtk$ TYPE long
+	IMPORT "gtk_spin_button_set_value(long,double)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_table_new(int,int,int)" FROM hug_Gtk$ TYPE long
+	IMPORT "gtk_table_attach_defaults(long,long,int,int,int,int)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_text_buffer_apply_tag(long,long,long,long)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_text_buffer_create_mark(long,char*,long,int)" FROM hug_Gtk$ TYPE long
+	IMPORT "gtk_text_buffer_delete_mark(long,long)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_text_buffer_get_end_iter(long,long)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_text_buffer_get_iter_at_line(long,long,int)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_text_buffer_get_iter_at_mark(long,long,long)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_text_buffer_get_line_count(long)" FROM hug_Gtk$ TYPE int
+	IMPORT "gtk_text_buffer_get_start_iter(long,long)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_text_buffer_get_tag_table(long)" FROM hug_Gtk$ TYPE long
+	IMPORT "gtk_text_buffer_get_text(long,long,long,int)" FROM hug_Gtk$ TYPE char*
+	IMPORT "gtk_text_buffer_insert_with_tags(long,long,char*,int,long,...)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_text_buffer_new(long)" FROM hug_Gtk$ TYPE long
+	IMPORT "gtk_text_buffer_set_text(long,char*,int)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_text_tag_new(char*)" FROM hug_Gtk$ TYPE long
+	IMPORT "gtk_text_tag_table_add(long,long)" FROM hug_Gtk$ TYPE int
+	IMPORT "gtk_text_view_new_with_buffer(long)" FROM hug_Gtk$ TYPE long
+	IMPORT "gtk_text_view_scroll_to_mark(long,long,double,int,double,double)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_text_view_set_editable(long,int)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_text_view_set_wrap_mode(long,int)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_toggle_button_get_active(long)" FROM hug_Gtk$ TYPE int
+	IMPORT "gtk_toggle_button_new_with_mnemonic(char*)" FROM hug_Gtk$ TYPE long
+	IMPORT "gtk_toggle_button_set_active(long,int)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_tree_model_get(long,long,...)" FROM hug_Gtk$ TYPE char*
+	IMPORT "gtk_tree_model_get_string_from_iter(long,long)" FROM hug_Gtk$ TYPE char*
+	IMPORT "gtk_tree_path_free(long)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_tree_path_new_from_string(char*)" FROM hug_Gtk$ TYPE long
+	IMPORT "gtk_tree_selection_get_selected(long,long,long)" FROM hug_Gtk$ TYPE int
+	IMPORT "gtk_tree_selection_select_path(long,long)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_tree_selection_set_mode(long,int)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_tree_view_append_column(long,long)" FROM hug_Gtk$ TYPE int
+	IMPORT "gtk_tree_view_column_new_with_attributes(char*,long,...)" FROM hug_Gtk$ TYPE long
+	IMPORT "gtk_tree_view_get_selection(long)" FROM hug_Gtk$ TYPE long
+	IMPORT "gtk_tree_view_new_with_model(long)" FROM hug_Gtk$ TYPE long
+	IMPORT "gtk_tree_view_set_headers_visible(long,int)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_vscale_new_with_range(double,double,double)" FROM hug_Gtk$ TYPE long
+	IMPORT "gtk_vseparator_new" FROM hug_Gtk$ TYPE long
+	IMPORT "gtk_widget_create_pango_layout(long,char*)" FROM hug_Gtk$ TYPE long
+	IMPORT "gtk_widget_grab_focus(long)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_widget_hide(long)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_widget_hide_on_delete(long)" FROM hug_Gtk$ TYPE int
+	IMPORT "gtk_widget_modify_font(long,long)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_widget_queue_draw(long)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_widget_realize(long)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_widget_set_events(long,int)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_widget_set_sensitive(long,int)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_widget_set_size_request(long,int,int)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_widget_show_all(long)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_widget_show(long)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_window_fullscreen(long)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_window_unfullscreen(long)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_window_get_title(long)" FROM hug_Gtk$ TYPE char*
+	IMPORT "gtk_window_move(long,int,int)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_window_new(int)" FROM hug_Gtk$ TYPE long
+	IMPORT "gtk_window_set_position(long,int)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_window_set_resizable(long,int)" FROM hug_Gtk$ TYPE void
+	IMPORT "gtk_window_set_title(long,char*)" FROM hug_Gtk$ TYPE void
+	IMPORT "gdk_color_copy(long)" FROM hug_Gdk$ TYPE long
+	IMPORT "gdk_color_free(long)" FROM hug_Gdk$ TYPE void
+	IMPORT "gdk_color_parse(char*,long)" FROM hug_Gdk$ TYPE int
+	IMPORT "gdk_colormap_get_system" FROM hug_Gdk$ TYPE long
+	IMPORT "gdk_draw_arc(long,long,int,int,int,int,int,int,int)" FROM hug_Gdk$ TYPE void
+	IMPORT "gdk_draw_layout_with_colors(long,long,int,int,long,long,long)" FROM hug_Gdk$ TYPE void
+	IMPORT "gdk_draw_line(long,long,int,int,int,int)" FROM hug_Gdk$ TYPE void
+	IMPORT "gdk_draw_pixbuf(long,long,long,int,int,int,int,int,int,int,int,int)" FROM hug_Gdk$ TYPE void
+	IMPORT "gdk_draw_point(long,long,int,int)" FROM hug_Gdk$ TYPE void
+	IMPORT "gdk_draw_rectangle(long,long,int,int,int,int,int)" FROM hug_Gdk$ TYPE void
+	IMPORT "gdk_gc_new(long)" FROM hug_Gdk$ TYPE long
+	IMPORT "gdk_gc_set_rgb_bg_color(long,long)" FROM hug_Gdk$ TYPE void
+	IMPORT "gdk_gc_set_rgb_fg_color(long,long)" FROM hug_Gdk$ TYPE void
+	IMPORT "gdk_get_default_root_window" FROM hug_Gdk$ TYPE long
+	IMPORT "gdk_pixbuf_get_from_drawable(void*,long,long,int,int,int,int,int,int)" FROM hug_Gdk$ TYPE long
+	IMPORT "gdk_pixbuf_get_n_channels" FROM hug_Gdk$ TYPE int
+	IMPORT "gdk_pixbuf_get_pixels(long)" FROM hug_Gdk$ TYPE unsigned char*
+	IMPORT "gdk_pixbuf_get_rowstride" FROM hug_Gdk$ TYPE int
+	IMPORT "gdk_pixmap_new(long,int,int,int)" FROM hug_Gdk$ TYPE long
+	IMPORT "gdk_screen_get_default" FROM hug_Gdk$ TYPE long
+	IMPORT "gdk_screen_get_width(long)" FROM hug_Gdk$ TYPE int
+	IMPORT "gdk_screen_height(long)" FROM hug_Gdk$ TYPE int
+	IMPORT "gdk_window_at_pointer(long,long)" FROM hug_Gdk$ TYPE long
+	IMPORT "gdk_window_get_pointer(long,long,long,long)" FROM hug_Gdk$ TYPE long
+	IMPORT "g_object_get(long,char*,...)" FROM hug_Gobject$ TYPE void
+	IMPORT "g_object_set(long,char*,...)" FROM hug_Gobject$ TYPE void
+	IMPORT "g_signal_connect_data(long,char*,void*,long,long,int)" FROM hug_Gobject$ TYPE void
+	IMPORT "g_slist_free(long)" FROM hug_Glib$ TYPE void
+	IMPORT "g_malloc(long)" FROM hug_Glib$ TYPE void*
+	IMPORT "g_free(void*)" FROM hug_Glib$ TYPE void
+	IMPORT "g_slist_nth_data(long,int)" FROM hug_Glib$ TYPE char*
+	IMPORT "g_source_remove(int)" FROM hug_Glib$ TYPE int
+	IMPORT "pango_font_description_free(long)" FROM hug_Pango$ TYPE void
+	IMPORT "pango_font_description_get_size(long)" FROM hug_Pango$ TYPE int
+	IMPORT "pango_layout_set_markup(long,char*,int)" FROM hug_Pango$ TYPE void
+
+	' Import optional Goocanvas, GtkGl area and GL calls for drawing - libGL.so exists when GtkGlArea exists
+	IF hug_GtkGlArea$ != "notfound" THEN
+		IMPORT "gtk_gl_area_make_current(long)" FROM hug_GtkGlArea$ TYPE void
+		IMPORT "gtk_gl_area_swap_buffers(long)" FROM hug_GtkGlArea$ TYPE void
+		hug_gui_properties.gl$ = "GLAREA"
+	END IF
+	IF hug_GtkGlExt$ != "notfound" THEN
+		IMPORT "gtk_widget_set_gl_capability(long,long,long,int,int)" FROM hug_GtkGlExt$ TYPE int
+		IMPORT "gtk_widget_get_gl_context(long)" FROM hug_GtkGlExt$ TYPE long
+		IMPORT "gtk_widget_get_gl_window(long)" FROM hug_GtkGlExt$ TYPE long
+		IMPORT "gdk_gl_config_new_by_mode(int)" FROM hug_GtkGlExt$ TYPE long
+		IMPORT "gdk_gl_drawable_gl_begin(long,long)" FROM hug_GtkGlExt$ TYPE int
+		IMPORT "gdk_gl_drawable_gl_end(long)" FROM hug_GtkGlExt$ TYPE void
+		IMPORT "gdk_gl_drawable_swap_buffers(long)" FROM hug_GtkGlExt$ TYPE void
+		CONST GDK_GL_RGBA_TYPE = 0
+		CONST GDK_GL_MODE_RGB = 0
+		CONST GDK_GL_MODE_RGBA = 0
+		CONST GDK_GL_MODE_DOUBLE = 1<<1
+		CONST GDK_GL_MODE_DEPTH = 1<<4
+		hug_gui_properties.gl$ = "GLEXT"
+	END IF
+	IF hug_Goocanvas$ != "notfound" THEN
+		IMPORT "goo_canvas_get_root_item(long)" FROM hug_Goocanvas$ TYPE long
+		IMPORT "goo_canvas_set_bounds(long,double,double,double,double)" FROM hug_Goocanvas$ TYPE void
+		IMPORT "goo_canvas_ellipse_new(long,double,double,double,double,...)" FROM hug_Goocanvas$ TYPE long
+		IMPORT "goo_canvas_rect_new(long,double,double,double,double,...)" FROM hug_Goocanvas$ TYPE long
+		IMPORT "goo_canvas_polyline_new_line(long,double,double,double,double,...)" FROM hug_Goocanvas$ TYPE long
+		IMPORT "goo_canvas_text_new(long,char*,double,double,double,int,...)" FROM hug_Goocanvas$ TYPE long
+		IMPORT "goo_canvas_image_new(long,long,double,double,...)" FROM hug_Goocanvas$ TYPE long
+		IMPORT "goo_canvas_item_get_bounds(long,void*)" FROM hug_Goocanvas$ TYPE void
+		IMPORT "goo_canvas_item_translate(long,double,double)" FROM hug_Goocanvas$ TYPE void
+		IMPORT "goo_canvas_item_raise(long,long)" FROM hug_Goocanvas$ TYPE void
+	END IF
+
+	IF hug_GtkGlArea$ != "notfound" OR hug_GtkGlExt$ != "notfound" THEN
+		hug_Gl$ = hug_Get_Gl$()
+		IMPORT "glClear(int)" FROM hug_Gl$ TYPE void
+		IMPORT "glClearColor(float,float,float,float)" FROM hug_Gl$ TYPE void
+		IMPORT "glColor3ub(unsigned char,unsigned char,unsigned char)" FROM hug_Gl$ TYPE void
+		IMPORT "glBitmap(int,int,float,float,float,float,long)" FROM hug_Gl$ TYPE void
+		IMPORT "glEnd(void)" FROM hug_Gl$ TYPE void
+		IMPORT "glLoadIdentity(void)" FROM hug_Gl$ TYPE void
+		IMPORT "glMatrixMode(int)" FROM hug_Gl$ TYPE void
+		IMPORT "glOrtho(double,double,double,double,double,double)" FROM hug_Gl$ TYPE void
+		IMPORT "glRasterPos2i(int,int)" FROM hug_Gl$ TYPE void
+		IMPORT "glTranslatef(float,float,float)" FROM hug_Gl$ TYPE void
+		IMPORT "glVertex2i(int,int)" FROM hug_Gl$ TYPE void
+		IMPORT "glReadPixels(int,int,int,int,int,int,void*)" FROM hug_Gl$ TYPE void
+		CONST GL_COLOR_BUFFER_BIT = 0x00004000
+		CONST GL_DEPTH_BUFFER_BIT = 0x00000100
+		CONST GL_LINES = 0x0001
+		CONST GL_LINE_LOOP = 0x0002
+		CONST GL_MODELVIEW = 0x1700
+		CONST GL_POINTS = 0x0000
+		CONST GL_POLYGON = 0x0009
+		CONST GL_PROJECTION = 0x1701
+		CONST GL_RGBA = 0x1908
+		CONST GL_UNSIGNED_BYTE = 0x1401
+		DECLARE hug_glfont[96][16] TYPE int
+		' Get the fonts for OpenGL
+		FOR hug_x = 0 TO 95
+			FOR hug_y = 0 TO 15
+				READ hug_glfont[hug_x][hug_y]
+			NEXT
+		NEXT
+		' Font definitions for OUT directive when canvas is in OpenGL mode - "lt1-16b-etl.bdf" - Created by K. Odajima <odajima@mt.cs.keio.ac.jp>; public domain
+		DATA 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 24, 24, 0, 0, 24, 24, 24, 24, 24, 24, 24, 0, 0, 0, 0
+		DATA 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 102, 51, 119, 119, 0, 0, 0, 0, 108, 108, 108, 127, 54, 54, 127, 27, 27, 27, 0, 0, 0, 0
+		DATA 0, 0, 24, 62, 91, 27, 30, 56, 88, 89, 62, 24, 0, 0, 0, 0, 0, 0, 78, 107, 59, 62, 24, 12, 62, 110, 107, 57, 0, 0, 0, 0
+		DATA 0, 0, 61, 103, 98, 103, 61, 30, 51, 51, 51, 30, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 48, 24, 56, 56, 0, 0
+		DATA 0, 12, 24, 24, 48, 48, 48, 48, 48, 48, 24, 24, 12, 0, 0, 0, 0, 48, 24, 24, 12, 12, 12, 12, 12, 12, 24, 24, 48, 0, 0, 0
+		DATA 0, 0, 0, 73, 107, 62, 28, 62, 107, 73, 0, 0, 0, 0, 0, 0, 0, 0, 0, 24, 24, 24, 126, 24, 24, 24, 0, 0, 0, 0, 0, 0
+		DATA 24, 12, 28, 28, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 62, 62, 0, 0, 0, 0, 0, 0, 0, 0
+		DATA 0, 0, 28, 28, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 96, 96, 48, 24, 24, 12, 12, 6, 3, 3, 0, 0, 0, 0
+		DATA 0, 0, 28, 54, 99, 99, 99, 99, 99, 99, 54, 28, 0, 0, 0, 0, 0, 0, 63, 12, 12, 12, 12, 12, 12, 60, 28, 12, 0, 0, 0, 0
+		DATA 0, 0, 127, 96, 96, 48, 24, 14, 3, 99, 99, 62, 0, 0, 0, 0, 0, 0, 62, 99, 99, 3, 3, 30, 3, 99, 99, 62, 0, 0, 0, 0
+		DATA 0, 0, 6, 6, 6, 127, 102, 102, 54, 30, 14, 6, 0, 0, 0, 0, 0, 0, 62, 99, 3, 3, 3, 126, 96, 96, 96, 127, 0, 0, 0, 0
+		DATA 0, 0, 62, 99, 99, 99, 99, 126, 96, 96, 48, 30, 0, 0, 0, 0, 0, 0, 12, 12, 12, 12, 6, 6, 6, 3, 3, 127, 0, 0, 0, 0
+		DATA 0, 0, 62, 99, 99, 99, 99, 62, 99, 99, 99, 62, 0, 0, 0, 0, 0, 0, 60, 6, 3, 3, 3, 63, 99, 99, 99, 62, 0, 0, 0, 0
+		DATA 0, 0, 0, 28, 28, 0, 0, 0, 28, 28, 0, 0, 0, 0, 0, 0, 0, 24, 12, 28, 28, 0, 0, 0, 28, 28, 0, 0, 0, 0, 0, 0
+		DATA 0, 0, 6, 12, 24, 48, 96, 48, 24, 12, 6, 0, 0, 0, 0, 0, 0, 0, 0, 62, 62, 0, 0, 62, 62, 0, 0, 0, 0, 0, 0, 0
+		DATA 0, 0, 96, 48, 24, 12, 6, 12, 24, 48, 96, 0, 0, 0, 0, 0, 0, 24, 24, 0, 0, 24, 24, 12, 6, 102, 102, 60, 0, 0, 0, 0
+		DATA 0, 0, 30, 48, 111, 107, 107, 107, 111, 99, 54, 28, 0, 0, 0, 0, 0, 0, 99, 99, 99, 99, 127, 99, 99, 99, 54, 28, 0, 0, 0, 0
+		DATA 0, 0, 126, 99, 99, 99, 99, 126, 99, 99, 99, 126, 0, 0, 0, 0, 0, 0, 62, 99, 99, 96, 96, 96, 96, 99, 99, 62, 0, 0, 0, 0
+		DATA 0, 0, 120, 102, 99, 99, 99, 99, 99, 99, 102, 120, 0, 0, 0, 0, 0, 0, 127, 96, 96, 96, 96, 126, 96, 96, 96, 127, 0, 0, 0, 0
+		DATA 0, 0, 96, 96, 96, 96, 96, 126, 96, 96, 96, 127, 0, 0, 0, 0, 0, 0, 59, 103, 99, 99, 111, 96, 96, 99, 99, 62, 0, 0, 0, 0
+		DATA 0, 0, 99, 99, 99, 99, 99, 127, 99, 99, 99, 99, 0, 0, 0, 0, 0, 0, 126, 24, 24, 24, 24, 24, 24, 24, 24, 126, 0, 0, 0, 0
+		DATA 0, 0, 60, 102, 102, 6, 6, 6, 6, 6, 6, 31, 0, 0, 0, 0, 0, 0, 99, 102, 108, 120, 112, 112, 120, 108, 102, 99, 0, 0, 0, 0
+		DATA 0, 0, 127, 96, 96, 96, 96, 96, 96, 96, 96, 96, 0, 0, 0, 0, 0, 0, 99, 99, 99, 107, 107, 107, 127, 127, 119, 99, 0, 0, 0, 0
+		DATA 0, 0, 99, 99, 103, 103, 107, 107, 115, 115, 99, 99, 0, 0, 0, 0, 0, 0, 62, 99, 99, 99, 99, 99, 99, 99, 99, 62, 0, 0, 0, 0
+		DATA 0, 0, 96, 96, 96, 96, 96, 126, 99, 99, 99, 126, 0, 0, 0, 0, 0, 3, 62, 103, 123, 99, 99, 99, 99, 99, 99, 62, 0, 0, 0, 0
+		DATA 0, 0, 97, 99, 102, 108, 120, 126, 99, 99, 99, 126, 0, 0, 0, 0, 0, 0, 62, 99, 99, 3, 14, 56, 96, 99, 99, 62, 0, 0, 0, 0
+		DATA 0, 0, 12, 12, 12, 12, 12, 12, 12, 12, 12, 127, 0, 0, 0, 0, 0, 0, 62, 99, 99, 99, 99, 99, 99, 99, 99, 99, 0, 0, 0, 0
+		DATA 0, 0, 8, 24, 28, 28, 54, 54, 38, 99, 67, 67, 0, 0, 0, 0, 0, 0, 99, 119, 127, 107, 107, 107, 99, 99, 99, 99, 0, 0, 0, 0
+		DATA 0, 0, 67, 99, 38, 54, 28, 28, 54, 50, 99, 97, 0, 0, 0, 0, 0, 0, 24, 24, 24, 24, 24, 60, 38, 102, 67, 67, 0, 0, 0, 0
+		DATA 0, 0, 127, 96, 48, 24, 24, 12, 6, 6, 3, 127, 0, 0, 0, 0, 0, 30, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 30, 0, 0, 0
+		DATA 0, 0, 3, 3, 6, 12, 12, 24, 24, 48, 96, 96, 0, 0, 0, 0, 0, 120, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 120, 0, 0, 0
+		DATA 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 102, 60, 24, 0, 0, 0, 127, 127, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+		DATA 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, 24, 28, 28, 0, 0, 0, 0, 59, 103, 99, 99, 63, 3, 99, 62, 0, 0, 0, 0, 0, 0
+		DATA 0, 0, 110, 115, 99, 99, 99, 99, 115, 110, 96, 96, 96, 0, 0, 0, 0, 0, 62, 99, 96, 96, 96, 96, 99, 62, 0, 0, 0, 0, 0, 0
+		DATA 0, 0, 59, 103, 99, 99, 99, 99, 103, 59, 3, 3, 3, 0, 0, 0, 0, 0, 62, 99, 96, 96, 127, 99, 99, 62, 0, 0, 0, 0, 0, 0
+		DATA 0, 0, 24, 24, 24, 24, 24, 24, 126, 24, 24, 24, 14, 0, 0, 0, 62, 99, 99, 62, 48, 60, 102, 102, 102, 63, 3, 0, 0, 0, 0, 0
+		DATA 0, 0, 99, 99, 99, 99, 99, 99, 115, 110, 96, 96, 96, 0, 0, 0, 0, 0, 126, 24, 24, 24, 24, 24, 24, 56, 0, 24, 24, 0, 0, 0
+		DATA 56, 108, 6, 6, 6, 6, 6, 6, 6, 14, 0, 6, 6, 0, 0, 0, 0, 0, 99, 102, 108, 120, 112, 120, 108, 102, 96, 96, 0, 0, 0, 0
+		DATA 0, 0, 126, 24, 24, 24, 24, 24, 24, 24, 24, 56, 0, 0, 0, 0, 0, 0, 99, 99, 99, 107, 107, 107, 127, 118, 0, 0, 0, 0, 0, 0
+		DATA 0, 0, 99, 99, 99, 99, 99, 99, 115, 110, 0, 0, 0, 0, 0, 0, 0, 0, 62, 99, 99, 99, 99, 99, 99, 62, 0, 0, 0, 0, 0, 0
+		DATA 96, 96, 110, 115, 99, 99, 99, 99, 115, 110, 0, 0, 0, 0, 0, 0, 3, 3, 59, 103, 99, 99, 99, 99, 103, 59, 0, 0, 0, 0, 0, 0
+		DATA 0, 0, 96, 96, 96, 96, 96, 99, 115, 110, 0, 0, 0, 0, 0, 0, 0, 0, 62, 99, 3, 14, 56, 96, 99, 62, 0, 0, 0, 0, 0, 0
+		DATA 0, 0, 14, 24, 24, 24, 24, 24, 24, 126, 24, 24, 0, 0, 0, 0, 0, 0, 59, 103, 99, 99, 99, 99, 99, 99, 0, 0, 0, 0, 0, 0
+		DATA 0, 0, 28, 28, 54, 54, 54, 99, 99, 99, 0, 0, 0, 0, 0, 0, 0, 0, 54, 127, 107, 107, 107, 99, 99, 99, 0, 0, 0, 0, 0, 0
+		DATA 0, 0, 99, 99, 54, 28, 28, 54, 99, 99, 0, 0, 0, 0, 0, 0, 62, 3, 3, 31, 55, 99, 99, 99, 99, 99, 0, 0, 0, 0, 0, 0
+		DATA 0, 0, 127, 96, 48, 24, 12, 6, 3, 127, 0, 0, 0, 0, 0, 0, 0, 28, 48, 48, 24, 24, 48, 48, 24, 24, 48, 48, 28, 0, 0, 0
+		DATA 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 24, 0, 0, 0, 56, 12, 12, 24, 24, 12, 12, 24, 24, 12, 12, 56, 0, 0, 0
+		DATA 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 110, 107, 59, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+	END IF
+
+	GOTO Continue_Sub
+
+	LABEL lookup_error
+		PRINT ERR$(ERROR)
+		END
+
+	LABEL Continue_Sub
+		CATCH RESET
+
+	REM --------------------------------------------------------------------------------------------------
+
+	REM Some global constants
+	CONST G_CONNECT_AFTER = 1 << 0
+	CONST GDK_BUTTON_RELEASE_MASK = 1 << 9
+	CONST GDK_GL_BLUE_SIZE = 10
+	CONST GDK_GL_DOUBLEBUFFER = 5
+	CONST GDK_GL_GREEN_SIZE = 9
+	CONST GDK_GL_NONE = 0
+	CONST GDK_GL_RED_SIZE = 8
+	CONST GDK_GL_RGBA = 4
+	CONST GDK_KEY_PRESS_MASK = 1 << 10
+	CONST GDK_POINTER_MOTION_MASK = 1 << 2
+	CONST GDK_SCROLL_MASK = 1 << 21
+	CONST GTK_ANCHOR_CENTER = 0
+	CONST GTK_FILE_CHOOSER_ACTION_CREATE_FOLDER = 3
+	CONST GTK_FILE_CHOOSER_ACTION_OPEN = 0
+	CONST GTK_FILE_CHOOSER_ACTION_SAVE = 1
+	CONST GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER = 2
+	CONST GTK_POLICY_AUTOMATIC = 1
+	CONST GTK_RESPONSE_ACCEPT = -3
+	CONST GTK_RESPONSE_APPLY = -10
+	CONST GTK_RESPONSE_CANCEL = -6
+	CONST GTK_RESPONSE_CLOSE = -7
+	CONST GTK_RESPONSE_DELETE_EVENT = -4
+	CONST GTK_RESPONSE_HELP = -11
+	CONST GTK_RESPONSE_NO = -9
+	CONST GTK_RESPONSE_OK = -5
+	CONST GTK_RESPONSE_YES = -8
+	CONST GTK_SELECTION_SINGLE = 1
+	CONST GTK_SHADOW_ETCHED_IN = 3
+	CONST GTK_WINDOW_TOPLEVEL = 0
+	CONST GTK_WIN_POS_CENTER = 1
+	CONST GTK_WIN_POS_CENTER_ON_PARENT = 4
+	CONST GTK_WRAP_WORD = 2
+	CONST G_TYPE_STRING = 64
+	CONST GDK_INTERP_BILINEAR = 2
+	CONST GDK_RGB_DITHER_NORMAL = 1
+
+	GLOBAL NUL TYPE STRING
+	LOCAL settings$
+
+	DECLARE WIDGET
+
+	REM HUG defines memory size of a widget (eg iter)
+	CONST HUG_DEFAULT_WIDGET_SIZE = 256
+
+	hug_gui_properties.timeout_id = -1
+
+	' Some associative arrays for internal housekeeping
+	DECLARE hug_widget_xsize ASSOC NUMBER
+	DECLARE hug_widget_ysize ASSOC NUMBER
+	DECLARE hug_widget_signal ASSOC NUMBER
+	DECLARE hug_widget_s_widget ASSOC NUMBER
+
+	DECLARE hug_winstate ASSOC NUMBER
+	DECLARE hug_canvas_expose ASSOC NUMBER
+	DECLARE hug_widget_type$ ASSOC STRING
+	DECLARE hug_widget_attach ASSOC NUMBER
+	DECLARE hug_widget_font ASSOC NUMBER
+	DECLARE hug_widget_focus ASSOC NUMBER
+	DECLARE hug_widget_buffer ASSOC NUMBER
+	DECLARE hug_widget_nb_page$ ASSOC STRING
+
+	' For canvas
+	DECLARE hug_widget_pix ASSOC NUMBER
+	DECLARE hug_widget_context ASSOC NUMBER
+	DECLARE hug_widget_image ASSOC NUMBER
+	DECLARE hug_widget_color ASSOC NUMBER
+	DECLARE hug_widget_ebox ASSOC NUMBER
+
+	' For combo
+	DECLARE hug_widget_comborows ASSOC NUMBER
+
+	' For image widgets
+	DECLARE hug_widget_image$ ASSOC STRING
+
+	' For external widget administration
+	DECLARE hug_widget_external_grab ASSOC void*
+	DECLARE hug_widget_external_text ASSOC void*
+	DECLARE hug_widget_external_set ASSOC void*
+	DECLARE hug_widget_external_get ASSOC void*
+	DECLARE hug_widget_external_signal$ ASSOC STRING
+
+	' Some variables for resizing
+	CONST HUG_DEFAULT_FONT_SIZE = 10
+	GLOBAL HUG_DEFAULT_XFT_SIZE TYPE FLOATING
+
+	GLOBAL HUG_FONT_SIZE_FACTOR TYPE FLOATING
+	GLOBAL HUG_XFT_SIZE_FACTOR TYPE FLOATING
+	GLOBAL HUG_WIDGET_SHOW = 1
+	GLOBAL HUG_CANVAS_TYPE = 0
+
+	' Default Xft size
+	HUG_DEFAULT_XFT_SIZE = 96.0
+	HUG_XFT_SIZE_FACTOR = 1
+
+	' Always initiate GTK
+	gtk_init(0, 0)
+
+	' Now calculate a global sizing factor using fontsize 10 as a base
+	g_object_get(gtk_settings_get_default(), "gtk-font-name", ADDRESS(settings$), NUL)
+	HUG_FONT_SIZE_FACTOR = (FLOATING)(pango_font_description_get_size(pango_font_description_from_string(settings$))/1024) / HUG_DEFAULT_FONT_SIZE
+
+	' For backwards compaitibility
+	PROTO PROPERTY
+	DEF FN PROPERTY(widget, name, ...) = g_object_set(widget, name, __VA_ARGS__, NULL)
+
+	' Get and set property
+	PROTO SETPROPERTY
+	DEF FN SETPROPERTY(widget, name, ...) = g_object_set(widget, name, __VA_ARGS__, NULL)
+
+	PROTO GETPROPERTY
+	DEF FN GETPROPERTY(widget, name, ...) = g_object_get(widget, name, __VA_ARGS__, NULL)
+
+END SUB
+
+REM --------------------------------------------------------------------------------------------------
+
+FUNCTION HUGLIB$(STRING hug_name$)
+
+	LOCAL lib$
+
+	SELECT hug_name$
+		CASE "gtk"
+			lib$ = hug_Get_Gtk$()
+		CASE "gdk"
+			lib$ = hug_Get_Gdk$()
+		CASE "glib"
+			lib$ = hug_Get_Glib$()
+		CASE "gobject"
+			lib$ = hug_Get_Gobject$()
+		CASE "pango"
+			lib$ = hug_Get_Pango$()
+		CASE "glarea"
+			lib$ = hug_Get_GtkGlArea$()
+		CASE "glext"
+			lib$ = hug_Get_GtkGlExt$()
+		CASE "goo"
+			lib$ = hug_Get_Goocanvas$()
+		DEFAULT
+			lib$ = "Unknown"
+	END SELECT
+
+	RETURN lib$
+
+END FUNCTION
+
+REM --------------------------------------------------------------------------------------------------
+
+FUNCTION hug_key_press(NUMBER hug_widget, void *hug_data1, NUMBER hug_data2) : REM INCLUDE
+
+	REM should work for GTK 1.x and 2.x
+	USEC
+		typedef struct {
+		int type;
+		void *window;
+		signed char send_event;
+		unsigned int time;
+		unsigned int state;
+		unsigned int keyval;
+		} GdkEventKey;
+
+		GdkEventKey *keypress;
+		keypress = (GdkEventKey*)hug_data1;
+
+		hug_gui_properties.last_key_pressed = keypress->keyval;
+
+	END USEC
+
+	RETURN FALSE
+
+END FUNCTION
+
+REM --------------------------------------------------------------------------------------------------
+
+FUNCTION hug_mouse_event (NUMBER hug_widget, NUMBER hug_data, long hug_user) : REM INCLUDE
+
+	LOCAL gdk, x, y
+
+	IF hug_user = 30 THEN
+		hug_gui_properties.scroll = -1
+		hug_gui_properties.button = -1
+		hug_gui_properties.mousex = -1
+		hug_gui_properties.mousey = -1
+	ELSE
+
+		hug_gui_properties.canvasid = hug_widget
+
+		REM Works for GTK 2.x
+		USEC
+			typedef struct {
+			int type;
+			void *window;
+			signed char send_event;
+			unsigned int time;
+			double x;
+			double y;
+			unsigned int state;
+			int direction;
+			} GdkEventScroll;
+
+			GdkEventScroll *mousescroll;
+			mousescroll = (GdkEventScroll*)hug_data;
+
+			if(hug_user == 10) hug_gui_properties.scroll = mousescroll->direction;
+			else hug_gui_properties.scroll = -1;
+
+			typedef struct {
+			int type;
+			void *window;
+			signed char send_event;
+			unsigned int time;
+			double x;
+			double y;
+			double *axes;
+			unsigned int state;
+			unsigned int button;
+			void *device;
+			} GdkEventButton;
+
+			GdkEventButton *mousebutton;
+			mousebutton = (GdkEventButton*)hug_data;
+
+			if(hug_user == 20) hug_gui_properties.button = mousebutton->button;
+			else { if (hug_user == 40) hug_gui_properties.button = -1; }
+		END USEC
+
+		REM always get position
+		gdk = gdk_window_at_pointer(ADDRESS(x), ADDRESS(y))
+		gdk_window_get_pointer(gdk, ADDRESS(hug_gui_properties.mousex), ADDRESS(hug_gui_properties.mousey), 0)
+	END IF
+
+	RETURN FALSE
+
+END FUNCTION
+
+REM --------------------------------------------------------------------------------------------------
+
+SUB hug_NOTEBOOK_hack(NUMBER hug_widget, NUMBER hug_pg, int hug_pnr) : REM INCLUDE
+
+	LOCAL size
+
+	SPLIT hug_widget_nb_page$(STR$(hug_widget)) BY " " TO id$ SIZE size
+	hug_widget_attach(STR$(hug_widget)) = VAL(id$[hug_pnr])
+
+END SUB
+
+REM --------------------------------------------------------------------------------------------------
+
+SUB HUGOPTIONS (STRING hug_arg$)
+
+	LOCAL dpi, gtksettings
+	LOCAL settings$, lib$
+
+	' Store TABLE definition
+	IF LEFT$(hug_arg$, 5) = "TABLE" THEN
+		hug_gui_properties.options$ = hug_arg$
+		' Determine Xft base DPI for scaling
+	ELIF LEFT$(hug_arg$, 10) = "BASEXFTDPI" THEN
+		HUG_DEFAULT_XFT_SIZE = VAL(MID$(hug_arg$, INSTR(hug_arg$, " ")+1))
+		g_object_get(gtk_settings_get_default(), "gtk-xft-dpi", ADDRESS(dpi), NUL)
+		HUG_XFT_SIZE_FACTOR = (dpi/1024) / HUG_DEFAULT_XFT_SIZE
+	ELIF LEFT$(hug_arg$, 9) = "NOSCALING" THEN
+		HUG_FONT_SIZE_FACTOR = 1
+	ELIF LEFT$(hug_arg$, 7) = "SCALING" THEN
+		g_object_get(gtk_settings_get_default(), "gtk-font-name", ADDRESS(settings$), NUL)
+		HUG_FONT_SIZE_FACTOR = (FLOATING)(pango_font_description_get_size(pango_font_description_from_string(settings$))/1024) / HUG_DEFAULT_FONT_SIZE
+	ELIF LEFT$(hug_arg$, 11) = "WIDGET_SHOW" THEN
+		HUG_WIDGET_SHOW = VAL(MID$(hug_arg$, INSTR(hug_arg$, " ")+1))
+	ELIF LEFT$(hug_arg$, 4) = "FONT" THEN
+		gtksettings = gtk_settings_get_default()
+		gtk_rc_parse_string(CONCAT$("style \"hugstyle\" { font_name = \"", CHOP$(MID$(hug_arg$, 5)), "\" }"))
+		gtk_rc_parse_string(CONCAT$("widget \"*\" style \"hugstyle\""))
+		gtk_rc_reset_styles(gtksettings)
+	ELIF LEFT$(hug_arg$, 6) = "CANVAS" THEN
+		IF RIGHT$(hug_arg$, 2) = "GL" THEN
+			IF hug_gui_properties.gl$ = "NONE" THEN
+				PRINT "WARNING: GtkGlArea/GtkGlExt library not found! Falling back to default GTK canvas."
+				HUG_CANVAS_TYPE = 0
+			ELSE
+				HUG_CANVAS_TYPE = 1
+			END IF
+		ELIF RIGHT$(hug_arg$, 6) = "GLAREA" THEN
+			IF hug_Get_GtkGlArea$() = "notfound" THEN
+				PRINT "WARNING: GtkGlArea library specified but not found on system! Falling back to default GTK canvas."
+				HUG_CANVAS_TYPE = 0
+			ELSE
+				hug_gui_properties.gl$ = "GLAREA"
+				HUG_CANVAS_TYPE = 1
+			END IF
+		ELIF RIGHT$(hug_arg$, 5) = "GLEXT" THEN
+			IF hug_Get_GtkGlExt$() = "notfound" THEN
+				PRINT "WARNING: GtkGlExt library specified but not found on system! Falling back to default GTK canvas."
+				HUG_CANVAS_TYPE = 0
+			ELSE
+				hug_gui_properties.gl$ = "GLEXT"
+				HUG_CANVAS_TYPE = 1
+			END IF
+		ELIF RIGHT$(hug_arg$, 3) = "GTK" THEN
+			HUG_CANVAS_TYPE = 0
+		ELIF RIGHT$(hug_arg$, 3) = "GOO" THEN
+			HUG_CANVAS_TYPE = 2
+		ELSE
+			PRINT "WARNING: Invalid canvas library specified! Falling back to default GTK canvas."
+			HUG_CANVAS_TYPE = 0
+		END IF
+	ELIF LEFT$(hug_arg$, 9) = "GL_FREEZE" THEN
+		hug_gui_properties.freeze = VAL(MID$(hug_arg$, INSTR(hug_arg$, " ")+1))
+	ELIF LEFT$(hug_arg$, 9) = "CLIPBOARD" THEN
+		SELECT VAL(MID$(hug_arg$, INSTR(hug_arg$, " ")+1))
+			CASE 0
+				hug_gui_properties.clip$ = "CLIPBOARD"
+			CASE 1
+				hug_gui_properties.clip$ = "PRIMARY"
+			CASE 2
+				hug_gui_properties.clip$ = "SECONDARY"
+			DEFAULT
+				PRINT "WARNING: Invalid clipboard specified! Falling back to default clipboard."
+				hug_gui_properties.clip$ = "CLIPBOARD"
+		ENDSELECT
+	ELIF LEFT$(hug_arg$, 6) = "MARKUP" THEN
+		hug_gui_properties.markup$ = MID$(hug_arg$, INSTR(hug_arg$, " ")+1)
+	ELSE
+		PRINT "HUGOPTION '", hug_arg$, "' not recognized!"
+	END IF
+
+END SUB
+
+REM --------------------------------------------------------------------------------------------------
+
+SUB QUIT
+
+	END
+
+END SUB
+
+REM --------------------------------------------------------------------------------------------------
+
+FUNCTION DRAW (NUMBER hug_widget)
+
+	LOCAL image, glcontext, gldraw
+
+	image = hug_widget_image(STR$(hug_widget))
+	hug_gui_properties.canvas = hug_widget_pix(STR$(image))
+
+	IF HUG_CANVAS_TYPE = 1 THEN
+		IF hug_gui_properties.gl$ = "GLAREA" THEN
+			gtk_gl_area_make_current(hug_gui_properties.canvas)
+		ELSE
+			glcontext = gtk_widget_get_gl_context(hug_gui_properties.canvas)
+			gldraw = gtk_widget_get_gl_window(hug_gui_properties.canvas)
+			gdk_gl_drawable_gl_begin(gldraw, glcontext)
+		END IF
+	END IF
+
+	RETURN hug_gui_properties.canvas
+
+END FUNCTION
+
+REM --------------------------------------------------------------------------------------------------
+
+SUB HIDE (NUMBER hug_widget)
+
+	gtk_widget_hide(hug_widget)
+
+END SUB
+
+REM --------------------------------------------------------------------------------------------------
+
+SUB SHOW (NUMBER hug_widget)
+
+	gtk_widget_show_all(hug_widget)
+
+END SUB
+
+REM --------------------------------------------------------------------------------------------------
+
+FUNCTION GRAB$(NUMBER hug_widget)
+
+	LOCAL iter1, iter2, slist
+	LOCAL hug_text$
+	LOCAL ptr TYPE STRING
+	LOCAL (*hug_func)(long) TYPE char*
+	LOCAL ctr, result TYPE unsigned int
+
+	RECORD iter
+		LOCAL stamp TYPE int
+		LOCAL user_data TYPE void*
+		LOCAL user_data2 TYPE void*
+		LOCAL user_data3 TYPE void*
+	END RECORD
+
+	SELECT hug_widget_type$(STR$(hug_widget))
+
+		CASE "window"
+			hug_text$ = gtk_window_get_title(hug_widget)
+		CASE "notebook"
+			hug_text$ = gtk_notebook_get_tab_label_text(hug_widget, hug_widget_attach(STR$(hug_widget)))
+		CASE "button";
+		CASE "stock";
+		CASE "toggle";
+		CASE "check";
+		CASE "radio"
+			hug_text$ = gtk_label_get_text(hug_widget_font(STR$(hug_widget)))
+		CASE "entry";
+		CASE "password"
+			hug_text$ = gtk_entry_get_text(hug_widget)
+		CASE "mark"
+			hug_text$ = gtk_label_get_text(hug_widget)
+		CASE "combo"
+			ptr = gtk_combo_box_get_active_text(hug_widget)
+			IF ptr = NULL THEN
+				hug_text$ = ""
+			ELSE
+				hug_text$ = ptr
+				g_free(ptr)
+			END IF
+		CASE "frame"
+			hug_text$ = gtk_frame_get_label(hug_widget)
+		CASE "edit"
+			iter1 = MEMORY(HUG_DEFAULT_WIDGET_SIZE)
+			iter2 = MEMORY(HUG_DEFAULT_WIDGET_SIZE)
+			gtk_text_buffer_get_start_iter(hug_widget_s_widget(STR$(hug_widget)), iter1)
+			gtk_text_buffer_get_end_iter(hug_widget_s_widget(STR$(hug_widget)), iter2)
+			hug_text$ = gtk_text_buffer_get_text(hug_widget_s_widget(STR$(hug_widget)), iter1, iter2, 1)
+			FREE iter1
+			FREE iter2
+		CASE "list"
+			result = gtk_tree_selection_get_selected(hug_widget_attach(STR$(hug_widget)), 0, ADDRESS(iter))
+			IF ISTRUE(result) THEN
+				gtk_tree_model_get(hug_widget_buffer(STR$(hug_widget)), ADDRESS(iter), 0, ADDRESS(hug_text$), -1)
+			ELSE
+				hug_text$ = ""
+			END IF
+		CASE "msgdialog"
+			g_object_get(hug_widget, "text", ADDRESS(ptr), NUL)
+			IF ptr = 0 THEN
+				hug_text$ = ""
+			ELSE
+				hug_text$ = ptr
+			END IF
+		CASE "filedialog"
+			hug_text$ = ""
+			slist = gtk_file_chooser_get_uris(hug_widget)
+			REPEAT
+				ptr = g_slist_nth_data(slist, ctr)
+				IF ctr > 0 AND ptr != NULL THEN hug_text$ = CONCAT$(hug_text$, " ")
+				IF ptr != NULL THEN hug_text$ = CONCAT$(hug_text$, MID$(ptr, 8))
+				INCR ctr
+			UNTIL ptr = NULL
+			g_slist_free(slist)
+		CASE "clipboard"
+			ptr = gtk_clipboard_wait_for_text(hug_widget)
+			IF ptr = NULL THEN
+				hug_text$ = ""
+			ELSE
+				hug_text$ = ptr
+			END IF
+		CASE "progressbar"
+			hug_text$ = gtk_progress_bar_get_text(hug_widget)
+		CASE "image"
+			hug_text$ = hug_widget_image$(STR$(hug_widget))
+		CASE "external"
+			hug_func = hug_widget_external_grab(STR$(hug_widget))
+			hug_text$ = (char*)(*hug_func)(hug_widget)
+		DEFAULT
+			hug_text$ = ""
+	END SELECT
+
+	RETURN hug_text$
+
+END FUNCTION
+
+REM --------------------------------------------------------------------------------------------------
+
+SUB hug_apply_tag(NUMBER hug_widget) : REM INCLUDE
+
+	LOCAL iter1, iter2, tag
+	LOCAL str$
+
+	iter1 = MEMORY(256)
+	iter2 = MEMORY(256)
+
+	' Setup the current text properties
+	tag = hug_widget_attach(STR$(hug_widget))
+
+	FOR str$ IN hug_gui_properties.markup$ STEP ","
+		str$ = CHOP$(str$)
+		g_object_set(tag, CHOP$(LEFT$(str$, INSTR(str$, ":")-1)), CHOP$(MID$(str$, INSTR(str$, ":")+1)), NULL)
+	NEXT
+
+	gtk_text_buffer_get_iter_at_mark(hug_widget, iter1, hug_widget_buffer(STR$(hug_widget)) )
+	gtk_text_buffer_get_end_iter(hug_widget, iter2)
+
+	gtk_text_buffer_apply_tag(hug_widget, tag, iter1, iter2)
+
+	gtk_text_buffer_delete_mark(hug_widget, hug_widget_buffer(STR$(hug_widget)))
+	gtk_text_buffer_get_end_iter(hug_widget, iter1)
+	hug_widget_buffer(STR$(hug_widget)) = gtk_text_buffer_create_mark(hug_widget, NULL, iter1, TRUE)
+
+	FREE iter1
+	FREE iter2
+
+END SUB
+
+REM --------------------------------------------------------------------------------------------------
+
+SUB TEXT(NUMBER hug_widget, STRING hug_text$)
+
+	LOCAL dim, i, layer, lab, buffer, lst, image, myiter, tag
+	LOCAL which TYPE int
+	LOCAL (*hug_func)(long,char*) TYPE void
+
+	RECORD iter
+		LOCAL stamp TYPE int
+		LOCAL user_data TYPE void*
+		LOCAL user_data2 TYPE void*
+		LOCAL user_data3 TYPE void*
+	END RECORD
+
+	SELECT hug_widget_type$(STR$(hug_widget))
+		CASE "window"
+			gtk_window_set_title(hug_widget, hug_text$)
+		CASE "notebook"
+			IF INSTR(hug_gui_properties.options$, "TABLE") THEN
+				SPLIT hug_gui_properties.options$ BY " " TO opt$ SIZE dim
+				FOR i = 0 TO dim - 1
+					IF INSTR(opt$[i], "TABLE") AND i+2 < dim THEN
+						layer = gtk_table_new(VAL(opt$[i+2]), VAL(opt$[i+1]), 1)
+						BREAK
+					END IF
+				NEXT
+			ELSE
+				layer = gtk_fixed_new()
+			END IF
+			gtk_widget_show(layer)
+			lab = gtk_label_new(hug_text$)
+			which = gtk_notebook_append_page(hug_widget, layer, lab)
+			hug_widget_nb_page$(STR$(hug_widget)) = CONCAT$(hug_widget_nb_page$(STR$(hug_widget)), " ", STR$(layer))
+			gtk_notebook_set_current_page(hug_widget, which)
+		CASE "button";
+		CASE "stock";
+		CASE "toggle";
+		CASE "check";
+		CASE "radio"
+			gtk_label_set_text(hug_widget_font(STR$(hug_widget)), hug_text$)
+		CASE "entry";
+		CASE "password"
+			gtk_entry_set_text(hug_widget, hug_text$)
+		CASE "mark"
+			gtk_label_set_markup(hug_widget, hug_text$)
+		CASE "combo"
+			IF LEN(hug_text$) = 0 THEN
+				IF hug_widget_comborows(STR$(hug_widget)) >= 0 THEN
+					gtk_combo_box_remove_text(hug_widget, hug_widget_comborows(STR$(hug_widget)))
+					DECR hug_widget_comborows(STR$(hug_widget))
+				END IF
+			ELSE
+				gtk_combo_box_append_text(hug_widget, hug_text$)
+				INCR hug_widget_comborows(STR$(hug_widget))
+			END IF
+		CASE "frame"
+			gtk_frame_set_label(hug_widget, hug_text$)
+			hug_widget_font(STR$(hug_widget)) = gtk_frame_get_label_widget(hug_widget)
+		CASE "edit"
+			buffer = hug_widget_s_widget(STR$(hug_widget))
+			IF LEN(hug_text$) = 0 THEN
+				gtk_text_buffer_set_text(buffer, "", 0)
+			ELSE
+				myiter = MEMORY(256)
+				gtk_text_buffer_get_end_iter(buffer, myiter)
+				gtk_text_buffer_insert_with_tags(buffer, myiter, hug_text$, -1, hug_widget_attach(STR$(buffer)), NULL)
+				FREE myiter
+			END IF
+		CASE "list"
+			lst = hug_widget_buffer(STR$(hug_widget))
+			IF LEN(hug_text$) = 0 THEN
+				gtk_list_store_clear(lst)
+			ELSE
+				gtk_list_store_append(lst, ADDRESS(iter))
+				gtk_list_store_set(lst, ADDRESS(iter), 0, hug_text$, -1)
+			END IF
+		CASE "msgdialog"
+			g_object_set(hug_widget, "text", hug_text$, NUL)
+		CASE "filedialog"
+			gtk_file_chooser_set_filename(hug_widget, hug_text$)
+		CASE "clipboard"
+			gtk_clipboard_set_text(hug_widget, hug_text$, -1)
+		CASE "progressbar"
+			gtk_progress_bar_set_text(hug_widget, hug_text$)
+		CASE "image"
+			image = hug_widget_font(STR$(hug_widget))
+			gtk_image_set_from_file(image, hug_text$)
+			gtk_widget_queue_draw(image)
+			hug_widget_image$(STR$(hug_widget)) = hug_text$
+		CASE "external"
+			hug_func = hug_widget_external_text(STR$(hug_widget))
+			CALL (*hug_func)(hug_widget, hug_text$)
+	END SELECT
+
+END SUB
+
+REM --------------------------------------------------------------------------------------------------
+
+FUNCTION GET(NUMBER hug_widget)
+
+	LOCAL get, sel, lst
+	LOCAL value TYPE double
+	LOCAL (*hug_func)(long) TYPE long
+
+	RECORD iter
+		LOCAL stamp TYPE int
+		LOCAL user_data TYPE void*
+		LOCAL user_data2 TYPE void*
+		LOCAL user_data3 TYPE void*
+	END RECORD
+
+	SELECT hug_widget_type$(STR$(hug_widget))
+		CASE "window"
+			get = hug_winstate(STR$(hug_widget))
+		CASE "notebook"
+			get = gtk_notebook_get_current_page(hug_widget)
+		CASE "button";
+		CASE "stock";
+		CASE "toggle";
+		CASE "check";
+		CASE "radio"
+			get = gtk_toggle_button_get_active(hug_widget)
+		CASE "password"
+			get = gtk_entry_get_visibility(hug_widget)
+		CASE "mark"
+			get = gtk_label_get_selectable(hug_widget)
+		CASE "combo"
+			get = gtk_combo_box_get_active(hug_widget)
+		CASE "edit"
+			get = gtk_text_buffer_get_line_count(hug_widget_s_widget(STR$(hug_widget)))
+		CASE "list"
+			sel = hug_widget_attach(STR$(hug_widget))
+			lst = hug_widget_buffer(STR$(hug_widget))
+			IF ISTRUE(gtk_tree_selection_get_selected(sel, 0, ADDRESS(iter))) THEN
+				get = VAL(gtk_tree_model_get_string_from_iter(lst, ADDRESS(iter)))
+			ELSE
+				get = -1
+			END IF
+		CASE "spin"
+			get = gtk_spin_button_get_value_as_int(hug_widget)
+		CASE "progressbar"
+			value = gtk_progress_bar_get_fraction(hug_widget)
+			get = INT(value*100)
+		CASE "slider"
+			get = gtk_range_get_value(hug_widget)
+		CASE "external"
+			hug_func = hug_widget_external_get(STR$(hug_widget))
+			get = (long)(*hug_func)(hug_widget)
+	END SELECT
+
+	RETURN get
+
+END FUNCTION
+
+REM --------------------------------------------------------------------------------------------------
+
+SUB SET(NUMBER hug_widget, int hug_value)
+
+	LOCAL buffer, view, iter, mark, sel, path
+	LOCAL nr TYPE FLOATING
+	LOCAL (*hug_func)(long,long) TYPE void
+
+	SELECT hug_widget_type$(STR$(hug_widget))
+		CASE "window"
+			IF hug_value = 0 THEN
+				gtk_window_unfullscreen(hug_widget)
+				hug_winstate(STR$(hug_widget)) = 0
+				gtk_window_set_resizable(hug_widget, 0)
+			ELSE
+				gtk_window_set_resizable(hug_widget, 1)
+				gtk_window_fullscreen(hug_widget)
+				hug_winstate(STR$(hug_widget)) = 1
+			END IF
+		CASE "notebook"
+			gtk_notebook_set_current_page(hug_widget, hug_value)
+		CASE "button";
+		CASE "stock";
+		CASE "toggle";
+		CASE "check";
+		CASE "radio"
+			gtk_toggle_button_set_active(hug_widget, hug_value)
+		CASE "password"
+			gtk_entry_set_visibility(hug_widget, hug_value)
+		CASE "mark"
+			gtk_label_set_selectable(hug_widget, hug_value)
+		CASE "combo"
+			gtk_combo_box_set_active(hug_widget, hug_value)
+		CASE "edit"
+			buffer = hug_widget_s_widget(STR$(hug_widget))
+			view = hug_widget_focus(STR$(hug_widget))
+			iter = MEMORY(HUG_DEFAULT_WIDGET_SIZE)
+			gtk_text_buffer_get_iter_at_line(buffer, iter, hug_value)
+			mark = gtk_text_buffer_create_mark(buffer, NULL, iter, 0)
+			gtk_text_view_scroll_to_mark(view, mark, 0, 1, 0.0, 1.0)
+			gtk_text_buffer_delete_mark(buffer, mark)
+			FREE iter
+		CASE "list"
+			sel = hug_widget_attach(STR$(hug_widget))
+			path = gtk_tree_path_new_from_string(STR$(hug_value))
+			gtk_tree_selection_select_path(sel, path)
+			gtk_tree_path_free(path)
+		CASE "spin"
+			nr = (double)hug_value
+			gtk_spin_button_set_value(hug_widget, nr)
+		CASE "progressbar"
+			nr = (double)hug_value/100.0
+			gtk_progress_bar_set_fraction(hug_widget, nr)
+		CASE "slider"
+			gtk_range_set_value(hug_widget, hug_value)
+		CASE "external"
+			hug_func = hug_widget_external_set(STR$(hug_widget))
+			CALL (*hug_func)(hug_widget, hug_value)
+	END SELECT
+
+END SUB
+
+REM --------------------------------------------------------------------------------------------------
+
+REM The widgets
+FUNCTION WINDOW (STRING hug_title$, int hug_xsize, int hug_ysize)
+
+	LOCAL win, layer, dim, i
+
+	win = gtk_window_new(GTK_WINDOW_TOPLEVEL)
+	gtk_window_set_title(win, hug_title$)
+	gtk_window_set_position(win, GTK_WIN_POS_CENTER)
+
+	g_signal_connect_data(win, "delete-event", exit, 0, 0, 0)
+	g_signal_connect_data(win, "key-press-event", hug_key_press, 0, 0, 0)
+
+	IF INSTR(hug_gui_properties.options$, "TABLE") THEN
+		SPLIT hug_gui_properties.options$ BY " " TO opt$ SIZE dim
+		FOR i = 0 TO dim - 1
+			IF INSTR(opt$[i], "TABLE") AND i+2 < dim THEN
+				layer = gtk_table_new(VAL(opt$[i+2]), VAL(opt$[i+1]), 1)
+				BREAK
+			END IF
+		NEXT
+	ELSE
+		gtk_window_set_resizable(win, 0)
+		layer = gtk_fixed_new()
+	END IF
+
+	gtk_container_add(win, layer)
+
+	gtk_widget_set_size_request(win, INT(hug_xsize*HUG_FONT_SIZE_FACTOR*HUG_XFT_SIZE_FACTOR), INT(hug_ysize*HUG_FONT_SIZE_FACTOR*HUG_XFT_SIZE_FACTOR))
+	IF HUG_WIDGET_SHOW THEN gtk_widget_show_all(win)
+
+	hug_winstate(STR$(win)) = 0
+
+	hug_widget_xsize(STR$(win)) = hug_xsize
+	hug_widget_ysize(STR$(win)) = hug_ysize
+	hug_widget_signal(STR$(win)) = 1
+	hug_widget_s_widget(STR$(win)) = win
+	hug_widget_type$(STR$(win)) = "window"
+	hug_widget_attach(STR$(win)) = layer
+	hug_widget_font(STR$(win)) = win
+	hug_widget_focus(STR$(win)) = win
+	WIDGET = win
+
+	RETURN win
+
+END FUNCTION
+
+REM --------------------------------------------------------------------------------------------------
+
+FUNCTION NOTEBOOK(STRING hug_title$, int hug_xsize, int hug_ysize)
+
+	LOCAL notebook, layer, dim, i, lab, which
+
+	notebook = gtk_notebook_new()
+
+	IF INSTR(hug_gui_properties.options$, "TABLE") THEN
+		SPLIT hug_gui_properties.options$ BY " " TO opt$ SIZE dim
+		FOR i = 0 TO dim - 1
+			IF INSTR(opt$[i], "TABLE") AND i+2 < dim THEN
+				layer = gtk_table_new(VAL(opt$[i+2]), VAL(opt$[i+1]), 1)
+				BREAK
+			END IF
+		NEXT
+	ELSE
+		layer = gtk_fixed_new()
+	END IF
+
+	gtk_widget_show(layer)
+
+	lab = gtk_label_new(hug_title$)
+	which = gtk_notebook_append_page(notebook, layer, lab)
+	IF HUG_WIDGET_SHOW THEN gtk_widget_show(notebook)
+
+	g_signal_connect_data(notebook, "switch-page", hug_NOTEBOOK_hack, 0, 0, 0)
+
+	hug_widget_xsize(STR$(notebook)) = hug_xsize
+	hug_widget_ysize(STR$(notebook)) = hug_ysize
+	hug_widget_s_widget(STR$(notebook)) = notebook
+
+	hug_widget_type$(STR$(notebook)) = "notebook"
+	hug_widget_attach(STR$(notebook)) = layer
+	hug_widget_font(STR$(notebook)) = lab
+	hug_widget_focus(STR$(notebook)) = notebook
+	hug_widget_nb_page$(STR$(notebook)) = STR$(layer)
+	WIDGET = notebook
+
+	RETURN notebook
+
+END FUNCTION
+
+REM --------------------------------------------------------------------------------------------------
+
+FUNCTION BUTTON (STRING hug_text$, int hug_xsize, int hug_ysize)
+
+	LOCAL but
+
+	but = gtk_button_new_with_mnemonic(hug_text$)
+
+	IF HUG_WIDGET_SHOW THEN gtk_widget_show(but)
+
+	hug_widget_xsize(STR$(but)) = hug_xsize
+	hug_widget_ysize(STR$(but)) = hug_ysize
+	hug_widget_signal(STR$(but)) = 2
+	hug_widget_s_widget(STR$(but)) = but
+
+	hug_widget_type$(STR$(but)) = "button"
+	hug_widget_attach(STR$(but)) = but
+	hug_widget_font(STR$(but)) = gtk_bin_get_child(but)
+	hug_widget_focus(STR$(but)) = but
+	WIDGET = but
+
+	RETURN but
+
+END FUNCTION
+
+REM --------------------------------------------------------------------------------------------------
+
+FUNCTION STOCK (STRING hug_text$, int hug_xsize, int hug_ysize)
+
+	LOCAL but
+
+	but = gtk_button_new_from_stock(hug_text$)
+
+	IF HUG_WIDGET_SHOW THEN gtk_widget_show(but)
+
+	hug_widget_xsize(STR$(but)) = hug_xsize
+	hug_widget_ysize(STR$(but)) = hug_ysize
+	hug_widget_signal(STR$(but)) = 2
+	hug_widget_s_widget(STR$(but)) = but
+
+	hug_widget_type$(STR$(but)) = "stock"
+	hug_widget_attach(STR$(but)) = but
+	hug_widget_font(STR$(but)) = gtk_bin_get_child(but)
+	hug_widget_focus(STR$(but)) = but
+	WIDGET = but
+
+	RETURN but
+
+END FUNCTION
+
+REM --------------------------------------------------------------------------------------------------
+
+FUNCTION TOGGLE (STRING hug_text$, int hug_xsize, int hug_ysize)
+
+	LOCAL but
+
+	but = gtk_toggle_button_new_with_mnemonic(hug_text$)
+
+	IF HUG_WIDGET_SHOW THEN gtk_widget_show(but)
+
+	hug_widget_xsize(STR$(but)) = hug_xsize
+	hug_widget_ysize(STR$(but)) = hug_ysize
+	hug_widget_signal(STR$(but)) = 2
+	hug_widget_s_widget(STR$(but)) = but
+
+	hug_widget_type$(STR$(but)) = "toggle"
+	hug_widget_attach(STR$(but)) = but
+	hug_widget_font(STR$(but)) = gtk_bin_get_child(but)
+	hug_widget_focus(STR$(but)) = but
+	WIDGET = but
+
+	RETURN but
+
+END FUNCTION
+
+REM --------------------------------------------------------------------------------------------------
+
+FUNCTION CHECK (STRING hug_text$, int hug_xsize, int hug_ysize)
+
+	LOCAL but
+
+	but = gtk_check_button_new_with_label(hug_text$)
+
+	IF HUG_WIDGET_SHOW THEN gtk_widget_show(but)
+
+	hug_widget_xsize(STR$(but)) = hug_xsize
+	hug_widget_ysize(STR$(but)) = hug_ysize
+	hug_widget_signal(STR$(but)) = 2
+	hug_widget_s_widget(STR$(but)) = but
+
+	hug_widget_type$(STR$(but)) = "check"
+	hug_widget_attach(STR$(but)) = but
+	hug_widget_font(STR$(but)) = gtk_bin_get_child(but)
+	hug_widget_focus(STR$(but)) = but
+	WIDGET = but
+
+	RETURN but
+
+END FUNCTION
+
+REM --------------------------------------------------------------------------------------------------
+
+FUNCTION RADIO (STRING hug_text$, int hug_xsize, int hug_ysize, NUMBER hug_group)
+
+	LOCAL but
+
+	but = gtk_radio_button_new_with_label_from_widget(hug_group, hug_text$)
+
+	IF HUG_WIDGET_SHOW THEN gtk_widget_show(but)
+
+	hug_widget_xsize(STR$(but)) = hug_xsize
+	hug_widget_ysize(STR$(but)) = hug_ysize
+	hug_widget_signal(STR$(but)) = 2
+	hug_widget_s_widget(STR$(but)) = but
+
+	hug_widget_type$(STR$(but)) = "radio"
+	hug_widget_attach(STR$(but)) = but
+	hug_widget_font(STR$(but)) = gtk_bin_get_child(but)
+	hug_widget_focus(STR$(but)) = but
+	WIDGET = but
+
+	RETURN but
+
+END FUNCTION
+
+REM --------------------------------------------------------------------------------------------------
+
+FUNCTION ENTRY(STRING hug_text$, int hug_xsize, int hug_ysize)
+
+	LOCAL ent
+
+	ent = gtk_entry_new()
+	gtk_entry_set_text(ent, hug_text$)
+	IF HUG_WIDGET_SHOW THEN gtk_widget_show(ent)
+
+	hug_widget_xsize(STR$(ent)) = hug_xsize
+	hug_widget_ysize(STR$(ent)) = hug_ysize
+	hug_widget_signal(STR$(ent)) = 3
+	hug_widget_s_widget(STR$(ent)) = ent
+
+	hug_widget_type$(STR$(ent)) = "entry"
+	hug_widget_font(STR$(ent)) = ent
+	hug_widget_focus(STR$(ent)) = ent
+	WIDGET = ent
+
+	RETURN ent
+
+END FUNCTION
+
+FUNCTION HUGENTRY(STRING hug_text$, int hug_xsize, int hug_ysize)
+
+	RETURN ENTRY(hug_text$, hug_xsize, hug_ysize)
+
+END FUNCTION
+
+REM --------------------------------------------------------------------------------------------------
+
+FUNCTION PASSWORD (int hug_xsize, int hug_ysize)
+
+	LOCAL passwd
+
+	passwd = gtk_entry_new()
+	gtk_entry_set_visibility(passwd, 0)
+	IF HUG_WIDGET_SHOW THEN gtk_widget_show(passwd)
+
+	hug_widget_xsize(STR$(passwd)) = hug_xsize
+	hug_widget_ysize(STR$(passwd)) = hug_ysize
+	hug_widget_signal(STR$(passwd)) = 3
+	hug_widget_s_widget(STR$(passwd)) = passwd
+
+	hug_widget_type$(STR$(passwd)) = "password"
+	hug_widget_font(STR$(passwd)) = passwd
+	hug_widget_focus(STR$(passwd)) = passwd
+	WIDGET = passwd
+
+	RETURN passwd
+
+END FUNCTION
+
+REM --------------------------------------------------------------------------------------------------
+
+FUNCTION MARK (STRING hug_text$, int hug_xsize, int hug_ysize)
+
+	LOCAL label
+
+	label = gtk_label_new(NULL)
+	gtk_label_set_markup(label, hug_text$)
+
+	IF HUG_WIDGET_SHOW THEN gtk_widget_show(label)
+
+	hug_widget_xsize(STR$(label)) = hug_xsize
+	hug_widget_ysize(STR$(label)) = hug_ysize
+	hug_widget_s_widget(STR$(label)) = label
+
+	hug_widget_type$(STR$(label)) = "mark"
+	hug_widget_font(STR$(label)) = label
+	WIDGET = label
+
+	RETURN label
+
+END FUNCTION
+
+REM --------------------------------------------------------------------------------------------------
+
+FUNCTION COMBO (STRING hug_text$, int hug_xsize, int hug_ysize)
+
+	LOCAL combo
+
+	combo = gtk_combo_box_new_text()
+	gtk_combo_box_append_text(combo, hug_text$)
+	gtk_combo_box_set_active(combo, 0)
+
+	IF HUG_WIDGET_SHOW THEN gtk_widget_show(combo)
+
+	hug_widget_xsize(STR$(combo)) = hug_xsize
+	hug_widget_ysize(STR$(combo)) = hug_ysize
+	hug_widget_signal(STR$(combo)) = 5
+	hug_widget_s_widget(STR$(combo)) = combo
+
+	hug_widget_type$(STR$(combo)) = "combo"
+	hug_widget_font(STR$(combo)) = gtk_bin_get_child(combo)
+	hug_widget_focus(STR$(combo)) = gtk_bin_get_child(combo)
+	WIDGET = combo
+
+	RETURN combo
+
+END FUNCTION
+
+REM --------------------------------------------------------------------------------------------------
+
+FUNCTION HSEPARATOR (int hug_xsize)
+
+	LOCAL separator
+
+	separator = gtk_hseparator_new()
+	IF HUG_WIDGET_SHOW THEN gtk_widget_show(separator)
+
+	hug_widget_xsize(STR$(separator)) = hug_xsize
+	hug_widget_s_widget(STR$(separator)) = separator
+
+	hug_widget_type$(STR$(separator)) = "separator"
+	WIDGET = separator
+
+	RETURN separator
+
+END FUNCTION
+
+REM --------------------------------------------------------------------------------------------------
+
+FUNCTION VSEPARATOR (int hug_ysize)
+
+	LOCAL separator
+
+	separator = gtk_vseparator_new()
+	IF HUG_WIDGET_SHOW THEN gtk_widget_show(separator)
+
+	hug_widget_ysize(STR$(separator)) = hug_ysize
+	hug_widget_s_widget(STR$(separator)) = separator
+
+	hug_widget_type$(STR$(separator)) = "separator"
+	WIDGET = separator
+
+	RETURN separator
+
+END FUNCTION
+
+REM --------------------------------------------------------------------------------------------------
+
+FUNCTION FRAME (int hug_xsize, int hug_ysize)
+
+	LOCAL myframe
+
+	myframe = gtk_frame_new(0)
+	IF HUG_WIDGET_SHOW THEN gtk_widget_show(myframe)
+
+	hug_widget_xsize(STR$(myframe)) = hug_xsize
+	hug_widget_ysize(STR$(myframe)) = hug_ysize
+	hug_widget_s_widget(STR$(myframe)) = myframe
+
+	hug_widget_type$(STR$(myframe)) = "frame"
+	hug_widget_font(STR$(myframe)) = gtk_frame_get_label_widget(myframe)
+	WIDGET = myframe
+
+	RETURN myframe
+
+END FUNCTION
+
+REM --------------------------------------------------------------------------------------------------
+
+FUNCTION EDIT (int hug_xsize, int hug_ysize)
+
+	LOCAL buffer, view, scrolled, iter, tag
+
+	buffer = gtk_text_buffer_new(0)
+	view = gtk_text_view_new_with_buffer(buffer)
+	scrolled = gtk_scrolled_window_new(0, 0)
+	gtk_scrolled_window_set_policy(scrolled, GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
+	gtk_scrolled_window_set_shadow_type(scrolled, GTK_SHADOW_ETCHED_IN)
+	gtk_container_add(scrolled, view)
+	gtk_text_view_set_editable(view, 1)
+	gtk_text_view_set_wrap_mode(view, 3)
+
+	tag = gtk_text_tag_new(STR$(buffer))
+	gtk_text_tag_table_add(gtk_text_buffer_get_tag_table(buffer), tag)
+	g_signal_connect_data(buffer, "changed", hug_apply_tag, 0, 0, 0)
+
+	IF HUG_WIDGET_SHOW THEN gtk_widget_show_all(scrolled)
+
+	hug_widget_xsize(STR$(scrolled)) = hug_xsize
+	hug_widget_ysize(STR$(scrolled)) = hug_ysize
+	hug_widget_signal(STR$(scrolled)) = 9
+	hug_widget_s_widget(STR$(scrolled)) = buffer
+
+	hug_widget_type$(STR$(scrolled)) = "edit"
+	hug_widget_font(STR$(scrolled)) = view
+	hug_widget_focus(STR$(scrolled)) = view
+
+	' Keep track of current tag and mark for this edit
+	hug_widget_attach(STR$(buffer)) = tag
+	iter = MEMORY(256)
+	gtk_text_buffer_get_end_iter(buffer, iter)
+	hug_widget_buffer(STR$(buffer)) = gtk_text_buffer_create_mark(buffer, NULL, iter, TRUE)
+	FREE iter
+
+	WIDGET = scrolled
+
+	RETURN scrolled
+
+END FUNCTION
+
+REM --------------------------------------------------------------------------------------------------
+
+FUNCTION LIST (int hug_xsize, int hug_ysize)
+
+	LOCAL lst, tree, sel, cell, tc, win
+
+	lst = gtk_list_store_new(1, G_TYPE_STRING)
+	tree = gtk_tree_view_new_with_model(lst)
+	gtk_tree_view_set_headers_visible(tree, 0)
+
+	sel = gtk_tree_view_get_selection(tree)
+	gtk_tree_selection_set_mode(sel, GTK_SELECTION_SINGLE)
+	cell = gtk_cell_renderer_text_new()
+
+	tc = gtk_tree_view_column_new_with_attributes("dummy", cell, "text", 0, 0)
+	gtk_tree_view_append_column(tree, tc)
+
+	win = gtk_scrolled_window_new(0, 0)
+	gtk_scrolled_window_set_policy(win, GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
+	gtk_scrolled_window_set_shadow_type(win, GTK_SHADOW_ETCHED_IN)
+	gtk_container_add(win, tree)
+
+	IF HUG_WIDGET_SHOW THEN gtk_widget_show_all(win)
+
+	hug_widget_xsize(STR$(win)) = hug_xsize
+	hug_widget_ysize(STR$(win)) = hug_ysize
+	hug_widget_signal(STR$(win)) = 5
+	hug_widget_s_widget(STR$(win)) = sel
+
+	hug_widget_type$(STR$(win)) = "list"
+	hug_widget_attach(STR$(win)) = sel
+	hug_widget_font(STR$(win)) = tree
+	hug_widget_focus(STR$(win)) = tree
+	hug_widget_buffer(STR$(win)) = lst
+	WIDGET = win
+
+	RETURN win
+
+END FUNCTION
+
+REM --------------------------------------------------------------------------------------------------
+
+FUNCTION MSGDIALOG (STRING hug_text$, int hug_xsize, int hug_ysize, int hug_type, int hug_buttons)
+
+	LOCAL win, table, lbl, but
+	LOCAL dialog
+
+	IF type > 4 THEN type = 4
+	IF type < 0 THEN type = 0
+
+	hug_text$ = CONCAT$(NL$, hug_text$)
+	dialog = gtk_message_dialog_new_with_markup(0, 2, hug_type, hug_buttons, hug_text$, 0)
+
+	gtk_window_set_title(dialog, "Message")
+	gtk_window_set_position(dialog, GTK_WIN_POS_CENTER)
+	gtk_widget_set_size_request(dialog, INT(hug_xsize*HUG_FONT_SIZE_FACTOR*HUG_XFT_SIZE_FACTOR), INT(hug_ysize*HUG_FONT_SIZE_FACTOR*HUG_XFT_SIZE_FACTOR))
+
+	g_signal_connect_data(dialog, "delete-event", gtk_widget_hide_on_delete, 0, 0, 0)
+
+	hug_widget_xsize(STR$(dialog)) = hug_xsize
+	hug_widget_ysize(STR$(dialog)) = hug_ysize
+	hug_widget_signal(STR$(dialog)) = 7
+	hug_widget_s_widget(STR$(dialog)) = dialog
+
+	hug_widget_type$(STR$(dialog)) = "msgdialog"
+	hug_widget_font(STR$(dialog)) = dialog
+	WIDGET = dialog
+
+	RETURN dialog
+
+END FUNCTION
+
+REM --------------------------------------------------------------------------------------------------
+
+FUNCTION FILEDIALOG (STRING hug_title$, STRING hug_text$, int hug_xsize, int hug_ysize, int hug_type)
+
+	LOCAL dialog
+	LOCAL terminator TYPE STRING
+
+	IF hug_type > 3 THEN hug_type = 3
+	IF hug_type < 0 THEN hug_type = 0
+
+	' Improved by James Fuller
+	dialog = gtk_file_chooser_dialog_new(hug_title$, 0, hug_type, "gtk-cancel", GTK_RESPONSE_CANCEL, hug_text$, GTK_RESPONSE_ACCEPT, terminator)
+	IF hug_type != 1 AND hug_type != 3 THEN gtk_file_chooser_set_select_multiple(dialog, TRUE)
+
+	gtk_window_set_title(dialog, hug_title$)
+	gtk_widget_set_size_request(dialog, INT(hug_xsize*HUG_FONT_SIZE_FACTOR*HUG_XFT_SIZE_FACTOR), INT(hug_ysize*HUG_FONT_SIZE_FACTOR*HUG_XFT_SIZE_FACTOR))
+	gtk_window_set_position(dialog, GTK_WIN_POS_CENTER)
+	gtk_widget_realize(dialog)
+
+	g_signal_connect_data(dialog, "delete-event", gtk_widget_hide_on_delete, 0, 0, 0)
+
+	hug_widget_xsize(STR$(dialog)) = hug_xsize
+	hug_widget_ysize(STR$(dialog)) = hug_ysize
+	hug_widget_signal(STR$(dialog)) = 7
+	hug_widget_s_widget(STR$(dialog)) = dialog
+
+	hug_widget_type$(STR$(dialog)) = "filedialog"
+	hug_widget_font(STR$(dialog)) = dialog
+	WIDGET = dialog
+
+	RETURN dialog
+
+END FUNCTION
+
+REM --------------------------------------------------------------------------------------------------
+
+FUNCTION SPIN (int hug_xsize, int hug_ysize, FLOATING hug_start, FLOATING hug_end, FLOATING hug_step)
+
+	LOCAL but, lbl
+
+	but = gtk_spin_button_new_with_range(hug_start, hug_end, hug_step)
+
+	IF HUG_WIDGET_SHOW THEN gtk_widget_show(but)
+
+	hug_widget_xsize(STR$(but)) = hug_xsize
+	hug_widget_ysize(STR$(but)) = hug_ysize
+	hug_widget_signal(STR$(but)) = 6
+	hug_widget_s_widget(STR$(but)) = but
+
+	hug_widget_type$(STR$(but)) = "spin"
+	hug_widget_attach(STR$(but)) = but
+	hug_widget_font(STR$(but)) = but
+	hug_widget_focus(STR$(but)) = but
+	WIDGET = but
+
+	RETURN but
+
+END FUNCTION
+
+REM --------------------------------------------------------------------------------------------------
+
+FUNCTION HSLIDER(int hug_xsize, int hug_ysize, FLOATING hug_start, FLOATING hug_end, FLOATING hug_step)
+
+	LOCAL hslide
+
+	hslide = gtk_hscale_new_with_range(hug_start, hug_end, hug_step)
+
+	IF HUG_WIDGET_SHOW THEN gtk_widget_show(hslide)
+
+	hug_widget_xsize(STR$(hslide)) = hug_xsize
+	hug_widget_ysize(STR$(hslide)) = hug_ysize
+	hug_widget_signal(STR$(hslide)) = 6
+	hug_widget_s_widget(STR$(hslide)) = hslide
+
+	hug_widget_type$(STR$(hslide)) = "slider"
+	hug_widget_attach(STR$(hslide)) = hslide
+	hug_widget_font(STR$(hslide)) = hslide
+	hug_widget_focus(STR$(hslide)) = hslide
+	WIDGET = hslide
+
+	RETURN hslide
+
+END FUNCTION
+
+REM --------------------------------------------------------------------------------------------------
+
+FUNCTION VSLIDER(int hug_xsize, int hug_ysize, FLOATING hug_start, FLOATING hug_end, FLOATING hug_step)
+
+	LOCAL vslide
+
+	vslide = gtk_vscale_new_with_range(hug_start, hug_end, hug_step)
+
+	IF HUG_WIDGET_SHOW THEN gtk_widget_show(vslide)
+
+	hug_widget_xsize(STR$(vslide)) = hug_xsize
+	hug_widget_ysize(STR$(vslide)) = hug_ysize
+	hug_widget_signal(STR$(vslide)) = 6
+	hug_widget_s_widget(STR$(vslide)) = vslide
+
+	hug_widget_type$(STR$(vslide)) = "slider"
+	hug_widget_attach(STR$(vslide)) = vslide
+	hug_widget_font(STR$(vslide)) = vslide
+	hug_widget_focus(STR$(vslide)) = vslide
+	WIDGET = vslide
+
+	RETURN vslide
+
+END FUNCTION
+
+REM --------------------------------------------------------------------------------------------------
+
+FUNCTION IMAGE(STRING hug_file$, int hug_xsize, int hug_ysize)
+
+	LOCAL image, ebox
+
+	image = gtk_image_new_from_file(hug_file$)
+	ebox = gtk_event_box_new()
+	gtk_container_add(ebox, image)
+
+	gtk_widget_queue_draw(image)
+	IF HUG_WIDGET_SHOW THEN gtk_widget_show_all(ebox)
+
+	hug_widget_xsize(STR$(ebox)) = hug_xsize
+	hug_widget_ysize(STR$(ebox)) = hug_ysize
+	hug_widget_signal(STR$(ebox)) = 4
+	hug_widget_s_widget(STR$(ebox)) = ebox
+
+	hug_widget_type$(STR$(ebox)) = "image"
+	hug_widget_font(STR$(ebox)) = image
+	hug_widget_focus(STR$(ebox)) = image
+
+	hug_widget_image$(STR$(ebox)) = hug_file$
+	WIDGET = ebox
+
+	RETURN ebox
+
+END FUNCTION
+
+REM --------------------------------------------------------------------------------------------------
+
+SUB REGISTER(long hug_widget, int hug_xsize, int hug_ysize, STRING hug_signal$, long hug_s_widget, long hug_attach, long hug_font, long hug_focus)
+
+	IF HUG_WIDGET_SHOW THEN gtk_widget_show(hug_widget)
+
+	hug_widget_xsize(STR$(hug_widget)) = hug_xsize
+	hug_widget_ysize(STR$(hug_widget)) = hug_ysize
+
+	hug_widget_signal(STR$(hug_widget)) = -1
+	hug_widget_external_signal$(STR$(hug_widget)) = hug_signal$
+
+	IF hug_s_widget = 0 THEN hug_widget_s_widget(STR$(hug_widget)) = hug_widget
+	ELSE hug_widget_s_widget(STR$(hug_widget)) = hug_s_widget
+
+	hug_widget_type$(STR$(hug_widget)) = "external"
+
+	IF hug_attach = 0 THEN hug_widget_attach(STR$(hug_widget)) = hug_widget
+	ELSE hug_widget_attach(STR$(hug_widget)) = hug_attach
+
+	IF hug_font = 0 THEN hug_widget_font(STR$(hug_widget)) = hug_widget
+	ELSE hug_widget_font(STR$(hug_widget)) = hug_font
+
+	IF hug_focus = 0 THEN hug_widget_focus(STR$(hug_widget)) = hug_widget
+	ELSE hug_widget_focus(STR$(hug_widget)) = hug_focus
+
+END SUB
+
+REM --------------------------------------------------------------------------------------------------
+
+SUB METHOD(long hug_widget, int hug_method, void* pointer)
+
+	SELECT hug_method
+		CASE 1
+			hug_widget_external_grab(STR$(hug_widget)) = pointer
+		CASE 2
+			hug_widget_external_text(STR$(hug_widget)) = pointer
+		CASE 3
+			hug_widget_external_get(STR$(hug_widget)) = pointer
+		CASE 4
+			hug_widget_external_set(STR$(hug_widget)) = pointer
+	END SELECT
+
+END SUB
+
+REM --------------------------------------------------------------------------------------------------
+
+SUB hug_glcanvas_expose(NUMBER hug_widget) : REM INCLUDE
+
+	LOCAL hug_glcontext, hug_gldraw
+
+	IF hug_canvas_expose(STR$(hug_widget)) = 0 THEN
+		IF hug_gui_properties.gl$ = "GLAREA" THEN
+			gtk_gl_area_make_current(hug_widget)
+		ELSE
+			hug_glcontext = gtk_widget_get_gl_context(hug_widget)
+			hug_gldraw = gtk_widget_get_gl_window(hug_widget)
+			gdk_gl_drawable_gl_begin(hug_gldraw, hug_glcontext)
+		END IF
+		glClearColor(1, 1, 1, 0)
+		glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT)
+		IF hug_gui_properties.gl$ = "GLAREA" THEN
+			gtk_gl_area_swap_buffers(hug_widget)
+		ELSE
+			gdk_gl_drawable_swap_buffers(hug_gldraw)
+			gdk_gl_drawable_gl_end(hug_gldraw)
+		END IF
+		hug_canvas_expose(STR$(hug_widget)) = 1
+	END IF
+
+END SUB
+
+REM --------------------------------------------------------------------------------------------------
+
+FUNCTION CANVAS (int hug_xsize, int hug_ysize)
+
+	LOCAL image, ebox, hug_gdkwin, pix, context, gdkcol, glcfg
+
+	LOCAL attrlist[] = { GDK_GL_RGBA, GDK_GL_RED_SIZE, 1, GDK_GL_GREEN_SIZE, 1, GDK_GL_BLUE_SIZE, 1, GDK_GL_DOUBLEBUFFER, GDK_GL_NONE } TYPE int
+
+	IF HUG_CANVAS_TYPE = 1 THEN
+		IF hug_gui_properties.gl$ = "GLAREA" THEN
+			image = gtk_gl_area_new(ADDRESS(attrlist))
+			g_signal_connect_data(image, "expose-event", hug_glcanvas_expose, 0, 0, 0)
+			pix = image
+		ELSE
+			gtk_gl_init(0, 0)
+			image = gtk_drawing_area_new()
+			glcfg = gdk_gl_config_new_by_mode(GDK_GL_MODE_RGBA|GDK_GL_MODE_DOUBLE|GDK_GL_MODE_DEPTH)
+			gtk_widget_set_gl_capability(image, glcfg, 0, 1, GDK_GL_RGBA_TYPE)
+			g_signal_connect_data(image, "expose-event", hug_glcanvas_expose, 0, 0, 0)
+			pix = image
+		END IF
+	ELIF HUG_CANVAS_TYPE = 2 THEN
+		image = goo_canvas_new()
+		goo_canvas_set_bounds(image, 0, 0, hug_xsize, hug_ysize)
+		pix = image
+	ELSE
+		image = gtk_image_new()
+		hug_gdkwin = gdk_get_default_root_window()
+		IF INSTR(hug_gui_properties.options$, "TABLE") THEN
+			pix = gdk_pixmap_new(hug_gdkwin, gdk_screen_get_width(gdk_screen_get_default()), gdk_screen_height(gdk_screen_get_default()), -1)
+		ELSE
+			pix = gdk_pixmap_new(hug_gdkwin, hug_xsize, hug_ysize, -1)
+		END IF
+		context = gdk_gc_new(pix)
+		gtk_image_set_from_pixmap(image, pix, NULL)
+		gtk_misc_set_alignment(image, 0, 0)
+		'REM Determine colors
+		gdkcol = g_malloc(HUG_DEFAULT_WIDGET_SIZE)
+		gdk_color_parse("#FFFFFF", gdkcol)
+		gdk_gc_set_rgb_bg_color(context, gdkcol)
+		gdk_gc_set_rgb_fg_color(context, gdkcol)
+		IF INSTR(hug_gui_properties.options$, "TABLE") THEN
+			gdk_draw_rectangle(pix, context, 1, 0, 0, gdk_screen_get_width(gdk_screen_get_default()), gdk_screen_height(gdk_screen_get_default()) )
+		ELSE
+			gdk_draw_rectangle(pix, context, 1, 0, 0, hug_xsize, hug_ysize)
+		END IF
+		'Do not FREE gdkcol - memory should remain available throughout the whole program.
+		gtk_widget_queue_draw(image)
+		hug_widget_context(STR$(pix)) = context
+	END IF
+
+	ebox = gtk_event_box_new()
+	gtk_widget_set_events(ebox, GDK_POINTER_MOTION_MASK | GDK_KEY_PRESS_MASK | GDK_BUTTON_RELEASE_MASK | GDK_SCROLL_MASK)
+	g_signal_connect_data(ebox, "button-press-event", hug_mouse_event, 20, 0, 0)
+	g_signal_connect_data(ebox, "button-release-event", hug_mouse_event, 40, 0, 0)
+	g_signal_connect_data(ebox, "motion-notify-event", hug_mouse_event, 0, 0, 0)
+	g_signal_connect_data(ebox, "scroll-event", hug_mouse_event, 10, 0, G_CONNECT_AFTER)
+	g_signal_connect_data(ebox, "leave-notify-event", hug_mouse_event, 30, 0, 0)
+
+	gtk_container_add(ebox, image)
+
+	IF HUG_WIDGET_SHOW THEN gtk_widget_show_all(ebox)
+
+	hug_widget_pix(STR$(image)) = pix
+
+	hug_widget_color(STR$(pix)) = gdkcol
+	hug_widget_ebox(STR$(pix)) = ebox
+
+	hug_widget_image(STR$(ebox)) = image
+	hug_widget_xsize(STR$(ebox)) = hug_xsize
+	hug_widget_ysize(STR$(ebox)) = hug_ysize
+	hug_widget_signal(STR$(ebox)) = 4
+	hug_widget_s_widget(STR$(ebox)) = ebox
+	hug_widget_type$(STR$(ebox)) = "canvas"
+
+	REM Define this as default drawing canvas
+	hug_gui_properties.canvas = pix
+	WIDGET = ebox
+
+	RETURN ebox
+
+END FUNCTION
+
+REM --------------------------------------------------------------------------------------------------
+
+FUNCTION CLIPBOARD ()
+
+	LOCAL clip, atom
+
+	atom = gdk_atom_intern(hug_gui_properties.clip$, 0)
+	clip = gtk_clipboard_get(atom)
+
+	hug_widget_type$(STR$(clip)) = "clipboard"
+	WIDGET = clip
+
+	RETURN clip
+
+END FUNCTION
+
+REM --------------------------------------------------------------------------------------------------
+
+FUNCTION PROGRESSBAR (STRING hug_text$, int hug_xsize, int hug_ysize)
+
+	LOCAL bar
+
+	bar = gtk_progress_bar_new()
+	gtk_progress_bar_set_text(bar, hug_text$)
+
+	IF HUG_WIDGET_SHOW THEN gtk_widget_show(bar)
+
+	hug_widget_xsize(STR$(bar)) = hug_xsize
+	hug_widget_ysize(STR$(bar)) = hug_ysize
+	hug_widget_signal(STR$(bar)) = 1
+	hug_widget_s_widget(STR$(bar)) = bar
+
+	hug_widget_type$(STR$(bar)) = "progressbar"
+	hug_widget_attach(STR$(bar)) = bar
+	hug_widget_focus(STR$(bar)) = bar
+	WIDGET = bar
+
+	RETURN bar
+
+END FUNCTION
+
+REM --------------------------------------------------------------------------------------------------
+
+SUB CALLBACK (NUMBER hug_widget, void* hug_addr)
+
+	LOCAL signal
+
+	signal = hug_widget_signal(STR$(hug_widget))
+
+	SELECT signal
+		CASE -1
+			g_signal_connect_data(hug_widget_s_widget(STR$(hug_widget)), hug_widget_external_signal$(STR$(hug_widget)), hug_addr, 0, 0, 0)
+		CASE 1
+			g_signal_connect_data(hug_widget_s_widget(STR$(hug_widget)), "show", hug_addr, 0, 0, 0)
+		CASE 2
+			g_signal_connect_data(hug_widget_s_widget(STR$(hug_widget)), "clicked", hug_addr, 0, 0, 0)
+		CASE 3
+			g_signal_connect_data(hug_widget_s_widget(STR$(hug_widget)), "activate", hug_addr, 0, 0, 0)
+		CASE 4
+			g_signal_connect_data(hug_widget_s_widget(STR$(hug_widget)), "button-press-event", hug_addr, 0, 0, 0)
+		CASE 5
+			g_signal_connect_data(hug_widget_s_widget(STR$(hug_widget)), "changed", hug_addr, 0, 0, 0)
+		CASE 6
+			g_signal_connect_data(hug_widget_s_widget(STR$(hug_widget)), "value-changed", hug_addr, 0, 0, 0)
+		CASE 7
+			g_signal_connect_data(hug_widget_s_widget(STR$(hug_widget)), "response", hug_addr, 0, 0, 0)
+		CASE 8
+			g_signal_connect_data(hug_widget_s_widget(STR$(hug_widget)), "set-focus-child", hug_addr, 0, 0, 0)
+		CASE 9
+			g_signal_connect_data(hug_widget_s_widget(STR$(hug_widget)), "insert-text", hug_addr, 0, 0, 0)
+		DEFAULT
+			PRINT "WARNING: Cannot setup callback for hug_widget!"
+			END
+	END SELECT
+
+END SUB
+
+REM --------------------------------------------------------------------------------------------------
+
+SUB CALLBACKX (NUMBER hug_widget, void* hug_addr, NUMBER hug_userdata)
+
+	LOCAL signal
+
+	signal = hug_widget_signal(STR$(hug_widget))
+
+	SELECT signal
+		CASE -1
+			g_signal_connect_data(hug_widget_s_widget(STR$(hug_widget)), hug_widget_external_signal$(STR$(hug_widget)), hug_addr, hug_userdata, 0, 0)
+		CASE 1
+			g_signal_connect_data(hug_widget_s_widget(STR$(hug_widget)), "show", hug_addr, hug_userdata, 0, 0)
+		CASE 2
+			g_signal_connect_data(hug_widget_s_widget(STR$(hug_widget)), "clicked", hug_addr, hug_userdata, 0, 0)
+		CASE 3
+			g_signal_connect_data(hug_widget_s_widget(STR$(hug_widget)), "activate", hug_addr, hug_userdata, 0, 0)
+		CASE 4
+			g_signal_connect_data(hug_widget_s_widget(STR$(hug_widget)), "button-press-event", hug_addr, hug_userdata, 0, 0)
+		CASE 5
+			g_signal_connect_data(hug_widget_s_widget(STR$(hug_widget)), "changed", hug_addr, hug_userdata, 0, 0)
+		CASE 6
+			g_signal_connect_data(hug_widget_s_widget(STR$(hug_widget)), "value-changed", hug_addr, hug_userdata, 0, 0)
+		CASE 7
+			g_signal_connect_data(hug_widget_s_widget(STR$(hug_widget)), "response", hug_addr, hug_userdata, 0, 0)
+		CASE 8
+			g_signal_connect_data(hug_widget_s_widget(STR$(hug_widget)), "set-focus-child", hug_addr, 0, 0, 0)
+		DEFAULT
+			PRINT "WARNING: Cannot setup callback for widget!"
+			END
+	END SELECT
+
+END SUB
+
+REM --------------------------------------------------------------------------------------------------
+
+FUNCTION MOUSE (NUMBER hug_arg)
+
+	SELECT hug_arg
+		CASE 0
+			RETURN hug_gui_properties.mousex
+		CASE 1
+			RETURN hug_gui_properties.mousey
+		CASE 2
+			RETURN hug_gui_properties.button
+		CASE 3
+			RETURN hug_gui_properties.scroll
+		CASE 4
+			RETURN hug_gui_properties.canvasid
+		DEFAULT
+			RETURN 0
+	END SELECT
+
+END FUNCTION
+
+REM --------------------------------------------------------------------------------------------------
+
+SUB CIRCLE (STRING hug_color$, int hug_x, int hug_y, int hug_xsize, int hug_ysize, NUMBER hug_fill)
+
+	LOCAL context, pix, x, y, ebox, glcontext, gldraw, i
+	LOCAL angle TYPE FLOATING
+
+	REM Get the associated canvas
+	pix = hug_gui_properties.canvas
+	ebox = hug_widget_ebox(STR$(pix))
+
+	IF HUG_CANVAS_TYPE = 1 THEN
+		IF NOT(hug_gui_properties.freeze) THEN
+			IF hug_gui_properties.gl$ = "GLAREA" THEN
+				gtk_gl_area_make_current(hug_gui_properties.canvas)
+			ELSE
+				glcontext = gtk_widget_get_gl_context(hug_gui_properties.canvas)
+				gldraw = gtk_widget_get_gl_window(hug_gui_properties.canvas)
+				gdk_gl_drawable_gl_begin(gldraw, glcontext)
+			END IF
+		END IF
+
+		glMatrixMode(GL_PROJECTION)
+		glLoadIdentity
+		glOrtho(0, hug_widget_xsize(STR$(ebox)), hug_widget_ysize(STR$(ebox)), 0, 0, 1)
+		glMatrixMode(GL_MODELVIEW)
+		glLoadIdentity
+		glTranslatef(0.375, 0.375, 0)
+
+		IF LEN(hug_color$) = 7 THEN
+			glColor3ub(DEC(MID$(hug_color$, 2, 2)), DEC(MID$(hug_color$, 4, 2)), DEC(MID$(hug_color$, 6, 2)) )
+		ELSE
+			glColor3ub(0, 0, 0)
+		END IF
+
+		IF NOT(hug_fill) THEN
+			glBegin(GL_LINE_LOOP)
+		ELSE
+			glBegin(GL_POLYGON)
+		END IF
+
+		FOR i = 1 TO 360
+			angle = 2 * PI * i / 360
+			x = (hug_xsize/2)*COS(angle)
+			y = (hug_ysize/2)*SIN(angle)
+			glVertex2i(hug_x+(hug_xsize/2)+x, hug_y+(hug_ysize/2)+y)
+		NEXT
+		glEnd
+
+		IF NOT(hug_gui_properties.freeze) THEN
+			IF hug_gui_properties.gl$ = "GLAREA" THEN
+				gtk_gl_area_swap_buffers(hug_gui_properties.canvas)
+			ELSE
+				gdk_gl_drawable_swap_buffers(gldraw)
+				gdk_gl_drawable_gl_end(gldraw)
+			END IF
+		END IF
+	ELIF HUG_CANVAS_TYPE = 2 THEN
+		context = goo_canvas_get_root_item(pix)
+		IF hug_fill THEN
+			WIDGET = goo_canvas_ellipse_new(context, hug_x+hug_xsize/2, hug_y+hug_ysize/2, hug_xsize/2, hug_ysize/2, "stroke-color", hug_color$, "fill-color", hug_color$, NULL)
+		ELSE
+			WIDGET = goo_canvas_ellipse_new(context, hug_x+hug_xsize/2, hug_y+hug_ysize/2, hug_xsize/2, hug_ysize/2, "stroke-color", hug_color$, "line-width", 1.0, NULL)
+		END IF
+	ELSE
+		gdk_color_parse(hug_color$, hug_widget_color(STR$(pix)) )
+
+		context = hug_widget_context(STR$(pix))
+		gdk_gc_set_rgb_fg_color(context, hug_widget_color(STR$(pix)) )
+
+		gdk_draw_arc(pix, context, hug_fill, hug_x, hug_y, hug_xsize, hug_ysize, 0, 23040)
+
+		REM Refresh image
+		gtk_widget_queue_draw(hug_widget_image(STR$(ebox)) )
+	END IF
+
+END SUB
+
+REM --------------------------------------------------------------------------------------------------
+
+SUB PIXEL (STRING hug_color$, int hug_x, int hug_y)
+
+	LOCAL pix, context, ebox, glcontext, gldraw
+
+	REM Get the associated canvas
+	pix = hug_gui_properties.canvas
+	ebox = hug_widget_ebox(STR$(pix))
+
+	IF HUG_CANVAS_TYPE = 1 THEN
+		IF NOT(hug_gui_properties.freeze) THEN
+			IF hug_gui_properties.gl$ = "GLAREA" THEN
+				gtk_gl_area_make_current(hug_gui_properties.canvas)
+			ELSE
+				glcontext = gtk_widget_get_gl_context(hug_gui_properties.canvas)
+				gldraw = gtk_widget_get_gl_window(hug_gui_properties.canvas)
+				gdk_gl_drawable_gl_begin(gldraw, glcontext)
+			END IF
+		END IF
+
+		glMatrixMode(GL_PROJECTION)
+		glLoadIdentity
+		glOrtho(0, hug_widget_xsize(STR$(ebox)), hug_widget_ysize(STR$(ebox)), 0, 0, 1)
+		glMatrixMode(GL_MODELVIEW)
+		glLoadIdentity
+		glTranslatef(0.375, 0.375, 0)
+
+		IF LEN(hug_color$) = 7 THEN
+			glColor3ub(DEC(MID$(hug_color$, 2, 2)), DEC(MID$(hug_color$, 4, 2)), DEC(MID$(hug_color$, 6, 2)) )
+		ELSE
+			glColor3ub(0, 0, 0)
+		END IF
+
+		glBegin(GL_POINTS)
+		glVertex2i(hug_x, hug_y)
+		glEnd
+
+		IF NOT(hug_gui_properties.freeze) THEN
+			IF hug_gui_properties.gl$ = "GLAREA" THEN
+				gtk_gl_area_swap_buffers(hug_gui_properties.canvas)
+			ELSE
+				gdk_gl_drawable_swap_buffers(gldraw)
+				gdk_gl_drawable_gl_end(gldraw)
+			END IF
+		END IF
+	ELIF HUG_CANVAS_TYPE = 2 THEN
+		context = goo_canvas_get_root_item(pix)
+		WIDGET = goo_canvas_polyline_new_line(context, (double)hug_x, (double)hug_y, (double)hug_x+1.0, (double)hug_y+1.0, "stroke-color", hug_color$, "line-width", 1.0, NULL)
+	ELSE
+		gdk_color_parse(hug_color$, hug_widget_color(STR$(pix)) )
+
+		context = hug_widget_context(STR$(pix))
+		gdk_gc_set_rgb_fg_color(context, hug_widget_color(STR$(pix)) )
+
+		gdk_draw_point(pix, context, hug_x, hug_y)
+
+		REM Refresh image
+		gtk_widget_queue_draw(hug_widget_image(STR$(ebox)) )
+	END IF
+
+END SUB
+
+REM --------------------------------------------------------------------------------------------------
+
+SUB LINE (STRING hug_color$, int hug_xstart, int hug_ystart, int hug_xend, int hug_yend)
+
+	LOCAL pix, context, ebox, glcontext, gldraw
+
+	REM Get the associated canvas
+	pix = hug_gui_properties.canvas
+	ebox = hug_widget_ebox(STR$(pix))
+
+	IF HUG_CANVAS_TYPE = 1 THEN
+		IF NOT(hug_gui_properties.freeze) THEN
+			IF hug_gui_properties.gl$ = "GLAREA" THEN
+				gtk_gl_area_make_current(hug_gui_properties.canvas)
+			ELSE
+				glcontext = gtk_widget_get_gl_context(hug_gui_properties.canvas)
+				gldraw = gtk_widget_get_gl_window(hug_gui_properties.canvas)
+				gdk_gl_drawable_gl_begin(gldraw, glcontext)
+			END IF
+		END IF
+
+		glMatrixMode(GL_PROJECTION)
+		glLoadIdentity
+		glOrtho(0, hug_widget_xsize(STR$(ebox)), hug_widget_ysize(STR$(ebox)), 0, 0, 1)
+		glMatrixMode(GL_MODELVIEW)
+		glLoadIdentity
+		glTranslatef(0.375, 0.375, 0)
+
+		IF LEN(hug_color$) = 7 THEN
+			glColor3ub(DEC(MID$(hug_color$, 2, 2)), DEC(MID$(hug_color$, 4, 2)), DEC(MID$(hug_color$, 6, 2)) )
+		ELSE
+			glColor3ub(0, 0, 0)
+		END IF
+
+		glBegin(GL_LINES)
+		glVertex2i(hug_xstart, hug_ystart)
+		glVertex2i(hug_xend, hug_yend)
+		glEnd
+
+		IF NOT(hug_gui_properties.freeze) THEN
+			IF hug_gui_properties.gl$ = "GLAREA" THEN
+				gtk_gl_area_swap_buffers(hug_gui_properties.canvas)
+			ELSE
+				gdk_gl_drawable_swap_buffers(gldraw)
+				gdk_gl_drawable_gl_end(gldraw)
+			END IF
+		END IF
+	ELIF HUG_CANVAS_TYPE = 2 THEN
+		context = goo_canvas_get_root_item(pix)
+		WIDGET = goo_canvas_polyline_new_line(context, hug_xstart, hug_ystart, hug_xend, hug_yend, "stroke-color", hug_color$, "line-width", 1.0, NULL)
+	ELSE
+		gdk_color_parse(hug_color$, hug_widget_color(STR$(pix)) )
+
+		context = hug_widget_context(STR$(pix))
+		gdk_gc_set_rgb_fg_color(context, hug_widget_color(STR$(pix)) )
+
+		gdk_draw_line(pix, context, hug_xstart, hug_ystart, hug_xend, hug_yend)
+
+		REM Refresh image
+		gtk_widget_queue_draw(hug_widget_image(STR$(ebox)) )
+	END IF
+
+END SUB
+
+REM --------------------------------------------------------------------------------------------------
+
+SUB SQUARE (STRING hug_color$, int hug_x, int hug_y, int hug_xsize, int hug_ysize, int hug_fill)
+
+	LOCAL pix, context, ebox, glcontext, gldraw
+
+	REM Get the associated canvas
+	pix = hug_gui_properties.canvas
+	ebox = hug_widget_ebox(STR$(pix))
+
+	IF HUG_CANVAS_TYPE = 1 THEN
+		IF NOT(hug_gui_properties.freeze) THEN
+			IF hug_gui_properties.gl$ = "GLAREA" THEN
+				gtk_gl_area_make_current(hug_gui_properties.canvas)
+			ELSE
+				glcontext = gtk_widget_get_gl_context(hug_gui_properties.canvas)
+				gldraw = gtk_widget_get_gl_window(hug_gui_properties.canvas)
+				gdk_gl_drawable_gl_begin(gldraw, glcontext)
+			END IF
+		END IF
+
+		glMatrixMode(GL_PROJECTION)
+		glLoadIdentity
+		glOrtho(0, hug_widget_xsize(STR$(ebox)), hug_widget_ysize(STR$(ebox)), 0, 0, 1)
+		glMatrixMode(GL_MODELVIEW)
+		glLoadIdentity
+		glTranslatef(0.375, 0.375, 0)
+
+		IF LEN(hug_color$) = 7 THEN
+			glColor3ub(DEC(MID$(hug_color$, 2, 2)), DEC(MID$(hug_color$, 4, 2)), DEC(MID$(hug_color$, 6, 2)) )
+		ELSE
+			glColor3ub(0, 0, 0)
+		END IF
+
+		IF NOT(hug_fill) THEN
+			glBegin(GL_LINE_LOOP)
+			glVertex2i(hug_x, hug_y)
+			glVertex2i(hug_x+hug_xsize, hug_y)
+			glVertex2i(hug_x+hug_xsize, hug_y+hug_ysize)
+			glVertex2i(hug_x, hug_y+hug_ysize)
+			glEnd
+		ELSE
+			glBegin(GL_POLYGON)
+			glVertex2i(hug_x, hug_y)
+			glVertex2i(hug_x+hug_xsize, hug_y)
+			glVertex2i(hug_x+hug_xsize, hug_y+hug_ysize)
+			glVertex2i(hug_x, hug_y+hug_ysize)
+			glEnd
+		END IF
+
+		IF NOT(hug_gui_properties.freeze) THEN
+			IF hug_gui_properties.gl$ = "GLAREA" THEN
+				gtk_gl_area_swap_buffers(hug_gui_properties.canvas)
+			ELSE
+				gdk_gl_drawable_swap_buffers(gldraw)
+				gdk_gl_drawable_gl_end(gldraw)
+			END IF
+		END IF
+	ELIF HUG_CANVAS_TYPE = 2 THEN
+		context = goo_canvas_get_root_item(pix)
+		IF hug_fill THEN
+			WIDGET = goo_canvas_rect_new(context, hug_x, hug_y, hug_xsize, hug_ysize, "stroke-color", hug_color$, "fill-color", hug_color$, NULL)
+		ELSE
+			WIDGET = goo_canvas_rect_new(context, hug_x, hug_y, hug_xsize, hug_ysize, "stroke-color", hug_color$, "line-width", 1.0, NULL)
+		END IF
+	ELSE
+		gdk_color_parse(hug_color$, hug_widget_color(STR$(pix)) )
+
+		context = hug_widget_context(STR$(pix))
+		gdk_gc_set_rgb_fg_color(context, hug_widget_color(STR$(pix)) )
+
+		gdk_draw_rectangle(pix, context, hug_fill, hug_x, hug_y, hug_xsize, hug_ysize)
+
+		REM Refresh image
+		gtk_widget_queue_draw(hug_widget_image(STR$(ebox)) )
+	END IF
+
+END SUB
+
+REM --------------------------------------------------------------------------------------------------
+
+SUB OUT(STRING hug_text$, STRING hug_fcolor$, STRING hug_bcolor$, int hug_x, int hug_y)
+
+	LOCAL pix, ebox, context, layout, gdkcol, hug_i, rect, gldraw, glcontext
+
+	' Get the associated canvas
+	pix = hug_gui_properties.canvas
+	ebox = hug_widget_ebox(STR$(pix))
+
+	IF HUG_CANVAS_TYPE = 1 THEN
+		IF NOT(hug_gui_properties.freeze) THEN
+			IF hug_gui_properties.gl$ = "GLAREA" THEN
+				gtk_gl_area_make_current(hug_gui_properties.canvas)
+			ELSE
+				glcontext = gtk_widget_get_gl_context(hug_gui_properties.canvas)
+				gldraw = gtk_widget_get_gl_window(hug_gui_properties.canvas)
+				gdk_gl_drawable_gl_begin(gldraw, glcontext)
+			END IF
+		END IF
+
+		glMatrixMode(GL_PROJECTION)
+		glLoadIdentity
+		glOrtho(0, hug_widget_xsize(STR$(ebox)), hug_widget_ysize(STR$(ebox)), 0, 0, 1)
+		glMatrixMode(GL_MODELVIEW)
+		glLoadIdentity
+
+		FOR hug_i = 1 TO LEN(hug_text$)
+			' Background color
+			IF LEN(hug_bcolor$) = 7 THEN
+				glColor3ub(DEC(MID$(hug_bcolor$, 2, 2)), DEC(MID$(hug_bcolor$, 4, 2)), DEC(MID$(hug_bcolor$, 6, 2)) )
+			ELSE
+				glColor3ub(255, 255, 255)
+			END IF
+			glBegin(GL_POLYGON)
+			glVertex2i(hug_x+(hug_i-1)*8, hug_y)
+			glVertex2i(hug_x+hug_i*8, hug_y)
+			glVertex2i(hug_x+hug_i*8, hug_y+16)
+			glVertex2i(hug_x+(hug_i-1)*8, hug_y+16)
+			glEnd
+			' The actual text
+			IF LEN(hug_fcolor$) = 7 THEN
+				glColor3ub(DEC(MID$(hug_fcolor$, 2, 2)), DEC(MID$(hug_fcolor$, 4, 2)), DEC(MID$(hug_fcolor$, 6, 2)) )
+			ELSE
+				glColor3ub(0, 0, 0)
+			END IF
+			glRasterPos2i(hug_x+(hug_i-1)*8, hug_y+16)
+			hug_char = ASC(MID$(hug_text$, hug_i, 1))-32
+			IF hug_char >= 0 AND hug_char < 96 THEN glBitmap(8, 16, 0.0, 0.0, 8.0, 0.0, ADDRESS(hug_glfont[hug_char]))
+		NEXT
+
+		IF NOT(hug_gui_properties.freeze) THEN
+			IF hug_gui_properties.gl$ = "GLAREA" THEN
+				gtk_gl_area_swap_buffers(hug_gui_properties.canvas)
+			ELSE
+				gdk_gl_drawable_swap_buffers(gldraw)
+				gdk_gl_drawable_gl_end(gldraw)
+			END IF
+		END IF
+	ELIF HUG_CANVAS_TYPE = 2 THEN
+		RECORD PR
+			LOCAL x1, y_1, x2, y2 TYPE double
+		END RECORD
+		LOCAL *prop TYPE PR_type
+		prop = MEMORY(SIZEOF(PR_type))
+		context = goo_canvas_get_root_item(pix)
+		WIDGET = goo_canvas_text_new(context, hug_text$, hug_x, hug_y, -1, GTK_ANCHOR_CENTER, "use-markup", 1, "fill-color", hug_fcolor$, "line-width", 1.0, NULL)
+		goo_canvas_item_get_bounds(WIDGET, prop)
+		goo_canvas_item_translate(WIDGET, (prop->x2-prop->x1)/2, (prop->y2-prop->y_1)/2)
+		rect = goo_canvas_rect_new(context, hug_x, hug_y, prop->x2-prop->x1, prop->y2-prop->y_1, "stroke-color", hug_bcolor$, "fill-color", hug_bcolor$, NULL)
+		goo_canvas_item_raise(WIDGET, rect)
+		FREE prop
+	ELSE
+		gdk_color_parse(hug_fcolor$, hug_widget_color(STR$(pix)) )
+
+		context = hug_widget_context(STR$(pix))
+		gdk_gc_set_rgb_fg_color(context, hug_widget_color(STR$(pix)) )
+
+		layout = gtk_widget_create_pango_layout(hug_widget_image(STR$(ebox)), NULL)
+		pango_layout_set_markup(layout, hug_text$, -1)
+
+		gdkcol = gdk_color_copy(hug_widget_color(STR$(pix)) )
+
+		IF LEN(hug_bcolor$) NE 0 THEN
+			gdk_color_parse(hug_bcolor$, gdkcol)
+			gdk_draw_layout_with_colors(pix, context, hug_x, hug_y, layout, hug_widget_color(STR$(pix)), gdkcol)
+		ELSE
+			gdk_draw_layout_with_colors(pix, context, hug_x, hug_y, layout, hug_widget_color(STR$(pix)), 0)
+		END IF
+
+		' Refresh image
+		gtk_widget_queue_draw(hug_widget_image(STR$(ebox)) )
+
+		' Free memory
+		gdk_color_free(gdkcol)
+		g_object_unref(layout)
+	END IF
+
+END SUB
+
+REM --------------------------------------------------------------------------------------------------
+
+SUB PICTURE (STRING hug_file$, int hug_xpos, int hug_ypos, int hug_xsize, int hug_ysize)
+
+	LOCAL pix, ebox, context, buf
+
+	REM Get the associated canvas
+	pix = hug_gui_properties.canvas
+	ebox = hug_widget_ebox(STR$(pix))
+
+	IF HUG_CANVAS_TYPE = 0 THEN
+		context = hug_widget_context(STR$(pix))
+		buf = gdk_pixbuf_new_from_file(hug_file$, 0)
+
+		gdk_draw_pixbuf(pix, context, buf, 0, 0, hug_xpos, hug_ypos, hug_xsize, hug_ysize, 0, 0, 0)
+
+		gtk_widget_queue_draw(hug_widget_image(STR$(ebox)) )
+
+		g_object_unref(buf)
+
+	ELIF HUG_CANVAS_TYPE = 2 THEN
+
+		context = goo_canvas_get_root_item(pix)
+		buf = gdk_pixbuf_new_from_file(hug_file$, 0)
+
+		WIDGET = goo_canvas_image_new(context, buf, hug_xpos, hug_ypos, NULL)
+		g_object_set(WIDGET, "width", (double)hug_xsize, "height", (double)hug_ysize, NULL)
+
+		g_object_unref(buf)
+
+	END IF
+
+END SUB
+
+REM --------------------------------------------------------------------------------------------------
+
+FUNCTION GETCOLOR$(NUMBER x, NUMBER y, NUMBER flag)
+
+	LOCAL ebox, pixbuf, glcontext, gldraw
+	LOCAL p, pixels TYPE unsigned char*
+	LOCAL result$
+	LOCAL q[4] TYPE unsigned char
+
+	ebox = hug_widget_ebox(STR$(hug_gui_properties.canvas))
+
+	IF HUG_CANVAS_TYPE = 0 OR HUG_CANVAS_TYPE = 2 THEN
+	
+		pixbuf = gdk_pixbuf_get_from_drawable(NULL, hug_gui_properties.canvas, gdk_colormap_get_system(), 0, 0, 0, 0, hug_widget_xsize(STR$(ebox)), hug_widget_ysize(STR$(ebox)))
+		pixels = gdk_pixbuf_get_pixels(pixbuf)
+
+		p = pixels + y * gdk_pixbuf_get_rowstride(pixbuf) + x * gdk_pixbuf_get_n_channels(pixbuf)
+		IF flag = 0 THEN
+			PRINT "#", (unsigned char)p[0], (unsigned char)p[1], (unsigned char)p[2] FORMAT "%s%02X%02X%02X\n" TO result$
+		ELSE
+			PRINT "#", (unsigned char)p[0], (unsigned char)p[1], (unsigned char)p[2], (unsigned char)p[3] FORMAT "%s%02X%02X%02X%02X\n" TO result$
+		ENDIF
+
+	ELIF HUG_CANVAS_TYPE = 1 THEN
+		IF NOT(hug_gui_properties.freeze) THEN
+			IF hug_gui_properties.gl$ = "GLAREA" THEN
+				gtk_gl_area_make_current(hug_gui_properties.canvas)
+			ELSE
+				glcontext = gtk_widget_get_gl_context(hug_gui_properties.canvas)
+				gldraw = gtk_widget_get_gl_window(hug_gui_properties.canvas)
+				gdk_gl_drawable_gl_begin(gldraw, glcontext)
+			END IF
+		END IF
+
+		glMatrixMode(GL_PROJECTION)
+		glLoadIdentity
+		glOrtho(0, hug_widget_xsize(STR$(ebox)), hug_widget_ysize(STR$(ebox)), 0, 0, 1)
+		glMatrixMode(GL_MODELVIEW)
+		glLoadIdentity
+		glTranslatef(0.375, 0.375, 0)
+
+		glReadPixels(x, hug_widget_ysize(STR$(ebox)) - y, 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, q)
+		IF flag = 0 THEN
+			PRINT "#", (unsigned char)q[0], (unsigned char)q[1], (unsigned char)q[2] FORMAT "%s%02X%02X%02X\n" TO result$
+		ELSE
+			PRINT "#", (unsigned char)q[0], (unsigned char)q[1], (unsigned char)q[2], (unsigned char)q[3] FORMAT "%s%02X%02X%02X%02X\n" TO result$
+		ENDIF
+	ENDIF
+
+	RETURN result$
+
+END FUNCTION
+
+REM --------------------------------------------------------------------------------------------------
+
+SUB ATTACH (NUMBER hug_widget, NUMBER hug_child, NUMBER hug_xpos, NUMBER hug_ypos)
+
+	LOCAL layer
+
+	layer = hug_widget_attach(STR$(hug_widget))
+
+	IF hug_widget_type$(STR$(hug_child)) = "window" AND hug_widget = 0 THEN
+		gtk_window_move(hug_child, hug_xpos, hug_ypos)
+	ELIF INSTR(hug_gui_properties.options$, "TABLE") THEN
+		gtk_table_attach_defaults(layer, hug_child, hug_xpos, hug_xpos+hug_widget_xsize(STR$(hug_child)), hug_ypos, hug_ypos+hug_widget_ysize(STR$(hug_child)) )
+	ELSE
+		' No scaling for canvas
+		IF hug_widget_image(STR$(hug_child)) = 0 THEN
+			gtk_widget_set_size_request(hug_child, INT(hug_widget_xsize(STR$(hug_child))*HUG_FONT_SIZE_FACTOR*HUG_XFT_SIZE_FACTOR), INT(hug_widget_ysize(STR$(hug_child))*HUG_FONT_SIZE_FACTOR*HUG_XFT_SIZE_FACTOR))
+		ELSE
+			gtk_widget_set_size_request(hug_child, hug_widget_xsize(STR$(hug_child)), hug_widget_ysize(STR$(hug_child)) )
+		END IF
+		gtk_fixed_put(layer, hug_child, INT(hug_xpos*HUG_FONT_SIZE_FACTOR*HUG_XFT_SIZE_FACTOR), INT(hug_ypos*HUG_FONT_SIZE_FACTOR*HUG_XFT_SIZE_FACTOR))
+	END IF
+
+END SUB
+
+REM --------------------------------------------------------------------------------------------------
+
+SUB TIMEOUT(int hug_mseconds, void* hug_addr)
+
+	IF hug_gui_properties.timeout_id != -1 THEN g_source_remove(hug_gui_properties.timeout_id)
+	hug_gui_properties.timeout_id = g_timeout_add(hug_mseconds, hug_addr, 0)
+
+	REM Return TRUE in callbacked function if it needs to be called again
+
+END SUB
+
+REM --------------------------------------------------------------------------------------------------
+
+SUB FONT (NUMBER hug_widget, STRING hug_which$)
+
+	LOCAL desc
+
+	desc = pango_font_description_from_string(hug_which$)
+	gtk_widget_modify_font(hug_widget_font(STR$(hug_widget)), desc)
+	pango_font_description_free(desc)
+
+END SUB
+
+REM --------------------------------------------------------------------------------------------------
+
+SUB DISABLE (NUMBER hug_widget)
+
+	gtk_widget_set_sensitive(hug_widget, 0)
+
+END SUB
+
+REM --------------------------------------------------------------------------------------------------
+
+SUB ENABLE (NUMBER hug_widget)
+
+	gtk_widget_set_sensitive(hug_widget, 1)
+
+END SUB
+
+REM --------------------------------------------------------------------------------------------------
+
+SUB FOCUS (NUMBER hug_widget)
+
+	g_object_set(hug_widget_focus(STR$(hug_widget)), "can-focus", TRUE, NUL)
+	gtk_widget_grab_focus(hug_widget_focus(STR$(hug_widget)))
+
+END SUB
+
+REM --------------------------------------------------------------------------------------------------
+
+SUB UNFOCUS (NUMBER hug_widget)
+
+	g_object_set(hug_widget_focus(STR$(hug_widget)), "can-focus", FALSE, NUL)
+
+END SUB
+
+REM --------------------------------------------------------------------------------------------------
+
+FUNCTION SCREENSIZE(int hug_type)
+
+	SELECT hug_type
+		CASE 0
+			RETURN gdk_screen_get_width(gdk_screen_get_default())
+		CASE 1
+			RETURN gdk_screen_height(gdk_screen_get_default())
+	END SELECT
+
+END FUNCTION
+
+REM --------------------------------------------------------------------------------------------------
+
+FUNCTION KEY
+
+	RETURN hug_gui_properties.last_key_pressed
+
+END FUNCTION
+
+REM --------------------------------------------------------------------------------------------------
+
+SUB RESETKEY
+
+	hug_gui_properties.last_key_pressed = 0
+
+END SUB
+
+REM --------------------------------------------------------------------------------------------------
+
+SUB SYNC
+
+	LOCAL gldraw
+
+	WHILE gtk_events_pending() DO
+		gtk_main_iteration_do(FALSE)
+	WEND
+
+	IF HUG_CANVAS_TYPE = 1 THEN
+		IF hug_gui_properties.gl$ = "GLAREA" THEN
+			gtk_gl_area_swap_buffers(hug_gui_properties.canvas)
+		ELSE
+			gldraw = gtk_widget_get_gl_window(hug_gui_properties.canvas)
+			gdk_gl_drawable_swap_buffers(gldraw)
+			gdk_gl_drawable_gl_end(gldraw)
+		END IF
+	END IF
+
+END SUB
+
+REM --------------------------------------------------------------------------------------------------
+
+SUB DISPLAY
+
+	gtk_main
+
+END SUB
+
+REM --------------------------------------------------------------------------------------------------

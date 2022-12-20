@@ -1,0 +1,8 @@
+01-sensors-detect-udevadm.patch
+02-sensors-conf-convert-improvements.patch
+06-sensors-detect-debian.patch
+08-sensors-detect-lm85.patch
+09-sensors-detect-sch5524.patch
+11-fancontrol-check.patch
+14-2-digits-kernel.patch
+15-path-max.patch

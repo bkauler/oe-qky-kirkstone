@@ -1,0 +1,47 @@
+Description: Fix implicit pointer conversions in v4l2 macros
+  Fix implicit pointer conversions by including libv4l2.h so we
+  have its prototypes available to our macros (closes: #678718)
+Author: Adam Conrad <adconrad@debian.org>
+Bug-Debian: http://bugs.debian.org/678718
+Forwarded: https://github.com/unicap/unicap/pull/6
+Last-Update: 2012-06-23
+
+--- unicap.orig/cpi/v4l2cpi/tiseuvccam.c
++++ unicap/cpi/v4l2cpi/tiseuvccam.c
+@@ -28,6 +28,10 @@
+ #define DEBUG
+ #endif
+ 
++#if USE_LIBV4L
++#include <libv4l2.h>
++#endif
++
+ #define TRUE 1
+ 
+ #include "debug.h"
+--- unicap.orig/cpi/v4l2cpi/tisuvccam.c
++++ unicap/cpi/v4l2cpi/tisuvccam.c
+@@ -22,6 +22,10 @@
+ #endif
+ #include "debug.h"
+ 
++#if USE_LIBV4L
++#include <libv4l2.h>
++#endif
++
+ #define N_(x) x
+ 
+ #define FOURCC(a,b,c,d) (unsigned int)((((unsigned int)d)<<24)+(((unsigned int)c)<<16)+(((unsigned int)b)<<8)+a)
+--- unicap.orig/cpi/v4l2cpi/buffermanager.c
++++ unicap/cpi/v4l2cpi/buffermanager.c
+@@ -15,6 +15,10 @@
+ #endif
+ #include "debug.h"
+ 
++#if USE_LIBV4L
++#include <libv4l2.h>
++#endif
++
+ #include "buffermanager.h"
+ 
+ #define MAX_BUFFERS 16

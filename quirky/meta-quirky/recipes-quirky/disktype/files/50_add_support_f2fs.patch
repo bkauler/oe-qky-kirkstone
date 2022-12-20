@@ -1,0 +1,95 @@
+Description: add support to F2FS
+Author: Anders Thulin <athulin@users.sf.net>
+Origin: https://sourceforge.net/p/disktype/patches/6/
+Forwarded: not-needed
+Reviewed-By: Joao Eriberto Mota Filho <eriberto@debian.org>
+Last-Update: 2018-08-19
+Index: disktype/Makefile
+===================================================================
+--- disktype.orig/Makefile
++++ disktype/Makefile
+@@ -9,7 +9,7 @@ OBJS   = main.o lib.o \
+          buffer.o file.o cdaccess.o cdimage.o vpc.o compressed.o \
+          detect.o apple.o amiga.o atari.o dos.o cdrom.o \
+          linux.o unix.o beos.o archives.o \
+-         udf.o blank.o cloop.o
++         udf.o blank.o cloop.o f2fs.o
+ 
+ TARGET = disktype
+ 
+Index: disktype/detect.c
+===================================================================
+--- disktype.orig/detect.c
++++ disktype/detect.c
+@@ -105,6 +105,9 @@ void detect_archive(SECTION *section, in
+ /* in blank.c */
+ void detect_blank(SECTION *section, int level);
+ 
++/* in f2fs.c */
++void detect_f2fs(SECTION *section, int level);
++
+ /*
+  * list of detectors
+  */
+@@ -148,6 +151,7 @@ DETECTOR detectors[] = {
+   detect_linux_lvm2,
+   detect_linux_swap,
+   detect_linux_misc,
++  detect_f2fs,
+   detect_jfs,
+   detect_xfs,
+   detect_ufs,
+Index: disktype/f2fs.c
+===================================================================
+--- /dev/null
++++ disktype/f2fs.c
+@@ -0,0 +1,36 @@
++/*
++ * f2fs.c
++ * Detection of f2fs file system
++ *
++ * Superblock details are from Github project f2fs-tools,
++ * file f2fs-tools-1.11.0\include\f2fs_fs.h
++ */
++
++#include "global.h"
++
++void detect_f2fs(SECTION *section, int level)
++{
++  // Superblock in sector 2
++  //
++  unsigned char *buf;
++  if (get_buffer(section, 1024, 512, (void **)&buf) < 512)
++    return;
++
++  if (get_le_long(buf+0) != 0xF2F52010)
++    return;
++
++  u2 major = get_le_short(buf+4);
++  u2 minor = get_le_short(buf+6);
++
++  print_line(level, "F2FS file system (version %d.%d)", major, minor);
++
++
++  char volume_name[512];
++  format_utf16_le(buf+124, 512, volume_name);
++  print_line(level, "Volume name: %s", volume_name);
++
++
++  char uuid[40];
++  format_uuid(buf+108, uuid);
++  print_line(level, "Volume uuid: %s", uuid);
++}
+Index: disktype/disktype.1
+===================================================================
+--- disktype.orig/disktype.1
++++ disktype/disktype.1
+@@ -38,7 +38,7 @@ The following formats are recognized by
+ FAT12/FAT16/FAT32/exFAT, NTFS, HPFS, MFS, HFS, HFS Plus,
+ ISO9660, ext2/ext3/ext4, btrfs, Minix, ReiserFS, Reiser4, Linux romfs, Linux
+ cramfs, Linux squashfs, UFS (some variations), SysV FS (some
+-variations), JFS, XFS, Amiga FS/FFS, BeOS BFS, QNX4 FS, UDF, 3DO
++variations), JFS, XFS, F2FS, Amiga FS/FFS, BeOS BFS, QNX4 FS, UDF, 3DO
+ CD-ROM file system, Veritas VxFS, Xbox DVD file system.
+ .It Partitioning:
+ DOS/PC style, Apple, Amiga "Rigid Disk", ATARI ST (AHDI3),

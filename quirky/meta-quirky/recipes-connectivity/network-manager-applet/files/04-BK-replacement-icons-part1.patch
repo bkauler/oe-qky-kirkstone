@@ -1,0 +1,236 @@
+diff -Naur network-manager-applet-1.8.20DIFF03/src/applet.c network-manager-applet-1.8.20/src/applet.c
+--- network-manager-applet-1.8.20DIFF03/src/applet.c	2019-09-21 21:13:40.010066476 +0800
++++ network-manager-applet-1.8.20/src/applet.c	2019-09-21 21:58:26.583493741 +0800
+@@ -51,6 +51,18 @@
+ # include "applet-device-broadband.h"
+ #endif
+ 
++/*BK replacement icons...*/
++#include "xpm/networkblank.xpm"
++#include "xpm/networkboth.xpm"
++#include "xpm/networkdead.xpm"
++#include "xpm/networkin.xpm"
++#include "xpm/networkout.xpm"
++GdkPixbuf *networkblank_pixbuf;
++GdkPixbuf *networkboth_pixbuf;
++GdkPixbuf *networkdead_pixbuf;
++GdkPixbuf *networkin_pixbuf;
++GdkPixbuf *networkout_pixbuf;
++
+ #define NOTIFY_CAPS_ACTIONS_KEY "actions"
+ 
+ extern gboolean shell_debug;
+@@ -3252,6 +3264,13 @@
+ 		g_signal_connect (applet->status_icon, "popup-menu",
+ 				  G_CALLBACK (status_icon_popup_menu_cb), applet);
+ 
++		/*BK my replacement icons...*/
++		networkblank_pixbuf=gdk_pixbuf_new_from_xpm_data((const char**)networkblank_xpm);
++		networkboth_pixbuf=gdk_pixbuf_new_from_xpm_data((const char**)networkboth_xpm);
++		networkdead_pixbuf=gdk_pixbuf_new_from_xpm_data((const char**)networkdead_xpm);
++		networkin_pixbuf=gdk_pixbuf_new_from_xpm_data((const char**)networkin_xpm);
++		networkout_pixbuf=gdk_pixbuf_new_from_xpm_data((const char**)networkout_xpm);
++
+ 		/* BK want to invoke applet by external signal. 500 millisecond */
+ 		bkapplet=applet;
+ 		bkicon=applet->status_icon;
+diff -Naur network-manager-applet-1.8.20DIFF03/src/xpm/networkblank.xpm network-manager-applet-1.8.20/src/xpm/networkblank.xpm
+--- network-manager-applet-1.8.20DIFF03/src/xpm/networkblank.xpm	1970-01-01 08:00:00.000000000 +0800
++++ network-manager-applet-1.8.20/src/xpm/networkblank.xpm	2010-05-19 08:02:06.000000000 +0800
+@@ -0,0 +1,36 @@
++/* XPM */
++static char *networkblank_xpm[] = {
++"24 24 8 1",
++"0	c #000000",
++"1	c #FF0000",
++"2	c #00FF00",
++"3	c #B2B240",
++"4	c #3333B6",
++"5	c #A0A0A0",
++" 	c None",
++"7	c #FFFFFF",
++"                        ",
++"       00000            ",
++"     004433400          ",
++"    04444444440         ",
++"   0334444444430        ",
++"  033344444443330       ",
++"  033444444443330       ",
++" 03344444444443330      ",
++" 03443443344444330      ",
++" 04444444444444430      ",
++" 044443443440000000000  ",
++" 0444433333055555555550 ",
++"  044333333055555555550 ",
++"  044333333055555555550 ",
++"   04433434055555555550 ",
++"    0444444055555555550 ",
++"    0704333055555555550 ",
++"   07000000055555555550 ",
++"  070      055555555550 ",
++"  070     070000000000  ",
++"   070000070   0000     ",
++"    0777770   000000    ",
++"     00000    000000    ",
++"                        "
++};
+diff -Naur network-manager-applet-1.8.20DIFF03/src/xpm/networkboth.xpm network-manager-applet-1.8.20/src/xpm/networkboth.xpm
+--- network-manager-applet-1.8.20DIFF03/src/xpm/networkboth.xpm	1970-01-01 08:00:00.000000000 +0800
++++ network-manager-applet-1.8.20/src/xpm/networkboth.xpm	2010-07-02 18:52:59.000000000 +0800
+@@ -0,0 +1,36 @@
++/* XPM */
++static char *networkboth_xpm[] = {
++"24 24 8 1",
++"0	c #000000",
++"1	c #FF0000",
++"2	c #00FF00",
++"3	c #B2B240",
++"4	c #3333B6",
++"5	c #A0A0A0",
++" 	c None",
++"7	c #00C800",
++"                        ",
++"       00000            ",
++"     002277200          ",
++"    02222222220         ",
++"   0772222222270        ",
++"  077722222227770       ",
++"  077222222227770       ",
++" 07722222222227770      ",
++" 07227227722222770      ",
++" 02222222222222270      ",
++" 022227227220000000000  ",
++" 0222277777022222222270 ",
++"  022777777022222222270 ",
++"  022777777022222222270 ",
++"   02277272022222222270 ",
++"    0222222022222222270 ",
++"    0202777022222222270 ",
++"   02000000022222222270 ",
++"  020      077777777770 ",
++"  020     020000000000  ",
++"   020000020   0000     ",
++"    0222220   000000    ",
++"     00000    000000    ",
++"                        "
++};
+diff -Naur network-manager-applet-1.8.20DIFF03/src/xpm/networkdead.xpm network-manager-applet-1.8.20/src/xpm/networkdead.xpm
+--- network-manager-applet-1.8.20DIFF03/src/xpm/networkdead.xpm	1970-01-01 08:00:00.000000000 +0800
++++ network-manager-applet-1.8.20/src/xpm/networkdead.xpm	2010-05-19 08:14:51.000000000 +0800
+@@ -0,0 +1,36 @@
++/* XPM */
++static char *networkdead_xpm[] = {
++"24 24 8 1",
++"0	c #000000",
++"1	c #FF0000",
++"2	c #00FF00",
++"3	c #B2B240",
++"4	c #3333B6",
++"5	c #A0A0A0",
++" 	c None",
++"7	c #FFFFFF",
++"                        ",
++"       00000            ",
++"     004433400          ",
++"    04444444440         ",
++"   0377444444430 77     ",
++"  037117444443337117    ",
++"  037111744443371117    ",
++" 033471117444471117     ",
++" 03443711174471117      ",
++" 04444471117711170      ",
++" 044443471111117000000  ",
++" 0444433371111755555550 ",
++"  044333371111755555550 ",
++"  044333711111175555550 ",
++"   04437111771117555550 ",
++"    0471117057111755550 ",
++"    0711173055711175550 ",
++"   07111700055571117550 ",
++"  077117   055557117550 ",
++"  07077   070000077000  ",
++"   070000070   0000     ",
++"    0777770   000000    ",
++"     00000    000000    ",
++"                        "
++};
+diff -Naur network-manager-applet-1.8.20DIFF03/src/xpm/networkin.xpm network-manager-applet-1.8.20/src/xpm/networkin.xpm
+--- network-manager-applet-1.8.20DIFF03/src/xpm/networkin.xpm	1970-01-01 08:00:00.000000000 +0800
++++ network-manager-applet-1.8.20/src/xpm/networkin.xpm	2010-07-02 18:49:22.000000000 +0800
+@@ -0,0 +1,36 @@
++/* XPM */
++static char *networkin_xpm[] = {
++"24 24 8 1",
++"0	c #000000",
++"1	c #FF0000",
++"2	c #00FF00",
++"3	c #B2B240",
++"4	c #3333B6",
++"5	c #A0A0A0",
++" 	c None",
++"7	c #00C800",
++"                        ",
++"       00000            ",
++"     002277200          ",
++"    02222222220         ",
++"   0772222222270        ",
++"  077722222227770       ",
++"  077222222227770       ",
++" 07722222222227770      ",
++" 07227227722222770      ",
++" 02222222222222270      ",
++" 022227227220000000000  ",
++" 0222277777055555555550 ",
++"  022777777055555555550 ",
++"  022777777055555555550 ",
++"   02277272055555555550 ",
++"    0222222055555555550 ",
++"    0202777055555555550 ",
++"   02000000055555555550 ",
++"  020      055555555550 ",
++"  020     020000000000  ",
++"   020000020   0000     ",
++"    0222220   000000    ",
++"     00000    000000    ",
++"                        "
++};
+diff -Naur network-manager-applet-1.8.20DIFF03/src/xpm/networkout.xpm network-manager-applet-1.8.20/src/xpm/networkout.xpm
+--- network-manager-applet-1.8.20DIFF03/src/xpm/networkout.xpm	1970-01-01 08:00:00.000000000 +0800
++++ network-manager-applet-1.8.20/src/xpm/networkout.xpm	2010-07-02 18:54:35.000000000 +0800
+@@ -0,0 +1,36 @@
++/* XPM */
++static char *networkout_xpm[] = {
++"24 24 8 1",
++"0	c #000000",
++"1	c #FF0000",
++"2	c #00FF00",
++"3	c #B2B240",
++"4	c #3333B6",
++"5	c #A0A0A0",
++" 	c None",
++"7	c #00C800",
++"                        ",
++"       00000            ",
++"     004433400          ",
++"    04444444440         ",
++"   0334444444430        ",
++"  033344444443330       ",
++"  033444444443330       ",
++" 03344444444443330      ",
++" 03443443344444330      ",
++" 04444444444444430      ",
++" 044443443440000000000  ",
++" 0444433333022222222270 ",
++"  044333333022222222270 ",
++"  044333333022222222270 ",
++"   04433434022222222270 ",
++"    0444444022222222270 ",
++"    0204333022222222270 ",
++"   02000000022222222270 ",
++"  020      077777777770 ",
++"  020     020000000000  ",
++"   020000020   0000     ",
++"    0222220   000000    ",
++"     00000    000000    ",
++"                        "
++};
