@@ -21,7 +21,7 @@ SROOT = "${WORKDIR}/recipe-sysroot"
 
 do_compile:prepend() {
     #creates a broken LIBTOOL variable in Makefile...
-    LTNAME="$(find ${SROOT}/usr/bin/crossscripts -maxdepth 1 -name '*-libtool')"
+    LTNAME="$(find ${SROOT}/usr/bin/crossscripts -maxdepth 1 -name '*libtool')"
     #ex: x86_64-oe-linux-libtool
     sed -i -e "s%^LIBTOOL=.*%LIBTOOL= ${LTNAME}%" ${S}/Makefile
 }
