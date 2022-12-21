@@ -1,0 +1,36 @@
+From: Jakub Wilk <ubanus@users.sf.net>
+Date: Mon, 30 Jul 2007 12:09:42 +0200
+Subject: 01 dictl konwert
+
+Patch for #401666: dictl: doesn't work with DICTL_USE_KONWERT
+---
+ dictl.in | 16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
+
+diff --git a/dictl.in b/dictl.in
+index 913c7ef..3c18e15 100755
+--- a/dictl.in
++++ b/dictl.in
+@@ -28,7 +28,21 @@ internal_recode (){
+ }
+ 
+ internal_konwert (){
+-    konwert $1-$2
++	sedexpr='
++		/(CP)?(437|8(5[0257]|6[0-69]|74))/	{ s//cp\2/; q }
++		/8859_([1-9])/				{ s//iso\1/; q }
++		/ANSI_X3.4(-19(68|86))?/		{ s//ascii/; q }
++		/(US-)?ASCII/				{ s//ascii/; q }
++		/(CP|WINDOWS-)(125[0-8])/		{ s//cp\1/; q }
++		/ISO([-_]?8859-|8859)([1-9]|1[01345])/	{ s//iso\2/; q }
++		/KOI8-?R/				{ s//koi8r/; q }
++		/KOI8-?U/				{ s//koi8u/; q }
++		/UTF-?8/				{ s//utf8/; q }
++		/VISCII/				{ s//viscii/; q }
++		/.*/					{ s///; q }'
++	from=`echo "$1" | tr a-z A-Z | sed -r -e "$sedexpr"`
++	to=`echo "$2" | tr a-z A-Z | sed -r -e "$sedexpr"`
++	konwert "$from-$to"
+ }
+ 
+ # for backward compatibility

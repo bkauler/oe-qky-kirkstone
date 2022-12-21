@@ -1,0 +1,38 @@
+From: Robert Luberda <robert@debian.org>
+Date: Sat, 30 Jun 2018 00:21:59 +0200
+Subject: Check for missing packages in colorit
+
+As gawk and m4 are not strict dependencies of the dict
+package, make colorit fail with a message suggesting
+installation of the packages when the appropriate commands
+are missing.
+
+Bugs-Ubuntu: https://bugs.launchpad.net/1048062
+---
+ colorit.in | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+diff --git a/colorit.in b/colorit.in
+index 27f5481..1d034c1 100755
+--- a/colorit.in
++++ b/colorit.in
+@@ -76,6 +76,19 @@ if test "_$pp" = "_-"; then
+    pp=
+ fi
+ 
++missing_pkg=""
++which gawk > /dev/null || missing_pkg="$missing_pkg gawk"
++[ "$pp" != m4 ] || which m4 > /dev/null || missing_pkg="$missing_pkg m4"
++if [ -n "$missing_pkg" ]; then
++  echo "*********************************************************************"  >&2
++  echo >&2
++  echo " To use 'colorit', please install the following package(s):$missing_pkg" >&2
++  echo >&2
++  echo "*********************************************************************"  >&2
++  exit 1
++fi
++
++
+ convert_files_to_stdout (){
+     gawk -v config_file="$config_file" -v pp="$pp" '
+     BEGIN {

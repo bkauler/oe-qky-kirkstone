@@ -1,0 +1,141 @@
+From: Robert Luberda <robert@debian.org>
+Date: Tue, 4 Jan 2011 23:27:51 +0100
+Subject: Spelling typos
+
+Fix spelling typos found by lintian.
+---
+ ChangeLog    | 2 +-
+ daemon.c     | 2 +-
+ dictd.8.in   | 8 ++++----
+ dictfmt.1.in | 4 ++--
+ dictfmt.c    | 4 ++--
+ plugin.c     | 4 ++--
+ 6 files changed, 12 insertions(+), 12 deletions(-)
+
+diff --git a/ChangeLog b/ChangeLog
+index 3b4e60f..b107d5e 100644
+--- a/ChangeLog
++++ b/ChangeLog
+@@ -1714,7 +1714,7 @@
+       containing non-Latin symbols like Cyrillic.
+ 
+   * dict.1, dict.c:
+-  If a connection to DICT server faild, dict exits with exit status 41
++  If a connection to DICT server fails, dict exits with exit status 41
+   documentation update
+ 
+ 2004-05-21  Aleksey Cheusov <vle@gmx.net>
+diff --git a/daemon.c b/daemon.c
+index 7154a50..5d9af85 100644
+--- a/daemon.c
++++ b/daemon.c
+@@ -253,7 +253,7 @@ static int daemon_check_range(const char *spec, const char *ip)
+       return DICT_DENY;
+    }
+    if (!*pt) {
+-      log_info( ":E: Misformed range %s, denying access to %s\n", spec, ip);
++      log_info( ":E: Malformed range %s, denying access to %s\n", spec, ip);
+       return DICT_DENY;
+    }
+    
+diff --git a/dictd.8.in b/dictd.8.in
+index 6d7f1f9..3afa28a 100644
+--- a/dictd.8.in
++++ b/dictd.8.in
+@@ -410,7 +410,7 @@ differently depending on whether
+ .I OPTION MIME
+ command was received from client or was not,
+ i.e. the database created by this section
+-allows to return to the client either a plain text or
++allows one to return to the client either a plain text or
+ specially formatted content depending on whether DICT client supports
+ (or wants to receive) MIMEized content or doesn't.
+ The
+@@ -1218,7 +1218,7 @@ you can get only 100 ones skipping the first 800 matches.
+ This is made by specified these limits in a query like this:
+ 800#100#app, where 800 is skip count, 100 is a number of matches
+ you want to get and "app" is your query.
+-This strategy allows to implement DICT client with fast autocompletion
++This strategy allows one to implement DICT client with fast autocompletion
+ (although it is not trivial)
+ just like many standalone dictionary programs do.
+ .P
+@@ -1330,13 +1330,13 @@ Some headwords are used by
+ especially
+ .P
+ .BI 00\-database\-info
+-Containts the information about database
++Contains the information about database
+ which is 
+ returned by SHOW INFO command,
+ unless it is specified in the configuration file.
+ .P
+ .BI 00\-database\-short
+-Containts the short name of the database
++Contains the short name of the database
+ which is
+ returned by SHOW DB command,
+ unless it is specified in the configuration file.
+diff --git a/dictfmt.1.in b/dictfmt.1.in
+index 7c0d071..867ee62 100644
+--- a/dictfmt.1.in
++++ b/dictfmt.1.in
+@@ -273,12 +273,12 @@ and the input file contains \'autumn%%%fall', both 'autumn' and 'fall'
+ will be indexed as  headwords, with the same definition.
+ .TP
+ .BI \-\-index\-data\-separator " sep"
+-sets the index/data separator, which allows to set the first and fourth
++sets the index/data separator, which allows one to set the first and fourth
+ columns of .index file independently. That is
+ the first column can be treated as an index column
+ (where the MATCH command searches) and the fourth column as a result column
+ (where the MATCH gets things to be returned),
+-and they (1-st and 4-th columns) are completely independant of each other.
++and they (1-st and 4-th columns) are completely independent of each other.
+ The default value for this separator is ASCII symbol " \\034".
+ .TP
+ .BI \-\-break\-headwords
+diff --git a/dictfmt.c b/dictfmt.c
+index 4c348fa..aec48bb 100644
+--- a/dictfmt.c
++++ b/dictfmt.c
+@@ -809,7 +809,7 @@ static void help( FILE *out_stream )
+    static const char *help_msg[] = {
+    "Usage: dictfmt -c5|-t|-e|-f|-h|-j|-p [-u url] [-s name] [options] basename",
+    "       dictfmt -i|-I [options]",
+-   "Create a dictionary databse and index file for use by a dictd server",
++   "Create a dictionary database and index file for use by a dictd server",
+    "",
+      "-c5       headwords are preceded by a line containing at least \n\
+                 5 underscore (_) characters",
+@@ -840,7 +840,7 @@ static void help( FILE *out_stream )
+                      Example: autumn%%%fall can be used\n\
+                      if '--headword-separator %%%' is supplied",
+ "--index-data-separator <sep> sets index/data separator which allows\n\
+-                     to explicitely set fourth column in .index file,\n\
++                     one to explicitly set fourth column in .index file,\n\
+                      the default is \"\\034\"",
+ "--break-headwords    multiple headwords will be written on separate lines\n\
+                      in the .dict file.  For use with '--headword-separator.",
+diff --git a/plugin.c b/plugin.c
+index 094987d..90aefbf 100644
+--- a/plugin.c
++++ b/plugin.c
+@@ -517,7 +517,7 @@ static void dict_plugin_dlsym (dictPlugin *plugin)
+        !plugin -> dictdb_error ||
+        !plugin -> dictdb_close)
+    {
+-      PRINTF(DBG_INIT, (":I:     faild\n"));
++      PRINTF(DBG_INIT, (":I:     failed\n"));
+       exit (1);
+    }
+ }
+@@ -543,7 +543,7 @@ static dictPlugin *create_plugin (
+    PRINTF(DBG_INIT, (":I:     opening plugin\n"));
+    plugin -> handle = lt_dlopen (plugin_filename);
+    if (!plugin -> handle){
+-      PRINTF(DBG_INIT, (":I:     faild: %s\n", dlerror ()));
++      PRINTF(DBG_INIT, (":I:     failed: %s\n", dlerror ()));
+       exit (1);
+    }
+ 

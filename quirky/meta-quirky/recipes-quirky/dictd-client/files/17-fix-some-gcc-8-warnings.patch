@@ -1,0 +1,183 @@
+From: Robert Luberda <robert@debian.org>
+Date: Sat, 23 Jun 2018 22:39:26 +0200
+Subject: Fix some of gcc-8 warnings
+
+---
+ dict.c    |  8 ++++----
+ dictd.c   | 28 ++++++++++++++++------------
+ dictfmt.c |  6 ++++--
+ lev.h     |  4 ++--
+ 4 files changed, 26 insertions(+), 20 deletions(-)
+
+diff --git a/dict.c b/dict.c
+index 157f7af..240176f 100644
+--- a/dict.c
++++ b/dict.c
+@@ -1238,7 +1238,7 @@ static const char *client_get_banner( void )
+    uname( &uts );
+    buffer = xmalloc(256);
+    snprintf( buffer, 256,
+-	     "%s %s/rf on %s %s", err_program_name (), id_string (),
++	     "%s %.50s/rf on %s %s", err_program_name (), id_string (),
+ 	     uts.sysname, uts.release );
+    return buffer;
+ }
+@@ -1327,7 +1327,7 @@ int main( int argc, char **argv )
+    const char         *word       = NULL;
+    int                doauth      = 1;
+    int                docorrect   = 1;
+-   int                offset      = 0;
++   /*int                offset      = 0;*/
+    int                i;
+    enum { DEFINE = 0x0001,
+ 	  MATCH  = 0x0002,
+@@ -1515,11 +1515,11 @@ int main( int argc, char **argv )
+ 	    case 5: *p = '\0'; word = cpy(s);            ++state; s=p+1; break;
+ 	    case 6: *p = '\0'; database = cpy(s);        ++state; s=p+1; break;
+ 	    case 7: *p = '\0';
+-	       if (function == DEFINE) offset = atoi(s);
++	       if (function == DEFINE) /*offset = atoi(s)*/;
+ 	       else                    strategy = cpy(s);
+ 	                                                 ++state; s=p+1; break;
+ 	    case 8: *p = '\0';
+-	       if (function == MATCH) offset = atoi(s); ++state; s=p+1; break;
++	       if (function == MATCH) { /*offset = atoi(s)*/; ++state; s=p+1; break; }
+ 				/* FALLTHROUGH */
+ 	    default:
+ 	       PRINTF(DBG_URL,("State = %d, s = %s\n",state,s));
+diff --git a/dictd.c b/dictd.c
+index edc1f42..7e93335 100644
+--- a/dictd.c
++++ b/dictd.c
+@@ -330,6 +330,7 @@ static void xsigprocmask (int how, const sigset_t *set, sigset_t *oset)
+    }
+ }
+ 
++#if 0
+ static void block_signals (void)
+ {
+    sigset_t set;
+@@ -340,6 +341,7 @@ static void block_signals (void)
+ 
+    xsigprocmask (SIG_BLOCK, &set, NULL);
+ }
++#endif
+ 
+ static void unblock_signals (void)
+ {
+@@ -1151,12 +1153,12 @@ const char *dict_get_banner( int shortFlag )
+    shortBuffer = xmalloc(256);
+    snprintf(
+       shortBuffer, 256,
+-      "%s %s", err_program_name(), id_string () );
++      "%s %.50s", err_program_name(), id_string () );
+ 
+    longBuffer = xmalloc(256);
+    snprintf(
+       longBuffer, 256,
+-      "%s %s/rf on %s %s", err_program_name(), id_string (),
++      "%s %.50s/rf on %s %s", err_program_name(), id_string (),
+       uts.sysname,
+       uts.release );
+ 
+@@ -1256,6 +1258,8 @@ void set_minimal( void )
+    flg_set("-min");
+ }
+ 
++#define CHECK_SYSCALL(x) do { if ((x) < 0) { perror(#x); exit(1); }} while (0)
++
+ static void release_root_privileges( void )
+ /* At the spring 1999 Linux Expo in Raleigh, Rik Faith told me that he
+  * did not want dictd to be allowed to run as root for any reason.
+@@ -1270,17 +1274,17 @@ static void release_root_privileges( void )
+       struct passwd *pwd;
+ 
+       if ((pwd = getpwnam("dictd"))) {
+-         setgid(pwd->pw_gid);
++         CHECK_SYSCALL(setgid(pwd->pw_gid));
+          initgroups("dictd",pwd->pw_gid);
+-         setuid(pwd->pw_uid);
++         CHECK_SYSCALL(setuid(pwd->pw_uid));
+       } else if ((pwd = getpwnam("nobody"))) {
+-         setgid(pwd->pw_gid);
++         CHECK_SYSCALL(setgid(pwd->pw_gid));
+          initgroups("nobody",pwd->pw_gid);
+-         setuid(pwd->pw_uid);
++         CHECK_SYSCALL(setuid(pwd->pw_uid));
+       } else {
+-         setgid(GID_NOGROUP);
++         CHECK_SYSCALL(setgid(GID_NOGROUP));
+          initgroups("nobody", GID_NOGROUP);
+-         setuid(UID_NOBODY);
++         CHECK_SYSCALL(setuid(UID_NOBODY));
+       }
+    }
+ }
+@@ -1473,9 +1477,9 @@ static void reopen_012 (void)
+    close (1);
+    close (2);
+ 
+-   dup (fd);
+-   dup (fd);
+-   dup (fd);
++   CHECK_SYSCALL(dup (fd));
++   CHECK_SYSCALL(dup (fd));
++   CHECK_SYSCALL(dup (fd));
+ }
+ 
+ int main (int argc, char **argv, char **envp)
+@@ -1702,7 +1706,7 @@ int main (int argc, char **argv, char **envp)
+ 
+    if (detach){
+       /* become a daemon */
+-      daemon (0, 1);
++      CHECK_SYSCALL(daemon (0, 1));
+       reopen_012 ();
+ 
+       /* after fork from daemon(3) */
+diff --git a/dictfmt.c b/dictfmt.c
+index aec48bb..d9d2c30 100644
+--- a/dictfmt.c
++++ b/dictfmt.c
+@@ -1151,6 +1151,8 @@ static int xatoi (const char *nptr)
+    return (int) ret;
+ }
+ 
++#define CHECK_LIBCALL(x) do { if ((x) == NULL) { fprintf(stderr, #x " failed\n"); exit(1); }} while (0)
++
+ int main( int argc, char **argv )
+ {
+    int        c;
+@@ -1516,8 +1518,8 @@ int main( int argc, char **argv )
+ 	    buf++;
+ 	 } else if (strncmp(buffer, "_____",5) == 0) {
+ 	    buf = (unsigned char *) buffer;
+-	    fgets (buffer,BSIZE-1,stdin); /* empty line */
+-	    fgets (buffer,BSIZE-1,stdin);
++	    CHECK_LIBCALL(fgets (buffer,BSIZE-1,stdin)); /* empty line */
++	    CHECK_LIBCALL(fgets (buffer,BSIZE-1,stdin));
+ 	    if (strlen(buffer))
+ 	       buffer[strlen(buffer)-1] = '\0'; /* remove newline */
+ 
+diff --git a/lev.h b/lev.h
+index 249272d..d2a86d4 100644
+--- a/lev.h
++++ b/lev.h
+@@ -118,7 +118,7 @@ static int dict_search_lev_utf8 (
+    mbstate_t ps;
+    int       count = 0;
+    const char *pt;
+-   dictWord   *datum;
++   /*dictWord   *datum;*/
+ 
+    const char *p;
+    char *d;
+@@ -127,7 +127,7 @@ static int dict_search_lev_utf8 (
+    size_t i;
+    set_Set    s    = set_create (NULL,NULL);
+ 
+-   LEV_VARS
++   /*LEV_VARS*/
+ 
+    assert (alphabet);
+ 

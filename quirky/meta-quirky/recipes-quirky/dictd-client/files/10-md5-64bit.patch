@@ -1,0 +1,29 @@
+From: gregor herrmann <gregoa@debian.org>
+Date: Thu, 27 Jan 2011 00:25:50 +0100
+Subject: 10 md5 64bit
+
+Fix invalid definition on uint32 type on 64-bit systems (except for alpha),
+which caused failures when 64-bit dict client tried to authenticate a user
+against 32-bit dictd server (closes: #611203).
+---
+ md5.h | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
+
+diff --git a/md5.h b/md5.h
+index e264f68..e1f3db1 100644
+--- a/md5.h
++++ b/md5.h
+@@ -1,11 +1,8 @@
+ #ifndef MD5_H
+ #define MD5_H
+ 
+-#ifdef __alpha
+-typedef unsigned int uint32;
+-#else
+-typedef unsigned long uint32;
+-#endif
++#include <stdint.h>
++typedef uint32_t uint32;
+ 
+ struct MD5Context {
+ 	uint32 buf[4];

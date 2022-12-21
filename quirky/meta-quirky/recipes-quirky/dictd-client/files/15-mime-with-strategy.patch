@@ -1,0 +1,36 @@
+From: =?utf-8?b?0JLQu9Cw0YHQtdC90LrQviDQnNC40YXQsNC40Lsg0JLQuNC60YLQvtGA?=
+ =?utf-8?b?0L7QstC40Yc=?= <Michael1972@mail.ru>
+Date: Wed, 7 Mar 2018 13:16:34 +0000
+Subject: Fix conflict between options --mime and --strategy
+
+When the --mime (-M) and --strategy (-s) options are used together, then
+the last dictionary entry is runaway. For example both the following
+commands:
+
+  dict -h dict.bibleonline.ru -M "ide"
+  dict -h dict.bibleonline.ru  -s word "ide"
+
+return the same single result, but
+
+  dict -h dict.bibleonline.ru -s word -M "ide"
+
+returns nothing, unless this patch is applied.
+
+Bugs-Debian: https://bugs.debian.org/892253
+---
+ dict.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/dict.c b/dict.c
+index 3bcee46..157f7af 100644
+--- a/dict.c
++++ b/dict.c
+@@ -1090,7 +1090,7 @@ static void process( void )
+ 	       err_internal( __func__,
+ 			     "%d matches, but no list\n", cmd_reply.matches );
+ 
+-	    for (i = cmd_reply.matches; i > 0; --i) {
++	    for (i = cmd_reply.matches + option_mime; i > 0; --i) {
+ 	       /* skip MIME header */
+ 	       const char *line = lst_nth_get( cmd_reply.data, i );
+ 	       arg_List   a;

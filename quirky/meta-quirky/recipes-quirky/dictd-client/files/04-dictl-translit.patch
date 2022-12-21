@@ -1,0 +1,22 @@
+From: Robert Luberda <robert@debian.org>
+Date: Sun, 20 Jan 2008 22:41:37 +0100
+Subject: 04 dictl translit
+
+Patch for  #378792: dictl should use iconv's //translit suffix
+---
+ dictl.in | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/dictl.in b/dictl.in
+index 3c18e15..4dae75f 100755
+--- a/dictl.in
++++ b/dictl.in
+@@ -20,7 +20,7 @@ if test -z "$DICTL_CHARSET"; then
+ fi
+ 
+ internal_iconv (){
+-    iconv -c -f $1 -t $2
++    iconv -c -f $1 -t $2//TRANSLIT
+ }
+ 
+ internal_recode (){

@@ -1,0 +1,47 @@
+From: Robert Luberda <robert@debian.org>
+Date: Fri, 25 Jan 2008 21:10:26 +0100
+Subject: 06 colorit manpage nopager
+
+Remove references to pager in colorit man page
+---
+ colorit.1.in | 13 +++----------
+ 1 file changed, 3 insertions(+), 10 deletions(-)
+
+diff --git a/colorit.1.in b/colorit.1.in
+index 307a6ea..a13640e 100644
+--- a/colorit.1.in
++++ b/colorit.1.in
+@@ -11,9 +11,8 @@ colorit \- a script for markuping the text input
+ .fi
+ .SH "DESCRIPTION"
+ .B colorit
+-is a script for markuping text input and sending a result to pager (
+-.I less \-r
+-by default) or stdout.
++is a script for markuping text input and sending a result to
++stdout.
+ Markuping rules are described in a configuration file
+ which is filtered by preprocessor (the default is
+ .I m4
+@@ -25,9 +24,7 @@ and
+ .I cpp.
+ This script can be used for colorizing the text by
+ ANSI escape sequences, or making a simple text conversions
+-and may be used as a pager instead of
+-.I less
+-by
++and may be used for colorizing output of
+ .I dict
+ or other programs. In particular, log files,
+ .I dict,
+@@ -50,10 +47,6 @@ Specify configuration file.  The default is
+ or
+ .I @SYSCONFDIR@/colorit.conf
+ .TP
+-.BI \-P " pager\fR or "  \-\-pager " pager"
+-Specify a pager (- for none). The default is
+-.I less -r
+-.TP
+ .BI \-\-pp " preprocessor"
+ Specify a preprocessor (- for none).
+ .SH "FILES"

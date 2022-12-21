@@ -1,0 +1,31 @@
+From: =?utf-8?b?0JLQu9Cw0YHQtdC90LrQviDQnNC40YXQsNC40Lsg0JLQuNC60YLQvtGA?=
+ =?utf-8?b?0L7QstC40Yc=?= <Michael1972@mail.ru>
+Date: Wed, 21 Feb 2018 03:59:45 +0600
+Subject: Fix the dict's --mime option
+
+The element following the mime option (--mime) is treated as an
+parameter for this option, while the mime option should not have a
+parameter.
+
+This can be reproduced by running:
+  dict -h dict.bibleonline.ru --mime "idea"
+that returns no results without this patch.
+
+Bugs-Debian: https://bugs.debian.org/890948
+---
+ dict.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/dict.c b/dict.c
+index 2b831ec..3bcee46 100644
+--- a/dict.c
++++ b/dict.c
+@@ -1363,7 +1363,7 @@ int main( int argc, char **argv )
+       { "debug",      1, 0, 502 },
+       { "pipesize",   1, 0, 504 },
+       { "client",     1, 0, 505 },
+-      { "mime",       1, 0, 'M' },
++      { "mime",       0, 0, 'M' },
+       { "formatted",  0, 0, 'f' },
+       { "flush",      0, 0, 'F' },
+       { 0,            0, 0,  0  }

@@ -1,0 +1,23 @@
+From: Robert Luberda <robert@debian.org>
+Date: Sun, 2 Mar 2008 15:05:32 +0100
+Subject: Fix dictfmt.1 man page
+
+Fix the following lintian warning:
+W: dictfmt: manpage-has-errors-from-man usr/share/man/man1/dictfmt.1.gz 199: warning: `.br' not defined
+---
+ dictfmt.1.in | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/dictfmt.1.in b/dictfmt.1.in
+index d2da85c..7c0d071 100644
+--- a/dictfmt.1.in
++++ b/dictfmt.1.in
+@@ -196,7 +196,7 @@ definition starts on the following line.  The first line beginning
+ file, and '%h ' is stripped from in front of the headword.  All
+ text before the first headword is included in the headers.
+ .B The second line beginning '%h' is taken as the first headword.  
+-..br
++.br
+ This option was written to format Jay Kominek's elements database.  
+ .TP
+ .BI \-i \  \-I

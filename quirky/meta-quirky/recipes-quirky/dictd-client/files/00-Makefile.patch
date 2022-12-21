@@ -1,0 +1,24 @@
+From: Robert Luberda <robert@debian.org>
+Date: Wed, 23 Jan 2008 23:33:16 +0100
+Subject: 00 Makefile
+
+Add $(DEBCFLAGS), remove -O* from CFLAGS in order to support
+DEB_BUILD_FLAGS variable in debian/rules
+---
+ Makefile.in | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/Makefile.in b/Makefile.in
+index ea1cb3f..ba6a486 100644
+--- a/Makefile.in
++++ b/Makefile.in
+@@ -376,7 +376,8 @@ clean:
+ 	-rm -f *.dict *.index
+ 	-rm -f *.exe *.dll
+ 	-rm -f test/_* test/testdb.t.txt test/log.txt
+-	-rm -f ChangeLog*
++	-rm -f $(patsubst %.in,%,$(wildcard examples/*.in))
++	#-rm -f ChangeLog*
+ 
+ recursive-clean: clean
+ 	@for subdir in `echo $(subdirs)`; do \

@@ -1,0 +1,25 @@
+From: Robert Luberda <robert@debian.org>
+Date: Sun, 8 Mar 2009 23:44:31 +0100
+Subject: 08 dictd close-fds
+
+Close all file descriptors except for the standard ones not to hang
+dpkg-reconfigure
+---
+ dictd.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/dictd.c b/dictd.c
+index 74597e3..fccfeee 100644
+--- a/dictd.c
++++ b/dictd.c
+@@ -1529,6 +1529,10 @@ int main (int argc, char **argv, char **envp)
+       { 0,                  0, 0, 0  }
+    };
+ 
++   /* close all file descriptors except for the standard ones */
++   for (i=getdtablesize()-1; i > 2; --i)
++     close(i);
++
+    set_umask ();
+    init (argv[0]);
+ 

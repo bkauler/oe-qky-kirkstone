@@ -1,0 +1,21 @@
+From: Robert Luberda <robert@debian.org>
+Date: Fri, 25 Jan 2008 21:10:26 +0100
+Subject: 05 colorit nopp fix
+
+Made 'colorit -pp -' work
+---
+ colorit.in | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/colorit.in b/colorit.in
+index fb8a404..27f5481 100755
+--- a/colorit.in
++++ b/colorit.in
+@@ -169,6 +169,7 @@ convert_files_to_stdout (){
+ 
+     function process_config (){
+ 	if (pp == ""){
++	    pipe = "cat < \"" config_file "\""
+ 	    while (0 < (ret = (pipe | getline))){
+ 		process_config_line()
+ 	    }

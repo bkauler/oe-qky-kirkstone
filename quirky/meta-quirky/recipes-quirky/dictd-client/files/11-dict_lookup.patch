@@ -1,0 +1,132 @@
+From: Robert Luberda <robert@debian.org>
+Date: Wed, 2 Feb 2011 20:21:22 +0100
+Subject: dict_lookup fixes
+
+Check for existence of xterm & xclip commands.
+Select first available utf-8 locale or fail if there isn't any.
+Use colorit with its default configuration.
+---
+ dict_lookup      | 55 ++++++++++++++++++++++++++++++++++++++++++-------------
+ dict_lookup.1.in |  5 +++--
+ 2 files changed, 45 insertions(+), 15 deletions(-)
+
+diff --git a/dict_lookup b/dict_lookup
+index 38a311e..0080b08 100644
+--- a/dict_lookup
++++ b/dict_lookup
+@@ -30,7 +30,7 @@
+ D_AWK_PROG=${D_AWK_PROG-awk}
+ D_XCLIP_PROG=${D_XCLIP_PROG-xclip}
+ D_XTERM_PROG=${D_XTERM_PROG-xterm}
+-D_UTF8_LOCALE=${D_UTF8_LOCALE-en_US.UTF-8}
++D_UTF8_LOCALE=${D_UTF8_LOCALE-`locale -a |fgrep .utf8 | head -n 1`}
+ D_DICT_PROG=${D_DICT_PROG-dict}
+ D_DICT_SERVER=${D_DICT_SERVER--h dict.org}
+ D_DICT_PORT=${D_DICT_PORT--p 2628}
+@@ -42,16 +42,16 @@ D_TEXT_WIDTH=${D_TEXT_WIDTH-cyrillic_text_width}
+ D_TERM_X=${D_TERM_X-+200}
+ D_TERM_Y=${D_TERM_Y-+200}
+ D_TERM_H=${D_TERM_H-+40}
+-D_PAGER=${D_PAGER-less}
+-
+-if test -z "$COLORIZER"; then
+-    colorit_config=$HOME/.colorit.d/dict
+-    if test -f "$colorit_config"; then
+-	COLORIZER="colorit -P - -c $colorit_config"
+-    else
+-	COLORIZER=cat
+-    fi
+-fi
++D_PAGER=${D_PAGER-less -R}
++
++#if test -z "$COLORIZER"; then
++#    colorit_config=$HOME/.colorit.d/dict
++#    if test -f "$colorit_config"; then
++	COLORIZER="colorit" # -P - -c $colorit_config"
++#    else
++#	COLORIZER=cat
++#    fi
++#fi
+ 
+ ############################################################
+ # functions
+@@ -81,6 +81,33 @@ set_query ()
+     fi
+ }
+ 
++check_system() {
++  err=0
++  for cmd in $D_XTERM_CMD $D_XCLIP_PROG; do
++		if ! which "$cmd" > /dev/null; then
++		missing="$missing $cmd"
++	fi
++  done
++
++  if [ -n "$missing" ] ; then
++	echo "Cannot find the following program(s) in the PATH: $missing"
++	echo "Please install the appropriate package(s)."
++	echo
++	err=1
++  fi
++
++
++  if [ -z "$D_UTF8_LOCALE" ] ; then
++	echo "Cannot find any UTF-8 locale installed on system."
++	echo "Please run \`dpkg-reconfigure locales' and choose some UTF-8 locale."
++	echo
++	err=1
++ fi
++
++ [ "$err" = 0 ] || exit $err;
++}
++
++
+ ############################################################
+ # main
+ #
+@@ -109,11 +136,13 @@ do
+ done
+ shift `expr $OPTIND - 1`
+ 
++check_system
++
+ set_query
+ 
+-tmp_dir="/tmp/`basename $0`.$$"
++tmp_dir=`mktemp -d`
++test -d "$tmp_dir" || exit 1;
+ trap "rm -rf $tmp_dir" 0 1 2 3 15
+-mkdir -m 700 "$tmp_dir"
+ 
+ if test -z "$D_DICT_CMD"; then
+     D_DICT_CMD="$D_DICT_PROG $D_DICT_SERVER $D_DICT_PORT $D_DICT_DB_OPT"
+diff --git a/dict_lookup.1.in b/dict_lookup.1.in
+index 51934e0..52a1929 100644
+--- a/dict_lookup.1.in
++++ b/dict_lookup.1.in
+@@ -52,7 +52,7 @@ xterm or equivalent terminal emulator.
+ .TP
+ .B D_UTF8_LOCALE
+ UTF-8 locale.
+-.RI [ en_US.UTF-8 ]
++.RI [ "first available UTF-8 locale on system" ]
+ .TP
+ .B D_DICT_PROG
+ Dictionary client program.
+@@ -85,6 +85,7 @@ Option for terminal emulator specifying the title.
+ .B D_TEXT_WIDTH
+ Program calculating text width for given text.
+ .RI [ cyrillic_text_width ]
++.br
+ cyrillic_text_width doesn't work correctly for Japanese, Korean, Chinese
+ and some other languages.
+ .TP
+@@ -102,7 +103,7 @@ Terminal emulator height.
+ .TP
+ .B D_PAGER
+ Pager.
+-.RI [ less ]
++.RI [ "less -R" ]
+ .SH "SEE ALSO"
+ .BR dict (1),
+ .BR less (1),

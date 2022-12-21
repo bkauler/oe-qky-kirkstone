@@ -1,0 +1,21 @@
+From: "brian m. carlson" <sandals@crustytoothpaste.ath.cx>
+Date: Sat, 22 Dec 2007 00:54:53 +0000
+Subject: 03 dictdplugin_popen-g++-4.3compile
+
+Patch for #454819: FTBFS with GCC 4.3: missing #includes
+---
+ dictdplugin_popen.cpp | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/dictdplugin_popen.cpp b/dictdplugin_popen.cpp
+index 3c04da7..c8d611e 100644
+--- a/dictdplugin_popen.cpp
++++ b/dictdplugin_popen.cpp
+@@ -43,6 +43,7 @@
+ #include <stdio.h>
+ #include <errno.h>
+ #include <string>
++#include <climits>
+ #include <unistd.h>
+ #include <sstream>
+ #include <list>

@@ -1,0 +1,149 @@
+From: Robert Luberda <robert@debian.org>
+Date: Sun, 21 Aug 2016 13:16:39 +0200
+Subject: Fix some of compiler warnings
+
+---
+ clientparse.y |  3 +++
+ daemon.c      | 18 +++++++++---------
+ dictd.c       |  2 ++
+ dictzip.c     |  2 --
+ md5.c         |  2 +-
+ parse.c       |  4 ++--
+ servparse.y   |  3 +++
+ 7 files changed, 20 insertions(+), 14 deletions(-)
+
+diff --git a/clientparse.y b/clientparse.y
+index f4162e6..d1960e3 100644
+--- a/clientparse.y
++++ b/clientparse.y
+@@ -22,6 +22,9 @@
+ #include "dict.h"
+ #define YYDEBUG 1
+ #define YYERROR_VERBOSE
++extern int  yylex( void );
++extern int  yydebug;
++extern void yyerror( const char *message );
+ 
+ static dictServer *s;
+ %}
+diff --git a/daemon.c b/daemon.c
+index 5d9af85..72c411f 100644
+--- a/daemon.c
++++ b/daemon.c
+@@ -129,23 +129,23 @@ static void daemon_log( int type, const char *format, ... )
+ 
+    switch (type) {
+    case DICT_LOG_TERM:
+-      if (!flg_test(LOG_STATS))    return; marker = 'I'; break;
++      if (!flg_test(LOG_STATS))    { return; } marker = 'I'; break;
+    case DICT_LOG_TRACE:
+-      if (!flg_test(LOG_SERVER))   return; marker = 'I'; break;
++      if (!flg_test(LOG_SERVER))   { return; } marker = 'I'; break;
+    case DICT_LOG_CLIENT:
+-      if (!flg_test(LOG_CLIENT))   return; marker = 'C'; break;
++      if (!flg_test(LOG_CLIENT))   { return; } marker = 'C'; break;
+    case DICT_LOG_CONNECT:
+-      if (!flg_test(LOG_CONNECT))  return; marker = 'K'; break;
++      if (!flg_test(LOG_CONNECT))  { return; } marker = 'K'; break;
+    case DICT_LOG_DEFINE:
+-      if (!flg_test(LOG_FOUND))    return; marker = 'D'; break;
++      if (!flg_test(LOG_FOUND))    { return; } marker = 'D'; break;
+    case DICT_LOG_MATCH:
+-      if (!flg_test(LOG_FOUND))    return; marker = 'M'; break;
++      if (!flg_test(LOG_FOUND))    { return; } marker = 'M'; break;
+    case DICT_LOG_NOMATCH:
+-      if (!flg_test(LOG_NOTFOUND)) return; marker = 'N'; break;
++      if (!flg_test(LOG_NOTFOUND)) { return; } marker = 'N'; break;
+    case DICT_LOG_COMMAND:
+-      if (!flg_test(LOG_COMMAND))  return; marker = 'T'; break;
++      if (!flg_test(LOG_COMMAND))  { return; } marker = 'T'; break;
+    case DICT_LOG_AUTH:
+-      if (!flg_test(LOG_AUTH))     return; marker = 'A'; break;
++      if (!flg_test(LOG_AUTH))     { return; } marker = 'A'; break;
+    }
+ 
+    if (dbg_test(DBG_PORT))
+diff --git a/dictd.c b/dictd.c
+index fccfeee..edc1f42 100644
+--- a/dictd.c
++++ b/dictd.c
+@@ -315,6 +315,7 @@ static void reload_config (void)
+    dict_init_databases (DictConfig);
+ }
+ 
++/*
+ static void xsigaddset (sigset_t *set, int signo)
+ {
+    if (sigaddset (set, signo)){
+@@ -350,6 +351,7 @@ static void unblock_signals (void)
+ 
+    xsigprocmask (SIG_UNBLOCK, &set, NULL);
+ }
++*/
+ 
+ static void handler( int sig )
+ {
+diff --git a/dictzip.c b/dictzip.c
+index f917407..970eff8 100644
+--- a/dictzip.c
++++ b/dictzip.c
+@@ -336,10 +336,8 @@ int dict_data_zip( const char *inFilename, const char *outFilename,
+ static const char *id_string (void)
+ {
+    static char buffer[BUFFERSIZE];
+-   char        *pt;
+ 
+    snprintf( buffer, BUFFERSIZE, "%s", DICT_VERSION );
+-   pt = buffer + strlen( buffer );
+ 
+    return buffer;
+ }
+diff --git a/md5.c b/md5.c
+index 8d1accf..7f2a7ff 100644
+--- a/md5.c
++++ b/md5.c
+@@ -145,7 +145,7 @@ void MD5Final(unsigned char digest[16], struct MD5Context *ctx)
+     MD5Transform(ctx->buf, (uint32 *) ctx->in);
+     byteReverse((unsigned char *) ctx->buf, 4);
+     memcpy(digest, ctx->buf, 16);
+-    memset(ctx, 0, sizeof(ctx));	/* In case it's sensitive */
++    memset(ctx, 0, sizeof(*ctx));	/* In case it's sensitive */
+ }
+ 
+ #ifndef ASM_MD5
+diff --git a/parse.c b/parse.c
+index 1cdaf91..b6d1099 100644
+--- a/parse.c
++++ b/parse.c
+@@ -95,7 +95,7 @@ void prs_file( const char *filename )
+                                  "/usr/ccs/lib/cpp",	/* Solaris */
+                                  "/usr/lang/cpp",
+                                  0 };
+-   static const char *extra_options = "";
++   /*static const char *extra_options = "";*/
+    FILE              *tmp;
+    
+    if (!filename)
+@@ -116,7 +116,7 @@ void prs_file( const char *filename )
+             if ((t = strchr( buf, '\n' ))) *t = '\0';
+             PRINTF(MAA_PARSE,("%s: Using GNU cpp from %s\n", __func__, buf));
+             cpp = str_find( buf );
+-            extra_options = "-nostdinc -nostdinc++";
++            /*extra_options = "-nostdinc -nostdinc++";*/
+          }
+          pclose( tmp );
+       }
+diff --git a/servparse.y b/servparse.y
+index f6a0304..aedee9d 100644
+--- a/servparse.y
++++ b/servparse.y
+@@ -27,6 +27,9 @@
+ 
+ #define YYDEBUG 1
+ #define YYERROR_VERBOSE
++extern int  yylex( void );
++extern int  yydebug;
++extern void yyerror( const char *message );
+ 
+ static dictDatabase *db;
+ 
