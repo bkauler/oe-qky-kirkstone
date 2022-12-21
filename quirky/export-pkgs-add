@@ -138,8 +138,8 @@ if [ "$OEDUMPED" ];then
    echo "Removing ${aoldoe}"
    rm -f ../packages-oe-${DISTRO_COMPAT_VERSION}/${aoldoe}
    aPTN="|${aoldoe}|"
-   grep -v "$aPTN" ${ONE_PKGLISTS_COMPAT} > /tmp/0pre-oe-add/0pre-add1-dbrem #ex: remove entry from Packages-oe-pyro-official
-   mv -f /tmp/0pre-oe-add/0pre-add1-dbrem ${ONE_PKGLISTS_COMPAT}
+   grep -v "$aPTN" ${PKGLISTS_COMPAT} > /tmp/0pre-oe-add/0pre-add1-dbrem #ex: remove entry from Packages-oe-pyro-official
+   mv -f /tmp/0pre-oe-add/0pre-add1-dbrem ${PKGLISTS_COMPAT}
   done
  fi
 fi
