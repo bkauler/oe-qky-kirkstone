@@ -1,0 +1,3 @@
+20221222
+evince0 is the last version using gtk2
+it also has less deps than later evince, in particular does not need gstreamer.
