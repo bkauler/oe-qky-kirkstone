@@ -137,7 +137,8 @@ if [ "$OEDUMPED" ];then
   do
    echo "Removing ${aoldoe}"
    rm -f ../packages-oe-${DISTRO_COMPAT_VERSION}/${aoldoe}
-   aPTN="|${aoldoe}|"
+   xaoldoe="$(echo -n "$aoldoe" | sed -e 's%\.%\\.%g')" #20221223 escape .
+   aPTN="|${xaoldoe}|"
    grep -v "$aPTN" ${PKGLISTS_COMPAT} > /tmp/0pre-oe-add/0pre-add1-dbrem #ex: remove entry from Packages-oe-pyro-official
    mv -f /tmp/0pre-oe-add/0pre-add1-dbrem ${PKGLISTS_COMPAT}
   done
@@ -156,9 +157,10 @@ if [ "$OENEW" ];then
   for aoldoe in `echo "$OENEW" | tr '\n' ' '`
   do
    echo "Adding ${aoldoe}" #ex: aoldoe=cairo-1.14.8-r0-nocona-64.tar.xz
-   aNAME="$(grep "^${aoldoe} " /tmp/0pre-oe-add/0pre-oe-add-nameverarch | cut -f 2 -d ' ')"
-   aVER="$(grep "^${aoldoe} " /tmp/0pre-oe-add/0pre-oe-add-nameverarch | cut -f 3 -d ' ')"
-   aARCH="$(grep "^${aoldoe} " /tmp/0pre-oe-add/0pre-oe-add-nameverarch | cut -f 4 -d ' ')"
+   xaoldoe="$(echo -n "$aoldoe" | sed -e 's%\.%\\.%g')" #20221223 escape .
+   aNAME="$(grep "^${xaoldoe} " /tmp/0pre-oe-add/0pre-oe-add-nameverarch | cut -f 2 -d ' ')"
+   aVER="$(grep "^${xaoldoe} " /tmp/0pre-oe-add/0pre-oe-add-nameverarch | cut -f 3 -d ' ')"
+   aARCH="$(grep "^${xaoldoe} " /tmp/0pre-oe-add/0pre-oe-add-nameverarch | cut -f 4 -d ' ')"
    aIMG="$(find ${OEPATH}/${BUILDFOLDER}/tmp/work/${aARCH}-*-linux*/${aNAME}/${aVER}/ -mindepth 1 -maxdepth 1 -type d -name image)" #170601
    [ ! "$aIMG" ] && continue #precaution
    echo "Found path: ${aIMG}"
@@ -171,7 +173,8 @@ if [ "$OENEW" ];then
    DB_path="${DISTRO_COMPAT_VERSION}"
    
    #find description...
-   aRECIPE="$(grep "^\"${DB_nameonly}\.do_install.*label=" ${OEPATH}/${BUILDFOLDER}/task-depends.dot  | grep -o "${OEPATH}/.*" | cut -f 1 -d '"' | head -n 1)"
+   xDB_nameonly="$(echo -n "$DB_nameonly" | sed -e 's%\.%\\.%g')" #20221223
+   aRECIPE="$(grep "^\"${xDB_nameonly}\.do_install.*label=" ${OEPATH}/${BUILDFOLDER}/task-depends.dot  | grep -o "${OEPATH}/.*" | cut -f 1 -d '"' | head -n 1)"
    if [ ! "$aRECIPE" ];then
     echo "Error: the .bb recipe file for '${DB_nameonly}' was not found."
     echo "Most likely did a build in OE with drivename different from now,"
@@ -212,7 +215,8 @@ if [ "$OENEW" ];then
     DEPENDS0="$(echo "$DEPENDSx" | tr '\n' ' ' | tr -s ' ' | sed -e 's% $%%')"
    else
     #fallback...
-    DEPENDSx="$(grep "^\"${DB_nameonly}\.do_prepare_recipe_sysroot" ${OEPATH}/${BUILDFOLDER}/task-depends.dot | cut -f 4 -d '"' | cut -f 1 -d '.' | grep -vE "^${DB_nameonly}$|^${DB_nameonly} |\-native|\-cross|packagegroup" | sort -u)"
+    #20221223 dep with "." was getting truncated, ex glib-2.0 to glib-2, fixed...
+    DEPENDSx="$(grep "^\"${xDB_nameonly}\.do_prepare_recipe_sysroot" ${OEPATH}/${BUILDFOLDER}/task-depends.dot | cut -f 4 -d '"' | sed -e 's%\.do_.*%%' | grep -vE "^${xDB_nameonly}$|^${xDB_nameonly} |\-native|\-cross|packagegroup" | sort -u)"
     if [ "$DEPENDSx" ];then
      DEPENDS0="$(echo "$DEPENDSx" | tr '\n' ' ' | tr -s ' ' | sed -e 's% $%%')"
     else
@@ -259,8 +263,8 @@ if [ "$OENEW" ];then
    echo "$DBENTRY" >> $PKGLISTS_COMPAT
   
    #20221223 getting this odd dep: +do_prepare_recipe_sysrootn:2
-   # also, some just make db file bigger: +glibc +gcc-runtime
-   DBdepsfixed="$(echo -n "$DB_dependencies" | tr ',' '\n' | grep -vE '^\+do_prepare|^\+glibc$|^\+gcc-runtime$' | tr '\n' ',' | sed -e 's%,$%%' -e 's%,$%%')"
+   # also, some just make db file bigger: +glibc +gcc-runtime +base-files +base-passwd +initscripts +update-rc.d +xorgproto
+   DBdepsfixed="$(echo -n "$DB_dependencies" | tr ',' '\n' | grep -vE '^\+do_prepare|^\+glibc$|^\+gcc-runtime$|^\+base-files$|^\+base-passwd$|^\+initscripts$|^\+update-rc\.d$|^\+xorgproto$' | tr '\n' ',' | sed -e 's%,$%%' -e 's%,$%%')"
    DB_dependencies="$DBdepsfixed"
   
    sync

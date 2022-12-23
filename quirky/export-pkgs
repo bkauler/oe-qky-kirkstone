@@ -179,14 +179,18 @@ do
   DB_path="${DISTRO_COMPAT_VERSION}"
   
   DB_dependencies=''; DB_description=''
-  DB_description="$(grep "^${DB_nameonly} " /tmp/0pre-oe/0pre-oe-descriptions | cut -f 2- -d ' ' | sed -e 's%[^a-zA-Z0-9_. -]%%g')"
-  DEPENDS0="$(grep "^${DB_nameonly} " /tmp/0pre-oe/0pre-oe-dependencies | cut -f 2- -d ' ')"
+  #xDB_nameonly="$(echo -n "$DB_nameonly" | sed -e 's%\.%\\.%g' -e 's%\+%\\+%g')" #20221223 escape . +
+  #...um, no, in basic regex + is not a special char. just escape .
+  xDB_nameonly="$(echo -n "$DB_nameonly" | sed -e 's%\.%\\.%g')" #20221223
+  DB_description="$(grep "^${xDB_nameonly} " /tmp/0pre-oe/0pre-oe-descriptions | cut -f 2- -d ' ' | sed -e 's%[^a-zA-Z0-9_. -]%%g')"
+  DEPENDS0="$(grep "^${xDB_nameonly} " /tmp/0pre-oe/0pre-oe-dependencies | cut -f 2- -d ' ')"
   
   #better way to find deps.... note, using this in 0pre-oe-add
   FLGdep=0
   DEPENDSx=''
   if [ -f ${OEPATH}/${BUILDFOLDER}/task-depends.dot ];then
-   DEPENDSx="$(grep "^\"${DB_nameonly}\.do_prepare_recipe_sysroot" ${OEPATH}/${BUILDFOLDER}/task-depends.dot | cut -f 4 -d '"' | cut -f 1 -d '.' | grep -vE "^${DB_nameonly}$|^${DB_nameonly} |\-native|\-cross|packagegroup" | sort -u)"
+   #20221223 dep with "." was getting truncated, ex glib-2.0 to glib-2, fixed...
+   DEPENDSx="$(grep "^\"${xDB_nameonly}\.do_prepare_recipe_sysroot" ${OEPATH}/${BUILDFOLDER}/task-depends.dot | cut -f 4 -d '"' | sed -e 's%\.do_.*%%' | grep -vE "^${xDB_nameonly}$|^${xDB_nameonly} |\-native|\-cross|packagegroup" | sort -u)"
   fi
   if [ "$DEPENDSx" ];then
    DEPENDS0="$(echo "$DEPENDSx" | tr '\n' ' ' | sed -e 's% $%%')"
@@ -216,7 +220,7 @@ do
   
   [ "$DEPENDS" ] && DB_dependencies="$(echo -n "$DEPENDS" | sed -e 's%^%+%' -e 's% %,+%g' -e 's%,$%%' | sed -e 's% %%g' -e 's%,$%%' -e 's%+$%%')"
   
-  DB_homepage="$(grep "^${DB_nameonly} " /tmp/0pre-oe/0pre-oe-homepages | cut -f 2- -d ' ')"
+  DB_homepage="$(grep "^${xDB_nameonly} " /tmp/0pre-oe/0pre-oe-homepages | cut -f 2- -d ' ')"
   [ "$DB_homepage" ] && echo "${DB_nameonly} ${DB_homepage}" >> ../PKGS_HOMEPAGES
   
   #strip the files...
@@ -242,8 +246,8 @@ do
   sync
   
   #20221223 getting this odd dep: +do_prepare_recipe_sysrootn:2
-  # also, some just make db file bigger: +glibc +gcc-runtime
-  DBdepsfixed="$(echo -n "$DB_dependencies" | tr ',' '\n' | grep -vE '^\+do_prepare|^\+glibc$|^\+gcc-runtime$' | tr '\n' ',' | sed -e 's%,$%%' -e 's%,$%%')"
+  # also, some just make db file bigger: +glibc +gcc-runtime +base-files +base-passwd +initscripts +update-rc.d +xorgproto
+  DBdepsfixed="$(echo -n "$DB_dependencies" | tr ',' '\n' | grep -vE '^\+do_prepare|^\+glibc$|^\+gcc-runtime$|^\+base-files$|^\+base-passwd$|^\+initscripts$|^\+update-rc\.d$|^\+xorgproto$' | tr '\n' ',' | sed -e 's%,$%%' -e 's%,$%%')"
   DB_dependencies="$DBdepsfixed"
   
   #this has to be done after stripping...
