@@ -241,6 +241,11 @@ do
   done
   sync
   
+  #20221223 getting this odd dep: +do_prepare_recipe_sysrootn:2
+  # also, some just make db file bigger: +glibc +gcc-runtime
+  DBdepsfixed="$(echo -n "$DB_dependencies" | tr ',' '\n' | grep -vE '^\+do_prepare|^\+glibc$|^\+gcc-runtime$' | tr '\n' ',' | sed -e 's%,$%%' -e 's%,$%%')"
+  DB_dependencies="$DBdepsfixed"
+  
   #this has to be done after stripping...
   DB_size="$(du -s -k ${aIMG}XXX | cut -f 1)K"
   DBENTRY="$DB_pkgname|$DB_nameonly|$DB_version|$DB_pkgrelease|$DB_category|${DB_size}|$DB_path|$DB_fullfilename|$DB_dependencies|$DB_description|oe|$DISTRO_COMPAT_VERSION||"

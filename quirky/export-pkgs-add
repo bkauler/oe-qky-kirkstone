@@ -258,6 +258,11 @@ if [ "$OENEW" ];then
    DBENTRY="$DB_pkgname|$DB_nameonly|$DB_version|$DB_pkgrelease|$DB_category|${DB_size}|$DB_path|$DB_fullfilename|$DB_dependencies|$DB_description|oe|$DISTRO_COMPAT_VERSION||"
    echo "$DBENTRY" >> $PKGLISTS_COMPAT
   
+   #20221223 getting this odd dep: +do_prepare_recipe_sysrootn:2
+   # also, some just make db file bigger: +glibc +gcc-runtime
+   DBdepsfixed="$(echo -n "$DB_dependencies" | tr ',' '\n' | grep -vE '^\+do_prepare|^\+glibc$|^\+gcc-runtime$' | tr '\n' ',' | sed -e 's%,$%%' -e 's%,$%%')"
+   DB_dependencies="$DBdepsfixed"
+  
    sync
    echo ; echo '...done'
   
