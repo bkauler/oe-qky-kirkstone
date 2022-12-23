@@ -21,6 +21,9 @@ inherit pkgconfig autotools gettext
 
 EXTRA_OECONF = ""
 
+#20221223
+CFLAGS:append = " -fcommon"
+
 do_configure:prepend() {
  touch README
 }
@@ -46,6 +49,16 @@ do_install() {
  install -m644 ${S}/data/zarfy.glade ${D}/usr/share/zarfy/
  install -m644 ${S}/data/zarfy.png ${D}/usr/share/zarfy/
 }
+
+#20221223 do_package error:
+# Exception: FileExistsError: [Errno 17] File exists: '/mnt/nvme0n1p6/oe-kirkstone/oe-quirky/build-amd64/tmp/pkgdata/genericx86-64/runtime/gdk-pixbuf-xlib.packaged' -> '/mnt/nvme0n1p6/oe-kirkstone/oe-quirky/build-amd64/tmp/work/nocona-64-poky-linux/zarfy/0.1.0-r0/pkgdata-sysroot/runtime/gdk-pixbuf-xlib.packaged'
+#well, don't need to package it, as only export from image folder...
+XXXdo_package() {
+ true
+}
+#...no, not a good idea. the problem is, gdk-pixbuf is packaging gdk-pixbuf-xlib,
+# although it doesn't really. have created:
+# meta-quirky/recipes-gnome/gdk-pixbuf/gdk-pixbuf_%.bbappend
 
 HOMEPAGE = "https://sourceforge.net/projects/zarfy/"
 SUMMARY = "A gui to libxrandr. Presents a visual representation of displays"
