@@ -264,7 +264,8 @@ if [ "$OENEW" ];then
   
    #20221223 getting this odd dep: +do_prepare_recipe_sysrootn:2
    # also, some just make db file bigger: +glibc +gcc-runtime +base-files +base-passwd +initscripts +update-rc.d +xorgproto
-   DBdepsfixed="$(echo -n "$DB_dependencies" | tr ',' '\n' | grep -vE '^\+do_prepare|^\+glibc$|^\+gcc-runtime$|^\+base-files$|^\+base-passwd$|^\+initscripts$|^\+update-rc\.d$|^\+xorgproto$' | tr '\n' ',' | sed -e 's%,$%%' -e 's%,$%%')"
+  # 20221224 more: +autoconf-archive +bash-completion +compiler-rt
+   DBdepsfixed="$(echo -n "$DB_dependencies" | tr ',' '\n' | grep -vE '^\+do_prepare|^\+glibc$|^\+gcc-runtime$|^\+base-files$|^\+base-passwd$|^\+initscripts$|^\+update-rc\.d$|^\+xorgproto$|^\+autoconf-archive$|^\+bash-completion$|^\+compiler-rt$' | tr '\n' ',' | sed -e 's%,$%%' -e 's%,$%%')"
    DB_dependencies="$DBdepsfixed"
   
    sync
