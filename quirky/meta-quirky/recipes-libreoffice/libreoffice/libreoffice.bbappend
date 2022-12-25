@@ -1,4 +1,8 @@
 
+#20221225 recompile, bump r0 to r1...
+#PR_NUM is defined in local.conf...
+PR = "r${@int(PR_NUM) + 1}"
+
 do_configure:prepend() {
  sed -i -e 's%^check-if-root:%check-if-rootXXX:%' ${S}/Makefile.in
  echo -e '\n\ncheck-if-root:\n\n' >> ${S}/Makefile.in
@@ -83,3 +87,7 @@ EXTRA_OECONF += " --with-system-neon --without-fonts --without-krb5 --disable-od
                  --disable-sdremote --disable-dbus --enable-python=no \
                  --disable-debug --disable-evolution2 --enable-pdfimport \
                  --enable-firebird-sdbc --disable-gstreamer-1-0 "
+
+#20221225
+PACKAGECONFIG:remove = "mariadb"
+PARALLEL_MAKE:libreoffice = "-j 4"
