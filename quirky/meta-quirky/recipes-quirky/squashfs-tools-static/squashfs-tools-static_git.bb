@@ -7,27 +7,27 @@ SECTION = "base"
 LICENSE = "GPL-2.0-only"
 LIC_FILES_CHKSUM = "file://../COPYING;md5=b234ee4d69f5fce4486a80fdaf4a4263"
 
-PV = "4.4"
-SRCREV = "52eb4c279cd283ed9802dd1ceb686560b22ffb67"
-SRC_URI = "git://github.com/plougher/squashfs-tools.git;protocol=https \
-           file://0001-squashfs-tools-fix-build-failure-against-gcc-10.patch;striplevel=2 \
-"
+PV = "4.5"
+SRCREV = "0496d7c3de3e09da37ba492081c86159806ebb07"
+SRC_URI = "git://github.com/plougher/squashfs-tools.git;protocol=https;branch=master \
+           file://0001-Avoid-use-of-INSTALL_DIR-for-symlink-targets.patch \
+           file://CVE-2021-41072-requisite-1.patch;striplevel=2 \
+           file://CVE-2021-41072-requisite-2.patch;striplevel=2 \
+           file://CVE-2021-41072-requisite-3.patch;striplevel=2 \
+           file://CVE-2021-41072.patch;striplevel=2 \
+           "
+UPSTREAM_CHECK_GITTAGREGEX = "(?P<pver>(\d+(\.\d+)+))"
 
 S = "${WORKDIR}/git/squashfs-tools"
 
-# 20210828 BK
-LDFLAGS += " -static"
-
-# 20210828 BK
-#DEPENDS = "gzip xz lzo lz4 attr"
-#no, problem seems to be do not have some static libs, see below...
+#20221227 BK
+LDFLAGS:append = " -static"
 
 EXTRA_OEMAKE = "${PACKAGECONFIG_CONFARGS}"
 
-#PACKAGECONFIG ??= "gzip xz lzo lz4 lzma xattr reproducible"
-#20210828 reduce... 20220515 now have static lz4, also add xz, lzma...
-#20221226 add zstd
-PACKAGECONFIG ??= "gzip xz lz4 lzma xattr reproducible zstd"
+#20221227 BK
+#PACKAGECONFIG ??= "gzip xz lzo lz4 lzma xattr zstd reproducible"
+PACKAGECONFIG ??= "gzip lz4 xattr zstd reproducible"
 
 PACKAGECONFIG[gzip] = "GZIP_SUPPORT=1,GZIP_SUPPORT=0,zlib"
 PACKAGECONFIG[xz] = "XZ_SUPPORT=1,XZ_SUPPORT=0,xz"
@@ -43,13 +43,17 @@ do_compile() {
 }
 
 do_install() {
+	install -d "${D}${includedir}"
 	oe_runmake install INSTALL_DIR=${D}${sbindir}
+	install -m 0644 "${S}"/squashfs_fs.h "${D}${includedir}"
 }
 
-ARM_INSTRUCTION_SET_armv4 = "arm"
-ARM_INSTRUCTION_SET_armv5 = "arm"
-ARM_INSTRUCTION_SET_armv6 = "arm"
+ARM_INSTRUCTION_SET:armv4 = "arm"
+ARM_INSTRUCTION_SET:armv5 = "arm"
+ARM_INSTRUCTION_SET:armv6 = "arm"
 
-BBCLASSEXTEND = "native nativesdk"
+#20221227 BK
+#BBCLASSEXTEND = "native nativesdk"
 
-CVE_PRODUCT = "squashfs"
+#20221227 BK
+#CVE_PRODUCT = "squashfs"

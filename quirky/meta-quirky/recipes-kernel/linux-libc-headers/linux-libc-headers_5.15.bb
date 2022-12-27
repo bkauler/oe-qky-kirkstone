@@ -1,8 +1,10 @@
 require linux-libc-headers.inc
 
+#20221226 libc-musl error, removed this patch:
+#    file://0003-remove-inclusion-of-sysinfo.h-in-kernel.h.patch 
+
 SRC_URI:append:libc-musl = "\
     file://0001-libc-compat.h-fix-some-issues-arising-from-in6.h.patch \
-    file://0003-remove-inclusion-of-sysinfo.h-in-kernel.h.patch \
     file://0001-libc-compat.h-musl-_does_-define-IFF_LOWER_UP-DORMAN.patch \
     file://0001-include-linux-stddef.h-in-swab.h-uapi-header.patch \
    "

@@ -91,11 +91,13 @@ PACKAGES_DYNAMIC = "^${PN}-.*"
 CACHED_CONFIGUREVARS += "scanf_cv_alloc_modifier=ms"
 UTIL_LINUX_LIBDIR = "${libdir}"
 UTIL_LINUX_LIBDIR:class-target = "${base_libdir}"
+
+#20221227 BK config fail, change --enable-raw to --disable-raw
 EXTRA_OECONF = "\
     --enable-libuuid --enable-libblkid \
     \
     --enable-fsck --enable-kill --enable-last --enable-mesg \
-    --enable-mount --enable-partx --enable-raw --enable-rfkill \
+    --enable-mount --enable-partx --disable-raw --enable-rfkill \
     --enable-unshare --enable-write \
     \
     --disable-bfs --disable-chfn-chsh --disable-login \
@@ -349,4 +351,12 @@ do_install:ptest() {
 
     sed -i 's|@base_sbindir@|${base_sbindir}|g'       ${D}${PTEST_PATH}/run-ptest
 
+}
+
+#20221227 BK do_package error...
+do_package() {
+ true
+}
+do_package_write_deb() {
+ true
 }
