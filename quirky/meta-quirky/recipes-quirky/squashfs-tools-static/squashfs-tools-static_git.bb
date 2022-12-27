@@ -26,7 +26,8 @@ EXTRA_OEMAKE = "${PACKAGECONFIG_CONFARGS}"
 
 #PACKAGECONFIG ??= "gzip xz lzo lz4 lzma xattr reproducible"
 #20210828 reduce... 20220515 now have static lz4, also add xz, lzma...
-PACKAGECONFIG ??= "gzip xz lz4 lzma xattr reproducible"
+#20221226 add zstd
+PACKAGECONFIG ??= "gzip xz lz4 lzma xattr reproducible zstd"
 
 PACKAGECONFIG[gzip] = "GZIP_SUPPORT=1,GZIP_SUPPORT=0,zlib"
 PACKAGECONFIG[xz] = "XZ_SUPPORT=1,XZ_SUPPORT=0,xz"

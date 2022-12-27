@@ -90,4 +90,4 @@ EXTRA_OECONF += " --with-system-neon --without-fonts --without-krb5 --disable-od
 
 #20221225
 PACKAGECONFIG:remove = "mariadb"
-PARALLEL_MAKE:libreoffice = "-j 4"
+PARALLEL_MAKE = "-j 4"
