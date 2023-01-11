@@ -1,7 +1,8 @@
 
+#20230111 bump to r2...
 #20221225 recompile, bump r0 to r1...
 #PR_NUM is defined in local.conf...
-PR = "r${@int(PR_NUM) + 1}"
+PR = "r${@int(PR_NUM) + 2}"
 
 do_configure:prepend() {
  sed -i -e 's%^check-if-root:%check-if-rootXXX:%' ${S}/Makefile.in
@@ -75,13 +76,14 @@ do_install() {
 
 }
 
+#20230111 leave --lang=ALL,  --with-locales defaults to ALL
+#         removed   --with-lang='en-GB fr de' --with-locales='en fr de'
 #20221201 the above worked. now import options from dunfell...
 #20221202 have to disable gst, coz don't want that dep...
 DEPENDS += " libx11 gtk+3 neon neon-native ghostscript "
-EXTRA_OECONF:remove = "--with-lang=ALL"
+#EXTRA_OECONF:remove = "--with-lang=ALL"
 EXTRA_OECONF:remove = "--enable-python=system"
 EXTRA_OECONF += " --with-system-neon --without-fonts --without-krb5 --disable-odk \
-                 --with-lang='en-GB fr de' --with-locales='en fr de' \
                  --disable-scripting-javascript --disable-scripting-beanshell \
                  --disable-lotuswordpro --enable-cups --disable-vlc --disable-qt5 \
                  --disable-sdremote --disable-dbus --enable-python=no \
