@@ -32,15 +32,18 @@ EXTRA_AUTORECONF += "--exclude=autoheader --exclude=automake"
 
 PACKAGECONFIG ??= ""
 
-DEPENDS = ""
+#20230117 bring in png, zlib...
+DEPENDS = "libpng-static zlib"
 
 EXTRA_OECONF = "CC_BUILD='${BUILD_CC}'"
 
 #cutdown...
+#20230117 removed: --with-brotli=no  added: --with-png=yes
 EXTRA_OECONF += "--without-ats --without-quickdraw-carbon \
     --without-quickdraw-toolbox --without-fsref --without-fsspec \
-    --without-old-mac-fonts --with-brotli=no --with-harfbuzz=no \
-    --with-png=no --with-bzip2=no --with-zlib=no --disable-shared --enable-static"
+    --without-old-mac-fonts --with-harfbuzz=no \
+    --with-png=yes --with-bzip2=no --with-zlib=yes \
+    --disable-shared --enable-static"
 
 TARGET_CPPFLAGS += "-D_FILE_OFFSET_BITS=64"
 
