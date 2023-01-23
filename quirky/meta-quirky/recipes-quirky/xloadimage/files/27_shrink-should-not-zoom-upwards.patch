@@ -1,0 +1,19 @@
+Description: Do not resize images that are smaller than the screen with -shrink
+ Shrink does also zoom upwards for images which are smaller than
+ the screen. The following patch fixes this, images smaller as the
+ screen are left at 100% zoom.
+Author: David Frey <dfrey@debian.org>
+Forwarded: no
+Bug-Debian: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=381382
+--- a/xloadimage.c
++++ b/xloadimage.c
+@@ -408,6 +408,9 @@ int main(argc, argv)
+ 	 / (float)newimage->width * 100.0 :
+ 	 ((float)DisplayHeight(disp, scrn) * 0.9)
+ 	 / (float)newimage->height * 100.0);
++      if ((opt->info.zoom.x > 100) || (opt->info.zoom.y > 100))
++        opt->info.zoom.x=opt->info.zoom.y=100;
++
+       addOption(optset, opt);
+     }
+ 

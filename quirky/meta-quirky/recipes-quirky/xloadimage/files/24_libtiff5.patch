@@ -1,0 +1,25 @@
+Description: Prepare for build against libtiff5
+ TIFFHeader has changed to TIFFHeaderClassic for the standard TIFF files
+ xloadimage supports; this might allow us to implement BigTIFF support
+ as well.
+Author: Dominik George <nik@naturalnet.de>
+Forwarded: no
+--- a/tiff.c
++++ b/tiff.c
+@@ -34,14 +34,14 @@ static TIFF *is_tiff(fullname, name, inf
+      struct tiff_info *info;
+ {
+   ZFILE *zf;
+-  TIFFHeader th;
++  TIFFHeaderClassic th;
+   TIFF *tiff;
+ 
+   zf = zopen(fullname);
+ 
+   /* read TIFF header and see if it looks right
+    */
+-  if ((zread(zf, (byte *)&th, sizeof(TIFFHeader)) == sizeof(TIFFHeader)) &&
++  if ((zread(zf, (byte *)&th, sizeof(TIFFHeaderClassic)) == sizeof(TIFFHeaderClassic)) &&
+       ((th.tiff_magic == TIFF_BIGENDIAN) ||
+        (th.tiff_magic == TIFF_LITTLEENDIAN))) {
+ 

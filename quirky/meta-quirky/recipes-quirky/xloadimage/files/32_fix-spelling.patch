@@ -1,0 +1,24 @@
+Description: Fix spelling issues in upstream source
+Author: Dominik George <nik@naturalnet.de>
+--- a/compress.c
++++ b/compress.c
+@@ -145,7 +145,7 @@ void compress_cmap(image, verbose)
+   }
+   if (verbose) {
+     if ((rgb.used == image->rgb.used) && !badcount)
+-      printf("no improvment\n");
++      printf("no improvement\n");
+     else {
+       int unused= image->rgb.used - rgb.used - dupcount;
+       if (dupcount)
+--- a/options.c
++++ b/options.c
+@@ -707,7 +707,7 @@ void processOptions(argc, argv, rglobal,
+       break;
+ 
+     case IDELAY:
+-      fprintf(stderr, "%s has been superceded by %s (translating)\n",
++      fprintf(stderr, "%s has been superseded by %s (translating)\n",
+ 	      optionName(IDELAY), optionName(DELAY));
+       /* FALLTHRU */
+ 

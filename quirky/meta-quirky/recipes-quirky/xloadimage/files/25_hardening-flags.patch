@@ -1,0 +1,14 @@
+Description: Add CPPFLAGS to CFLAGS to respect all hardening flags
+ by dpkg-buildflags
+Author: Dominik George <nik@naturalnet.de>
+Forwarded: no
+--- a/Makefile.in
++++ b/Makefile.in
+@@ -8,6 +8,7 @@ CFLAGS = @CFLAGS@
+ XLIB = @X_LIBS@ -lX11 @X_EXTRA_LIBS@
+ LDFLAGS = @LDFLAGS@
+ LIBS = @LIBS@
++CFLAGS += @CPPFLAGS@
+ 
+ SRCS = bright.c clip.c cmuwmraster.c compress.c config.c \
+ dither.c faces.c fbm.c fill.c gif.c halftone.c imagetypes.c img.c jpeg.c \

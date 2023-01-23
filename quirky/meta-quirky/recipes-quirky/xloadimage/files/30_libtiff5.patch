@@ -1,0 +1,16 @@
+Author: Dominik George <nik@naturalnet.de>
+Description: Builds with both libtiff4-dev and libtiff5-dev
+Forwarded: no
+--- a/tiff.c
++++ b/tiff.c
+@@ -11,6 +11,10 @@
+ 
+ #include <tiffio.h>
+ 
++#ifndef TIFF_VERSION_CLASSIC /* libtiff4 or libtiff5? */
++#define TIFFHeaderCommon TIFFHeader
++#endif
++
+ /* this structure contains all the information we care about WRT a TIFF
+  * image.
+  */

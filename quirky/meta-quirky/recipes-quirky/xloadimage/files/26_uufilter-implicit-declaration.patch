@@ -1,0 +1,13 @@
+Description: Include stdlib.h to declare exit()
+Author: Dominik George <nik@naturalnet.de>
+Forwarded: no
+--- a/uufilter.c
++++ b/uufilter.c
+@@ -12,6 +12,7 @@
+ 
+ #include <stdio.h>
+ #include <string.h>
++#include <stdlib.h>
+ 
+ int main(argc, argv)
+      int argc;

@@ -1,0 +1,718 @@
+Description: Use explicit hyphens/minus signs in man page to
+ allow for copy&pasting options in Unicode environments.
+Author: Dominik George <nik@naturalnet.de>
+Forwarded: no
+--- a/uufilter.man
++++ b/uufilter.man
+@@ -2,7 +2,7 @@
+ .SH NAME
+ uufilter - decode uuencoded files to stdout
+ .SH SYNOPSIS
+-\fIuufilter\fR [-f \fIoutfilename\fR] [-l] [-s] [-v] [\fIinfilename\fR]
++\fIuufilter\fR [\-f \fIoutfilename\fR] [\-l] [\-s] [\-v] [\fIinfilename\fR]
+ .SH DESCRIPTION
+ \fIUufilter\fR is a "smart" uuencoded file decoder that can optionally
+ dump the file to stdout.
+@@ -16,19 +16,19 @@ without stripping off the headers or oth
+ content.
+ .SH OPTIONS
+ .TP 8
+--f \fIfilename\fR
++\-f \fIfilename\fR
+ Dump output to \fIfilename\fR rather than the name specified in the
+ uuencoded file.
+ .TP
+--l
++\-l
+ Lenient mode.  This is useful if passed through a mailer that adds
+ trailing spaces.
+ .TP
+--s
++\-s
+ Dump output to stdout rather than to the filename indicated in the
+ uuencoded file.
+ .TP
+--v
++\-v
+ Verbose mode; talks about what's going on.
+ .SH AUTHOR
+ Jim Frost (jimf@centerline.com)
+--- a/xloadimage.man
++++ b/xloadimage.man
+@@ -9,7 +9,7 @@ the root window
+ .SH DESCRIPTION
+ \fIXloadimage\fR displays images in an X11 window, loads them onto the
+ root window, or writes them into a file.  Many image types are
+-recognized; use the \fI-supported\fR option to list them.
++recognized; use the \fI\-supported\fR option to list them.
+ .PP
+ If the filename \fIstdin\fR is given, xloadimage will read the image
+ from standard input if this capability is supported by the loader for
+@@ -18,38 +18,38 @@ that image type (most types do support r
+ If the destination display cannot support the number of colors in the
+ image, the image will be dithered (monochrome destination) or have its
+ colormap reduced (color destination) as appropriate.  This can also be
+-done forcibly with the \fI-halftone\fR, \fI-dither\fR, and
+-\fI-colors\fR options.
++done forcibly with the \fI\-halftone\fR, \fI\-dither\fR, and
++\fI\-colors\fR options.
+ .PP
+ A variety of image manipulations can be specified, including gamma
+-correction, brightening, clipping, dithering, depth-reduction,
++correction, brightening, clipping, dithering, depth\(hyreduction,
+ rotation, and zooming.  Most of these manipulations have simple
+ implementations; speed was opted for above accuracy.
+ .PP
+ If you are viewing a large image in a window, the initial window will
+ be at most 90% of the size of the display unless the window manager
+ does not correctly handle window size requests or if you've used the
+-\fI-fullscreen\fR option.  You may move the image around in the window
++\fI\-fullscreen\fR option.  You may move the image around in the window
+ by dragging with the first mouse button.  The cursor will indicate
+ which directions you may drag, if any.  You may exit the window by
+ typing 'q' or '^C' when the keyboard focus is on the window.
+ .PP
+ If more than one image file is specified on the command line, each
+-image will be shown in order (except if \fI-merge\fR or \fI-goto\fR
++image will be shown in order (except if \fI\-merge\fR or \fI\-goto\fR
+ are being used).
+ .PP
+ A wide variety of common image manipulations can be done by mixing and
+ matching the available options.  See the section entitled \fIHINTS FOR
+ GOOD IMAGE DISPLAYS\fR for some ideas.
+ .PP
+-The \fI-dump\fR option causes an image to be written to a file rather
++The \fI\-dump\fR option causes an image to be written to a file rather
+ than displayed after processing.  This allows you to read an image,
+ perform a number of processing operations on it, and save the
+ resultant image.  This also allows translation from any of the
+ recognized image types into any of the formats that support dumping.
+ .PP
+-\fIXsetbg\fR is equivalent to \fIxloadimage -onroot -quiet\fR and
+-\fIxview\fR is equivalent to \fIxloadimage -view -verbose\fR.
++\fIXsetbg\fR is equivalent to \fIxloadimage \-onroot \-quiet\fR and
++\fIxview\fR is equivalent to \fIxloadimage \-view \-verbose\fR.
+ .SH RESOURCE CLASS
+ \fIXloadimage\fR uses the resource class name \fIXloadimage\fR for
+ window managers which need this resource set.  This name changed
+@@ -59,58 +59,58 @@ in version 2.00 and 2.01; some previous
+ .SH GLOBAL OPTIONS
+ The following options affect the global operation of \fIxloadimage\fR.
+ They may be specified anywhere on the command line.  Additionally the
+-\fI-global\fR option can be used to force an image option to apply to
++\fI\-global\fR option can be used to force an image option to apply to
+ all images.
+ .TP 8
+--border \fIcolor\fR
++\-border \fIcolor\fR
+ This sets the background portion of the window which is not covered by
+ any images to be \fIcolor\fR.
+ .TP
+--configuration
++\-configuration
+ Displays the image path, image suffixes, and supported filters which
+ will be used when looking for and reading images.  These are loaded
+ from ~/.xloadimagerc and optionally from a systemwide file (normally
+-/usr/lib/xloadimagerc).  This replaces the -path option.
++/usr/lib/xloadimagerc).  This replaces the \-path option.
+ .TP
+--default
++\-default
+ Use the default root weave as the image.  This option forces
+-\fI-onroot\fR.  If \fI-default\fR is used alone, it is the same as
++\fI\-onroot\fR.  If \fI\-default\fR is used alone, it is the same as
+ \fIxsetroot\fR with no arguments.  If used in conjunction with
+-\fI-tile\fR this option can be used to place images on the default
++\fI\-tile\fR this option can be used to place images on the default
+ root weave (see \fBEXAMPLES\fR below).
+ .TP
+--debug
++\-debug
+ Talk to the X server in synchronous mode.  This is useful for
+ debugging.  If an X error is seen while in this mode, a core will be
+ dumped.
+ .TP
+--display \fIdisplay_name\fR
++\-display \fIdisplay_name\fR
+ X11 display name to send the image(s) to.
+ .TP
+--dump \fIimage_type[,option[=value]]\fR \fIdump_file\fR
++\-dump \fIimage_type[,option[=value]]\fR \fIdump_file\fR
+ Rather than displaying the loaded and processed image, dump it into an
+ image file of the specified type.  For a list of image types that can
+-be dumped, use the \fI-supported\fR option.  Some image types have
++be dumped, use the \fI\-supported\fR option.  Some image types have
+ options that affect the format of the file that's created.  See
+ \fBDUMP OPTIONS\fR below.  An image can be dumped in any supported
+ dump format regardless of the original image type, so image file type
+ translation is possible using this option.
+ .TP
+--fit
++\-fit
+ Force image to use the default visual and colormap.  This is useful if
+ you do not want technicolor effects when the colormap focus is inside
+ the image window, but it may reduce the quality of the displayed
+-image.  This is on by default if -onroot or -windowid is specified.
++image.  This is on by default if \-onroot or \-windowid is specified.
+ .TP
+--fork
++\-fork
+ Fork xloadimage.  This causes xloadimage to disassociate itself from
+-the shell.  This option automatically turns on -quiet.
++the shell.  This option automatically turns on \-quiet.
+ .TP
+--fullscreen
+-Use the entire screen to display images.  If combined with -onroot,
++\-fullscreen
++Use the entire screen to display images.  If combined with \-onroot,
+ the image will be zoomed to fill the entire rootwindow.
+ .TP
+--geometry \fIWxH[{+-X}{+-}Y]\fR
++\-geometry \fIWxH[{+\-X}{+\-}Y]\fR
+ This sets the size of the window onto which the images are loaded to a
+ different value than the size of the image.  When viewing an image in
+ a window, this can be used to reduce the size of the destination
+@@ -119,226 +119,226 @@ controls the size of the pixmap which wi
+ If the size is smaller than that of the display, the image will be
+ replicated.
+ .TP
+--goto image_name
++\-goto image_name
+ Forces the next image to be displayed to be the image named
+ \fIimage_name\fR.  This is useful for generating looped slideshows.
+ If more than one image of the same name as the target exists on the
+ argument list, the first in the argument list is used.
+ .TP
+--help [option ...]
++\-help [option ...]
+ Give information on an option or list of options.  If no option is
+ given, a simple interactive help facility is invoked.
+ .TP
+--identify
++\-identify
+ Identify the supplied images rather than display them.
+ .TP
+--install
++\-install
+ Forcibly install the image's colormap when the window is focused.
+ This violates ICCCM standards and only exists to allow operation with
+ naive window managers.  Use this option only if your window manager
+ does not install colormaps properly.
+ .TP
+--list
++\-list
+ List the images which are along the image path.
+ .TP
+--onroot
++\-onroot
+ Load image(s) onto the root window instead of viewing in a window.
+-This option automatically sets the -fit option.
+-This is the opposite of \fI-view\fR.  \fIXSetbg\fR has this option set
++This option automatically sets the \-fit option.
++This is the opposite of \fI\-view\fR.  \fIXSetbg\fR has this option set
+ by default.
+ .TP
+--path
++\-path
+ Displays miscellaneous information about the program configuration.
+-This option is obsolete and has been replaced by -configuration.
++This option is obsolete and has been replaced by \-configuration.
+ .TP
+--pixmap
+-Force the use of a pixmap as backing-store.  This is provided for
+-servers where backing-store is broken (such as some versions of the
++\-pixmap
++Force the use of a pixmap as backing\(hystore.  This is provided for
++servers where backing\(hystore is broken (such as some versions of the
+ AIXWindows server).  It may improve scrolling performance on servers
+-which provide backing-store.
++which provide backing\(hystore.
+ .TP
+--private
++\-private
+ Force the use of a private colormap.  Normally colors are allocated
+ shared unless there are not enough colors available.
+ .TP
+--quiet
++\-quiet
+ Forces \fIxloadimage\fR and \fIxview\fR to be quiet.  This is the
+ default for \fIxsetbg\fR, but the others like to whistle. 
+ .TP
+--supported
++\-supported
+ List the supported image types. 
+ .TP
+--type \fItype_name\fR
++\-type \fItype_name\fR
+ Forces \fIxloadimage\fR to try to load the image as a particular file
+ type rather than trying to guess.  This often improves load
+ performance noticeably.
+ .TP
+--verbose
++\-verbose
+ Causes \fIxloadimage\fR to be talkative, telling you what kind of
+ image it's playing with and any special processing that it has to do. 
+ This is the default for \fIxview\fR and \fIxloadimage\fR. 
+ .TP
+--version
++\-version
+ Print the version number and patchlevel of this version of
+ \fIxloadimage\fR.
+ .TP
+--view
+-View image(s) in a window.  This is the opposite of \fI-onroot\fR and
++\-view
++View image(s) in a window.  This is the opposite of \fI\-onroot\fR and
+ the default for \fIxview\fR and \fIxloadimage\fR. 
+ .TP
+--visual \fIvisual_name\fR
++\-visual \fIvisual_name\fR
+ Force the use of a specific visual type to display an image.  Normally
+ \fIxloadimage\fR tries to pick the best available image for a
+ particular image type.  The available visual types are:  DirectColor,
+ TrueColor, PseudoColor, StaticColor, GrayScale, and StaticGray.
+ Nonconflicting names may be abbreviated and case is ignored.
+ .TP
+--windowid \fIhex_window_id\fR
++\-windowid \fIhex_window_id\fR
+ Sets the background pixmap of a particular window ID.  The argument
+ must be in hexadecimal and must be preceded by "0x" (\fIeg\fR
+--windowid 0x40000b.  This is intended for setting the background
++\-windowid 0x40000b.  This is intended for setting the background
+ pixmap of some servers which use untagged virtual roots
+ (\fIeg\fR HP-VUE), but can have other interesting applications.
+ .SH IMAGE OPTIONS
+ The following options may precede each image.  These options are
+ local to the image they precede. 
+ .TP
+--at \fIX\fR,\fIY\fR
++\-at \fIX\fR,\fIY\fR
+ Indicates coordinates to load the image at on the base image.  If
+-this is an option to the first image, and the \fI-onroot\fR option is
++this is an option to the first image, and the \fI\-onroot\fR option is
+ specified, the image will be loaded at the given location on the
+ display background. 
+ .TP
+--background \fIcolor\fR
++\-background \fIcolor\fR
+ Use \fIcolor\fR as the background color instead of the default
+ (usually white but this depends on the image type) if you are
+ transferring a monochrome image to a color display. 
+ .TP
+--brighten \fIpercentage\fR
++\-brighten \fIpercentage\fR
+ Specify a percentage multiplier for a color image's colormap.  A value
+ of more than 100 will brighten an image, one of less than 100 will
+ darken it. 
+ .TP
+--center
++\-center
+ Center the image on the base image loaded.  If this is an option to
+ the first image, and the \fI-onroot\fR option is specified, the image
+ will be centered on the display background. 
+ .TP
+--clip \fIX\fR,\fIY\fR,\fIW\fR,\fIH\fR
++\-clip \fIX\fR,\fIY\fR,\fIW\fR,\fIH\fR
+ Clip the image before loading it.  \fIX\fR and \fIY\fR define the
+-upper-left corner of the clip area, and \fIW\fR and \fIH\fR define the
++upper\(hyleft corner of the clip area, and \fIW\fR and \fIH\fR define the
+ extents of the area.  A zero value for \fIW\fR or \fIH\fR will be
+ interpreted as the remainder of the image. 
+ .TP
+--colors \fIn\fR
++\-colors \fIn\fR
+ Specify the maximum number of colors to use in the image.  This is a
+ way to forcibly reduce the depth of an image.
+ .TP
+--delay \fIsecs\fR
++\-delay \fIsecs\fR
+ Automatically advance to the next image after \fIsecs\fR seconds.  You
+-may want to use the \fI-global\fR switch with this command to create a
++may want to use the \fI\-global\fR switch with this command to create a
+ slideshow with multiple images.
+ .TP
+--dither
+-Dither a color image to monochrome using a Floyd-Steinberg dithering
++\-dither
++Dither a color image to monochrome using a Floyd\(hySteinberg dithering
+ algorithm.  This happens by default when viewing color images on a
+-monochrome display.  This is slower than \fI-halftone\fR and affects
++monochrome display.  This is slower than \fI\-halftone\fR and affects
+ the image accuracy but usually looks much better.
+ .TP
+--foreground \fIcolor\fR
++\-foreground \fIcolor\fR
+ Use \fIcolor\fR as the foreground color instead of black if you are
+ transferring a monochrome image to a color display.  This can also be
+ used to invert the foreground and background colors of a monochrome
+ image. 
+ .TP
+--gamma \fIdisplay_gamma\fR
++\-gamma \fIdisplay_gamma\fR
+ Specify the gamma correction for the display.
+ The default value is 1.0, a typical display needs 2.0 to 2.5.
+ .TP
+--global
++\-global
+ Force the following option to apply to all images rather than one
+ specific image.  Local image options will temporarily override any
+-option specified with -global.
++option specified with \-global.
+ .TP
+--gray
++\-gray
+ Convert an image to grayscale.  This is very useful when displaying
+ colorful images on servers with limited color capability.  It can also
+ be used to convert a bitmap image into a grayscale image, although the
+ resulting image will be smaller than the original.  The optional
+-spelling \fI-grey\fR may also be used.
++spelling \fI\-grey\fR may also be used.
+ .TP
+--halftone
++\-halftone
+ Force halftone dithering of a color image when displaying on a
+ monochrome display.  This option is ignored on monochrome images.
+ This dithering algorithm blows an image up by sixteen times; if you
+-don't like this, the \fI-dither\fR option will not blow the image up
++don't like this, the \fI\-dither\fR option will not blow the image up
+ but will take longer to process and will be less accurate.
+ .TP
+--idelay \fIsecs\fR
++\-idelay \fIsecs\fR
+ This option is no longer supported due to the addition of
+-\fI-global\fR.  The same functionality can be had with \fI-delay\fR.
++\fI\-global\fR.  The same functionality can be had with \fI\-delay\fR.
+ .TP
+--invert
+-Inverts a monochrome image.  This is shorthand for \fI-foreground
+-white -background black\fR.
++\-invert
++Inverts a monochrome image.  This is shorthand for \fI\-foreground
++white \-background black\fR.
+ .TP
+--merge
++\-merge
+ Merge this image onto the base image after local processing.  The base
+ image is considered to be the first image specified or the last image
+-that was not preceded by \fI-merge\fR.  If used in conjunction with
+-\fI-at\fR and \fI-clip\fR, very complex images can be built up.  This
+-option is on by default for all images if the \fI-onroot\fR or
+-\fI-windowid\fR options are specified.
++that was not preceded by \fI\-merge\fR.  If used in conjunction with
++\fI\-at\fR and \fI\-clip\fR, very complex images can be built up.  This
++option is on by default for all images if the \fI\-onroot\fR or
++\fI\-windowid\fR options are specified.
+ .TP
+--name \fIimage_name\fR
++\-name \fIimage_name\fR
+ Force the next argument to be treated as an image name.  This is
+-useful if the name of the image is \fI-dither\fR, for instance. 
++useful if the name of the image is \fI\-dither\fR, for instance. 
+ .TP
+--newoptions
++\-newoptions
+ Reset globally-specified options.
+ .TP
+--normalize
++\-normalize
+ Normalize a color image.
+ .TP
+--rotate \fIdegrees\fR
++\-rotate \fIdegrees\fR
+ Rotate the image by \fIdegrees\fR clockwise.  The number must be a
+ multiple of 90.
+ .TP
+--shrink
++\-shrink
+ Shrink an image down to fit on the display.  This is particularly
+ useful with servers that do not support window sizes larger than the
+ physical screen (eg DECWINDOWS servers).
+ .TP
+--smooth
++\-smooth
+ Smooth a color image.  This reduces blockiness after zooming an image
+ up.  If used on a monochrome image, nothing happens.  This option can
+ take awhile to perform, especially on large images.  You may specify
+-more than one \fI-smooth\fR option per image, causing multiple
++more than one \fI\-smooth\fR option per image, causing multiple
+ iterations of the smoothing algorithm.
+ .TP
+--tile
++\-tile
+ Tile this image (after any necessary merging or tiling) to create a
+ fullscreen image.  This is usually used to create a large background
+-image on which to merge other images.  \fI-geometry\fR can be used to
+-set the new image size to something other than -fullscreen.
++image on which to merge other images.  \fI\-geometry\fR can be used to
++set the new image size to something other than \-fullscreen.
+ .TP
+--title \fItitle\fR
++\-title \fItitle\fR
+ Change the title of the image.  This sets the title bar title if
+ displaying in a window or the NIFF file image title if dumping the
+ image.
+ .TP
+--xzoom \fIpercentage\fR
++\-xzoom \fIpercentage\fR
+ Zoom the X axis of an image by \fIpercentage\fR.  A number greater
+ than 100 will expand the image, one smaller will compress it.  A zero
+-value will be ignored.  This option, and the related \fI-yzoom\fR are
++value will be ignored.  This option, and the related \fI\-yzoom\fR are
+ useful for correcting the aspect ratio of images to be displayed.
+ .TP
+--yzoom \fIpercentage\fR
+-Zoom the Y axis of an image by \fIpercentage\fR.  See \fI-xzoom\fR for
++\-yzoom \fIpercentage\fR
++Zoom the Y axis of an image by \fIpercentage\fR.  See \fI\-xzoom\fR for
+ more information. 
+ .TP
+--zoom \fIpercentage\fR
+-Zoom both the X and Y axes by \fIpercentage\fR.  See \fI-xzoom\fR for
++\-zoom \fIpercentage\fR
++Zoom both the X and Y axes by \fIpercentage\fR.  See \fI\-xzoom\fR for
+ more information.  Technically the percentage actually zoomed is the
+ square of the number supplied since the zoom is to both axes, but I
+ opted for consistency instead of accuracy.
+@@ -347,80 +347,80 @@ To load the rasterfile "my.image" onto t
+ it to fill the entire background:
+ .sp
+ .ti +5
+-xloadimage -onroot my.image
++xloadimage \-onroot my.image
+ .PP
+ To center an image on the default root background:
+ .sp
+ .ti +5
+-xloadimage -default -tile my.image
++xloadimage \-default \-tile my.image
+ .sp
+ If using a monochrome display and a color image you will probably want
+ to dither the image for a cleaner (and faster) display:
+ .sp
+ .ti +5
+-xloadimage -default -tile -dither my.image
++xloadimage \-default \-tile \-dither my.image
+ .PP
+ To load a monochrome image "my.image" onto the background, using red
+ as the foreground color, replicate the image, and overlay
+ "another.image" onto it at coordinate (10,10):
+ .sp
+ .ti +5
+-xloadimage -foreground red my.image -at 10,10 another.image
++xloadimage \-foreground red my.image \-at 10,10 another.image
+ .PP
+ To center the rectangular region from 10 to 110 along the X axis and
+ from 10 to the height of the image along the Y axis:
+ .sp
+ .ti +5
+-xloadimage -center -clip 10,10,100,0 my.image
++xloadimage \-center \-clip 10,10,100,0 my.image
+ .PP
+ To double the size of an image:
+ .sp
+ .ti +5
+-xloadimage -zoom 200 my.image
++xloadimage \-zoom 200 my.image
+ .PP
+ To halve the size of an image:
+ .sp
+ .ti +5
+-xloadimage -zoom 50 my.image
++xloadimage \-zoom 50 my.image
+ .PP
+ To brighten a dark image:
+ .sp
+ .ti +5
+-xloadimage -brighten 150 my.image
++xloadimage \-brighten 150 my.image
+ .PP
+ To darken a bright image:
+ .sp
+ .ti +5
+-xloadimage -brighten 50 my.image
++xloadimage \-brighten 50 my.image
+ .SH HINTS FOR GOOD IMAGE DISPLAYS
+ Since images are likely to come from a variety of sources, they may be
+ in a variety of aspect ratios which may not be supported by your
+-display.  The \fI-xzoom\fR and \fI-yzoom\fR options can be used to
++display.  The \fI\-xzoom\fR and \fI\-yzoom\fR options can be used to
+ change the aspect ratio of an image before display.  If you use these
+ options, it is recommended that you increase the size of one of the
+ dimensions instead of shrinking the other, since shrinking looses
+ detail.  For instance, many GIF and G3 FAX images have an X:Y ratio of
+ about 2:1.  You can correct this for viewing on a 1:1 display with
+-either \fI-xzoom 50\fR or \fI-yzoom 200\fR (reduce X axis to 50% of
++either \fI\-xzoom 50\fR or \fI\-yzoom 200\fR (reduce X axis to 50% of
+ its size and expand Y axis to 200% of its size, respectively) but the
+ latter should be used so no detail is lost in the conversion.
+ .PP
+ When zooming color images up you can reduce blockiness with
+-\fI-smooth\fR.  For zooms of 300% or more, I recommend two smoothing
++\fI\-smooth\fR.  For zooms of 300% or more, I recommend two smoothing
+ passes (although this can take awhile to do on slow machines).  There
+ will be a noticeable improvement in the image.
+ .PP
+ You can perform image processing on a small portion of an image by
+-loading the image more than once and using the \fI-merge\fR, \fI-at\fR
+-and \fI-clip\fR options.  Load the image, then merge it with a
++loading the image more than once and using the \fI\-merge\fR, \fI\-at\fR
++and \fI\-clip\fR options.  Load the image, then merge it with a
+ clipped, processed version of itself.  To brighten a 100x100 rectangular
+ portion of an image located at (50,50), for instance, you could type:
+ .sp
+ .ti +5
+-xloadimage my.image -merge -at 50,50 -clip 50,50,100,100 -brighten 150 my.image
++xloadimage my.image \-merge \-at 50,50 \-clip 50,50,100,100 \-brighten 150 my.image
+ .PP
+ If you're using a display with a small colormap to display colorful
+-images, try using the \fI-gray\fR option to convert to grayscale.
++images, try using the \fI\-gray\fR option to convert to grayscale.
+ .SH PATHS AND EXTENSIONS
+ The file ~/.xloadimagerc (and optionally a system-wide file) defines a
+ number of configuration options that affect xloadimage.
+@@ -472,19 +472,19 @@ provided for compressed (.Z) files and G
+ \fBFILTERS\fR section for more information on defining your own
+ filters.
+ .PP
+-Any text on a line following a hash-mark (#) is ignored; if you wish
+-to use a hash-mark in a path, extension, or filter you can escape it
++Any text on a line following a hash\(hymark (#) is ignored; if you wish
++to use a hash\(hymark in a path, extension, or filter you can escape it
+ using a backslash (\\).
+ .PP
+ If you wish to include white-space in a filter program name, path, or
+-extension you can enclose the entire text in double-quotes.  For
++extension you can enclose the entire text in double\(hyquotes.  For
+ example:
+ .PP
+ .nf
+-  filter = "gzip -cd" .gz
++  filter = "gzip \-cd" .gz
+ .fi
+ .PP
+-Use backslash (\\) characters to allow inclusion of double-quote marks
++Use backslash (\\) characters to allow inclusion of double\(hyquote marks
+ or newlines.
+ .PP
+ The following is a sample ~/.xloadimagerc file:
+@@ -499,7 +499,7 @@ The following is a sample ~/.xloadimager
+   extension = .csun .msun .sun .face .xbm .bm
+ 
+   # invoke GNU zip if a .z or .zip extension is found
+-  filter = "gzip -cd" .z .zip
++  filter = "gzip \-cd" .z .zip
+ 
+ .fi
+ .PP
+@@ -507,7 +507,7 @@ The following is a sample ~/.xloadimager
+ .PP
+ \fIXloadimage\fR currently supports many common and some uncommon
+ image types, and can create images in several formats.  For a complete
+-list use the \fI-supported\fR option.
++list use the \fI\-supported\fR option.
+ .SH DUMPING IMAGES
+ Several image dumpers are included that can be used to create a new
+ image after loading and processing.  The NIFF (Native Image File
+@@ -518,12 +518,12 @@ format.
+ Some image dumpers allow options that affect the image output.  These
+ options are appended to the image type following a comma and are
+ separated by commas.  If a value is desired it can be specified
+-following an equals-sign.  For example, to create a monochrome JPEG
++following an equals\(hysign.  For example, to create a monochrome JPEG
+ image file with a quality factor of 80, you would use the following
+ command line:
+ .PP
+ .nf
+-  xloadimage image_name -dump jpeg,quality=80,grayscale new_image.jpg
++  xloadimage image_name \-dump jpeg,quality=80,grayscale new_image.jpg
+ .fi
+ .PP
+ Option names can be abbreviated but if the abbreviation is too short
+@@ -537,20 +537,20 @@ The xloadimage distribution includes a s
+ called \fIuufilter\fR that can be used to automatically uudecode files
+ for processing.  \fIUufilter\fR ignores extraneous lines in the file
+ so it is particularly useful if the uuencoded file was created by
+-concatenating email or news postings that had headers or line-break
++concatenating email or news postings that had headers or line\(hybreak
+ indicators included.
+ .PP
+ To make use of \fIuufilter\fR you can add the following to your
+ \fI.xloadimagerc\fR file:
+ .PP
+ .nf
+-  filter = "uufilter -s" .uu .uue
++  filter = "uufilter \-s" .uu .uue
+ .fi
+ The filter will be automatically invoked on any file with a .uu or
+ \&.uue extension.
+ .PP
+ For a list of filters automatically recognized by xloadimage use the
+-\fI-configuration\fR option.
++\fI\-configuration\fR option.
+ .PP
+ .SH SUPPORTED IMAGE OPTIONS
+ .PP
+@@ -564,7 +564,7 @@ Force a monochrome (grayscale) image to
+ image.
+ .TP
+ nointerleave
+-Create a non-interleaved file.
++Create a non\(hyinterleaved file.
+ .TP
+ optimize
+ Enable entropy parameter optimization.
+@@ -604,9 +604,9 @@ Image data compression technique.  Can b
+ \fIrle\fR (CCITT RLE compression),
+ \fIg3fax\fR (CCITT Group 3 FAX compression),
+ \fIg4fax\fR (CCITT Group 4 FAX compression),
+-\fIlzw\fR (Limpel-Ziv-Welsh compression, the default),
++\fIlzw\fR (Limpel\(hyZiv\(hyWelsh compression, the default),
+ \fIjpeg\fR (JPEG compression),
+-\fInext\fR (NeXT run-length compression),
++\fInext\fR (NeXT run\(hylength compression),
+ \fIrlew\fR (CCITT RLEW compression),
+ \fImac\fR (Macintosh PackBits compression),
+ \fIpackbits\fR (same as \fImac\fR),
+@@ -624,17 +624,17 @@ CenterLine Software
+ jimf@centerline.com
+ .fi
+ .PP
+-For a more-or-less complete list of other contributors (there are a
++For a more\(hyor\(hyless complete list of other contributors (there are a
+ \fIlot\fR of them), please see the README file enclosed with the
+ distribution.
+ .SH FILES
+ .nf
+ .in +5
+-xloadimage              - the image loader and viewer
+-xsetbg                  - pseudonym which quietly sets the background
+-xview                   - pseudonym which views in a window
+-/etc/X11/Xloadimage     - default system-wide configuration file
+-~/.xloadimagerc         - user's personal configuration file
++xloadimage              \- the image loader and viewer
++xsetbg                  \- pseudonym which quietly sets the background
++xview                   \- pseudonym which views in a window
++/etc/X11/Xloadimage     \- default system-wide configuration file
++~/.xloadimagerc         \- user's personal configuration file
+ .in -5
+ .fi
+ .SH COPYRIGHT
+@@ -662,7 +662,7 @@ file, but \fIxloadimage\fR will only dis
+ Only GIF87a format is supported.
+ .PP
+ One of the pseudonyms for \fIxloadimage\fR, \fIxview\fR, is the same
+-name as Sun uses for their SunView-under-X package.  This will be
++name as Sun uses for their SunView\(hyunder\(hyX package.  This will be
+ confusing if you're one of those poor souls who has to use Sun's
+ XView.
+ .PP
+@@ -674,7 +674,7 @@ screen, something which is normally avoi
+ also ignore the MaxSize argument's real function, to limit the maximum
+ size of the window, and allow the window to be resized larger than the
+ image.  If this happens, \fIxloadimage\fR merely places the image in
+-the upper-left corner of the window and uses the zero-value'ed pixel
++the upper\(hyleft corner of the window and uses the zero\(hyvalue'ed pixel
+ for any space which is not covered by the image.  This behavior is
+-less-than-graceful but so are window managers which are cruel enough
++less\(hythan\(hygraceful but so are window managers which are cruel enough
+ to ignore such details.

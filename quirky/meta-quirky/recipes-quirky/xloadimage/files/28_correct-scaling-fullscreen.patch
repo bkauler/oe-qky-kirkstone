@@ -1,0 +1,19 @@
+Description: -fullscreen option behaves incorrectly if one of the
+ images' dimensions is bigger than screen, but the other is not. It's
+ caused by a forgotten typecast from uint to int.
+Author: Anton Khirnov <wyskas@gmail.com>
+Forwarded: no
+Bug-Debisn: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=506343
+--- a/xloadimage.c
++++ b/xloadimage.c
+@@ -379,8 +379,8 @@ int main(argc, argv)
+       if ((newimage->width > DisplayWidth(disp, scrn)) ||
+ 	  (newimage->height > DisplayHeight(disp, scrn))) {
+ 	opt->info.zoom.x= opt->info.zoom.y= 
+-	  (newimage->width - DisplayWidth(disp, scrn) >
+-	   newimage->height - DisplayHeight(disp, scrn) ?
++	  ((int)newimage->width - DisplayWidth(disp, scrn) >
++	   (int)newimage->height - DisplayHeight(disp, scrn) ?
+ 	   (float)DisplayWidth(disp, scrn) / (float)newimage->width * 100.0 :
+ 	   (float)DisplayHeight(disp, scrn) / (float)newimage->height * 100.0);
+       }
