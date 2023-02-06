@@ -1,5 +1,5 @@
 # Recipe created by recipetool
-# recipetool create -o xvidtune_1.0.3.bb https://www.x.org/releases/individual/app/xvidtune-1.0.3.tar.gz
+# recipetool create -o xvidtune_1.0.4.bb https://www.x.org/releases/individual/app/xvidtune-1.0.4.tar.gz
 
 require recipes-graphics/xorg-app/xorg-app-common.inc
 
@@ -7,11 +7,12 @@ LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://COPYING;md5=fa0b9c462d8f2f13eba26492d42ea63d"
 
 SRC_URI = "https://www.x.org/releases/individual/app/xvidtune-${PV}.tar.gz"
-SRC_URI[md5sum] = "e0c31d78741ae4aab2f4bfcc2abd4a3d"
-SRC_URI[sha256sum] = "c0e158388d60e1ce054ce462958a46894604bd95e13093f3476ec6d9bbd786d4"
 
-# libx11
-DEPENDS += "libxaw libxxf86vm libxt libxmu libxpm xorgproto"
+SRC_URI[md5sum] = "e73ede189f78df416b711113cafc82df"
+SRC_URI[sha256sum] = "e5982c9e6c5009f0061c187a9cc82368215bd004cfa464a3d738c90e1d258668"
+
+# libx11 xorgproto
+DEPENDS += "libxaw libxxf86vm libxt libxmu libxpm"
 
 #inherit pkgconfig autotools
 
