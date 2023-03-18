@@ -18,12 +18,14 @@ inherit meson pkgconfig gettext upstream-version-is-even gobject-introspection
 GIR_MESON_ENABLE_FLAG = "enabled"
 GIR_MESON_DISABLE_FLAG = "disabled"
 
+#20230317 removed:
+#    -Ddbghelp=disabled 
+#    -Dgtk_doc=disabled 
+
 EXTRA_OEMESON += " \
     -Dexamples=disabled \
-    -Ddbghelp=disabled \
     -Dtests=disabled \
     -Dbash-completion=disabled \
-    -Dgtk_doc=disabled \
     "
 
 
