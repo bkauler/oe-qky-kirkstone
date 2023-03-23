@@ -7,3 +7,6 @@ oe-qky-kirkstone is the successor to oe-qky-dunfell. Look at the oe-qky-dunfell 
 
 https://github.com/bkauler/oe-qky-dunfell/blob/main/readme
 
+20230321 IMPORTANT
+Host system EasyOS Kirkstone-series 5.1.1 failed unpack binutils-cross.
+EasyOS Dunfell-series 4.5.5 works.

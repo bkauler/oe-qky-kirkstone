@@ -8,7 +8,7 @@ if [ ! -d downloads-oe ];then #sanity check.
 fi
 
 #BUILDSPATH='/mnt/build/oe-kirkstone' ###SET THIS###
-BUILDSPATH='/mnt/nvme0n1p6/oe-kirkstone'
+BUILDSPATH='/mnt/build/builds/oe/kirkstone'
 if [ ! -d $BUILDSPATH ];then
  echo "Error, folder ${BUILDSPATH} does not exist."
  exit
@@ -70,7 +70,7 @@ else
 fi
 
 mkdir -p ${BUILDSPATH}/oe-quirky
-echo 'Populating ${BUILDSPATH}/oe-quirky...'
+echo "Populating ${BUILDSPATH}/oe-quirky..."
 tar -xf downloads-oe/openembedded-core.tar.gz --directory=${BUILDSPATH}/oe-quirky --strip=1
 tar -xf downloads-oe/meta-openembedded.tar.gz --directory=${BUILDSPATH}/oe-quirky --strip=1
 tar -xf downloads-oe/bitbake.tar.gz --directory=${BUILDSPATH}/oe-quirky
@@ -113,7 +113,10 @@ sed -i -e 's%if 0 == os\.getuid%if 9999 == os.getuid%' ${BUILDSPATH}/oe-quirky/m
 
 #20221201 python executable links...
 [ ! -e /usr/bin/python2 ] && [ -e /usr/bin/python2.7 ] && ln -s python2.7 /usr/bin/python2
-FNDPY3="$(find /usr/bin -maxdepth 1 -type f -name 'python3.[0-9]' | head -n 1)"
+FNDPY3="$(find /usr/bin -maxdepth 1 -type f -name 'python3.[0-9][0-9]' | head -n 1)"
+if [ ! "$FNDPY3" ];then
+ FNDPY3="$(find /usr/bin -maxdepth 1 -type f -name 'python3.[0-9]' | head -n 1)"
+fi
 if [ ! "$FNDPY3" ];then
  echo "Error, Python >= 3.4 is required."
  exit
@@ -158,7 +161,9 @@ rm -rf ${BUILDSPATH}/oe-quirky/meta-office/appends/harfbuzz
 #20221130 install 'shadow' pkg fails...
 sed -i -e 's%chown root:mail%#chown root:mail%' ${BUILDSPATH}/oe-quirky/meta/recipes-extended/shadow/shadow.inc
 # do_package 'dbus' pkg fails...
-sed -i -e 's%chown %#chown %' ${BUILDSPATH}/oe-quirky/meta/recipes-core/dbus/dbus_1.14.0.bb
+DBUSBB="$(find ${BUILDSPATH}/oe-quirky/meta/recipes-core/dbus -mindepth 1 -maxdepth 1 -type f -name 'dbus_1.*.bb')"
+#sed -i -e 's%chown %#chown %' ${BUILDSPATH}/oe-quirky/meta/recipes-core/dbus/dbus_1.14.0.bb
+sed -i -e 's%chown %#chown %' ${DBUSBB}
 
 #20221201 libreoffice: clucene-core does not compile, use builtin
 sed -i '/clucene-core/d' ${BUILDSPATH}/oe-quirky/meta-office/recipes-libreoffice/libreoffice/libreoffice-native.bb
