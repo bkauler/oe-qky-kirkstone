@@ -26,3 +26,6 @@ do_install:append() {
 }
 
 FILES:${PN} += "/usr/share/doc/nls/bluetoothctl/bluetoothctl.pot"
+
+#20230321
+EXTRA_OECONF:append = " --enable-hid2hci"
