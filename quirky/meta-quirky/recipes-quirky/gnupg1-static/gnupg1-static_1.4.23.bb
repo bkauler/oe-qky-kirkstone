@@ -3,7 +3,11 @@
 LICENSE = "GPL-3.0-only"
 LIC_FILES_CHKSUM = "file://COPYING;md5=f27defe1e96c2e1ecd4e0c9be8967949"
 
-SRC_URI = "https://gnupg.org/ftp/gcrypt/gnupg/gnupg-${PV}.tar.bz2"
+#20230405 patches from debian...
+SRC_URI = "https://gnupg.org/ftp/gcrypt/gnupg/gnupg-${PV}.tar.bz2 \
+  file://0005-gpg-Change-default-digest-algorithm-to-SHA256.patch \
+  file://0006-fix-for-gcc10.patch"
+
 SRC_URI[md5sum] = "b1df02c73572f27bc859ac05ff2259ab"
 SRC_URI[sha256sum] = "c9462f17e651b6507848c08c430c791287cd75491f8b5a8b50c6ed46b12678ba"
 
