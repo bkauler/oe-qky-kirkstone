@@ -1,6 +1,7 @@
 #!/bin/sh
 #20220225
 #20221217 support destination oe-quirky already exists.
+#20230405 create meta-quirky-cut for musl build.
 
 if [ ! -d downloads-oe ];then #sanity check.
  echo "Error, folder downloads-oe does not exist."
@@ -104,6 +105,13 @@ tar -xf downloads-oe/meta-browser.tar.gz --directory=${BUILDSPATH}/oe-quirky --s
 cp -a -f --remove-destination quirky/* ${BUILDSPATH}/oe-quirky/
 sync
 
+#20230405 for musl build
+cp -a ${BUILDSPATH}/oe-quirky/meta-quirky ${BUILDSPATH}/oe-quirky/meta-quirky-cut
+for aCUT in recipes-browser/chromium recipes-devtools/clang recipes-gnome/evince recipes-gnome/gthumb recipes-gnome/gtk4 recipes-gnome/nautilus recipes-graphics/harfbuzz recipes-graphics/mesa recipes-graphics/scribus recipes-libreoffice/libreoffice recipes-multimedia/sox recipes-multimedia/vlc recipes-multimedia/x265 recipes-qt/qt5 recipes-quirky/freetype-static recipes-quirky/gui-engine recipes-quirky/libsdl-fb recipes-quirky/obs recipes-quirky/vym recipes-support/mlt recipes-support/redland
+do
+ rm -rf ${BUILDSPATH}/oe-quirky/meta-quirky-cut/${aCUT}
+done
+
 # copy the docs also...
 cp -a docs ${BUILDSPATH}/oe-quirky/
 
@@ -127,10 +135,12 @@ BASEPY3="$(basename $FNDPY3)"
 #download src-pkgs folder...
 mkdir -p ${BUILDSPATH}/downloads
 ln -snfr ${BUILDSPATH}/downloads ${BUILDSPATH}/oe-quirky/build-amd64/downloads
+ln -snfr ${BUILDSPATH}/downloads ${BUILDSPATH}/oe-quirky/build-amd64-musl/downloads
 
 #fix absolute paths in bblayers.conf...
 PTN1="s%ABSPATH%${BUILDSPATH}%"
 sed -i -e "$PTN1" ${BUILDSPATH}/oe-quirky/build-amd64/conf/bblayers.conf
+sed -i -e "$PTN1" ${BUILDSPATH}/oe-quirky/build-amd64-musl/conf/bblayers.conf
 
 #181202 to compile ghostscript with libgs, need this...
 #ref: https://patchwork.openembedded.org/patch/137913/
