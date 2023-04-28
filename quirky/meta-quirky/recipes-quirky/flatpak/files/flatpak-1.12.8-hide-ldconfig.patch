@@ -1,0 +1,12 @@
+diff -Naur flatpak-1.12.8ORIG/common/flatpak-run.c flatpak-1.12.8/common/flatpak-run.c
+--- flatpak-1.12.8ORIG/common/flatpak-run.c	2023-03-16 17:55:31.000000000 +0800
++++ flatpak-1.12.8/common/flatpak-run.c	2023-04-28 04:53:35.589983679 +0800
+@@ -4240,7 +4240,7 @@
+       runtime_files = g_object_ref (original_runtime_files);
+     }
+ 
+-  bin_ldconfig = g_file_resolve_relative_path (runtime_files, "bin/ldconfig");
++  bin_ldconfig = g_file_resolve_relative_path (runtime_files, "bin/ldconfigXXX");
+   if (!g_file_query_exists (bin_ldconfig, NULL))
+     use_ld_so_cache = FALSE;
+ 

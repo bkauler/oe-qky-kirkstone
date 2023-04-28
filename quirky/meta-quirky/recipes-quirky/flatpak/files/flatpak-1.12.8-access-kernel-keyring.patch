@@ -1,0 +1,14 @@
+diff -Naur flatpak-1.12.8P1/common/flatpak-run.c flatpak-1.12.8P2/common/flatpak-run.c
+--- flatpak-1.12.8P1/common/flatpak-run.c	2023-04-28 06:35:19.836715351 +0800
++++ flatpak-1.12.8P2/common/flatpak-run.c	2023-04-28 06:59:04.703472187 +0800
+@@ -3119,10 +3119,6 @@
+     /* Don't allow reading current quota use */
+     {SCMP_SYS (quotactl), EPERM},
+ 
+-    /* Don't allow access to the kernel keyring */
+-    {SCMP_SYS (add_key), EPERM},
+-    {SCMP_SYS (keyctl), EPERM},
+-    {SCMP_SYS (request_key), EPERM},
+ 
+     /* Scary VM/NUMA ops */
+     {SCMP_SYS (move_pages), EPERM},
