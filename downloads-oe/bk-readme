@@ -3,3 +3,10 @@ Nov, 30, 2022
 -------------
 kirkstone is yocto version 4.0. latest is 4.0.5
 
+Mar 20, 2023
+------------
+latest is 4.0.8
+
+May 8, 2023
+-----------
+update chromium from 111.0.5563.64 to 111.0.5563.147
