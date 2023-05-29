@@ -15,3 +15,8 @@ http://cgit.openembedded.org/openembedded-core/snapshot/openembedded-core-31daf9
 
 ...ok, have copied mesa from that.
 
+-----------------------------------
+20230529
+compile mesa so have libGLX, which is in pkg 'libglvnd'.
+downloaded openembedded-core master, and merged part of 'mesa.inc' to here.
+
