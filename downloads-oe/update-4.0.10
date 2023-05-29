@@ -1,0 +1,124 @@
+#!/bin/ash
+#executed on May 29, 2023
+
+rm -rf meta-yocto 2>/dev/null
+rm -f meta-yocto.tar.gz
+git clone -b kirkstone git://git.yoctoproject.org/meta-yocto --depth 1
+rm -rf meta-yocto/.git
+dir2tgz meta-yocto
+sync
+
+rm -rf openembedded-core 2>/dev/null
+rm -f openembedded-core.tar.gz
+git clone -b kirkstone git://git.openembedded.org/openembedded-core openembedded-core --depth 1
+rm -rf openembedded-core/.git
+dir2tgz openembedded-core
+sync
+
+rm -rf meta-openembedded 2>/dev/null
+rm -f meta-openembedded.tar.gz
+git clone -b kirkstone git://git.openembedded.org/meta-openembedded meta-openembedded --depth 1
+rm -rf meta-openembedded/.git
+dir2tgz meta-openembedded
+sync
+
+rm -rf bitbake 2>/dev/null
+rm -f bitbake.tar.gz
+git clone -b '2.0.10' git://git.openembedded.org/bitbake bitbake --depth 1
+rm -rf bitbake/.git
+dir2tgz bitbake
+sync
+
+rm -rf meta-qt5 2>/dev/null
+rm -f meta-qt5.tar.gz
+git clone -b kirkstone https://github.com/meta-qt5/meta-qt5.git meta-qt5 --depth 1
+rm -rf meta-qt5/.git
+dir2tgz meta-qt5
+sync
+
+#there is no kirkstone branch...
+rm -rf meta-qt5-extra 2>/dev/null
+rm -f meta-qt5-extra.tar.gz
+git clone -b master https://github.com/schnitzeltony/meta-qt5-extra.git meta-qt5-extra --depth 1
+rm -rf meta-qt5-extra/.git
+dir2tgz meta-qt5-extra
+sync
+
+#openembedded-core has later version, remove...
+##there is no kirkstone. master last updated may 5, 2021. might dump this...
+#rm -rf meta-gstreamer1.0
+#rm -f meta-gstreamer1.0.tar.gz
+#git clone -b master https://github.com/OSSystems/meta-gstreamer1.0.git --depth 1
+#rm -rf meta-gstreamer1.0/.git
+#dir2tgz meta-gstreamer1.0
+#sync
+
+#no longer need this, rust recipes now in openembedded-core
+#rm -rf meta-rust
+#rm -f meta-rust.tar.gz
+#git clone https://github.com/meta-rust/meta-rust.git --depth 1
+#rm -rf meta-rust/.git
+#dir2tgz meta-rust
+#sync
+
+#'conan' is required to build audacity...
+#https://github.com/conan-io/meta-conan
+#there is no kirkstone...
+rm -rf meta-conan 2>/dev/null
+rm -f meta-conan.tar.gz
+git clone -b master https://github.com/conan-io/meta-conan.git --depth 1
+rm -rf meta-conan/.git
+dir2tgz meta-conan
+sync
+
+rm -rf meta-java 2>/dev/null
+rm -f meta-java.tar.gz
+git clone -b kirkstone https://git.yoctoproject.org/git/meta-java --depth 1
+rm -rf meta-java/.git
+dir2tgz meta-java
+sync
+
+#there is no kirkstone. last commit 12 months ago. latest is 5.17 kernel.
+rm -rf meta-kernel 2>/dev/null
+rm -f meta-kernel.tar.gz
+git clone -b master https://gitlab.com/openembedded/community/meta-kernel.git --depth 1
+rm -rf meta-kernel/.git
+dir2tgz meta-kernel
+sync
+
+#there is no kirkstone
+rm -rf meta-office 2>/dev/null
+rm -f meta-office.tar.gz
+git clone -b master https://github.com/schnitzeltony/meta-office.git meta-office --depth 1
+rm -rf meta-office/.git
+dir2tgz meta-office
+sync
+
+#there is no kirkstone
+rm -rf meta-browser 2>/dev/null
+rm -f meta-browser.tar.gz
+git clone -b master https://github.com/OSSystems/meta-browser.git meta-browser --depth 1
+rm -rf meta-browser/.git
+dir2tgz meta-browser
+sync
+
+rm -rf meta-clang 2>/dev/null
+rm -f meta-clang.tar.gz
+git clone -b kirkstone https://github.com/kraj/meta-clang.git meta-clang --depth 1
+rm -rf meta-clang/.git
+dir2tgz meta-clang
+sync
+
+rm -rf meta-raspberrypi 2>/dev/null
+rm -f meta-raspberrypi.tar.gz
+git clone -b kirkstone https://git.yoctoproject.org/meta-raspberrypi meta-raspberrypi --depth 1
+rm -rf meta-raspberrypi/.git
+dir2tgz meta-raspberrypi
+
+##see if anything later that is useful...
+#rm -rf openembedded-core-master
+#rm -f openembedded-core-master.tar.gz
+#git clone -b master git://git.openembedded.org/openembedded-core openembedded-core-master --depth 1
+#rm -rf openembedded-core-master/.git
+##dir2tgz openembedded-core-master
+sync

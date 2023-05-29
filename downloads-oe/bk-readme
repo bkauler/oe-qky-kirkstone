@@ -10,3 +10,7 @@ latest is 4.0.8
 May 8, 2023
 -----------
 update chromium from 111.0.5563.64 to 111.0.5563.147
+
+May 29, 2023
+------------
+latest is kirkstone 4.0.10, bitbake 2.0.10
