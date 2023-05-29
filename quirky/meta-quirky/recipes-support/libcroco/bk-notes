@@ -1,0 +1,12 @@
+2023-05-29
+----------
+kirkstone 4.0.10, the patch for libcroco is broken.
+it's the same version, they have modified the patch.
+so I have put in libcroco recipe from kirkstone 4.0.8 here.
+
+this is the error with 4.0.10 recipe:
+
+ERROR: libcroco-0.6.13-r1 do_patch: Malformed Upstream-Status in patch
+/mnt/build/builds/oe/kirkstone/oe-quirky/meta/recipes-support/libcroco/libcroco/CVE-2020-12825.patch
+Please correct according to https://www.openembedded.org/wiki/Commit_Patch_Message_Guidelines#Patch_Header_Recommendations:_Upstream-Status :
+Upstream Status: Backport [https://gitlab.com/inkscape/inkscape/-/commit/203d62efefe6f79080863dda61593003b4c31f25.patch]
