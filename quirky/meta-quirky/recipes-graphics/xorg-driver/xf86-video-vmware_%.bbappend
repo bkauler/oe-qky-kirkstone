@@ -1,0 +1,3 @@
+
+#20230602 kirkstone r2. now have vmwgfx kernel module, so reckon need this...
+PACKAGECONFIG += "vmwgfx"
