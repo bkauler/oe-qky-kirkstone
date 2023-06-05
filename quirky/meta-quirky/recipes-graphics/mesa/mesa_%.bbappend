@@ -19,3 +19,7 @@ PACKAGECONFIG:append:aarch64:class-target = " v3d vc4"
 
 #20221202 add...
 PACKAGECONFIG:append:x86:class-target = " gallium gallium-llvm r600"
+
+#20230602 to support xf86-video-vmwgfx
+PACKAGECONFIG:append:x86:class-target = " xa"
+PACKAGECONFIG:append:x86-64:class-target = " xa"
