@@ -1,0 +1,6 @@
+#20230609 testing qemu in easy 5.3.2, discovered only alsa support, no pa...
+
+#PR_NUM is defined in local.conf... bump r3 to r4...
+PR = "r${@int(PR_NUM) + 1}"
+
+PACKAGECONFIG:append:class-target = " pulsedio"
