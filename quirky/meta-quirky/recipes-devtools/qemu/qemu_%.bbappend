@@ -11,4 +11,4 @@ PACKAGECONFIG:append:class-target = " virtfs libusb libcap-ng ssh gcrypt \
                                     gnutls xkbcommon libudev libxml2 attr"
 
 #20230617 now it wants this...
-DEPENDS:append = " libtasn1"
+DEPENDS:append:class-target = " libtasn1"
