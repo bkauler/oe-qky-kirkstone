@@ -2,6 +2,7 @@
 #(c) Copyright 2023 Barry Kauler.
 #license GPLv3+
 #20221218 based on 0pre-oe in woofQ.
+#20230618 recompiled qemu and it found incomplete deps. fix.
 
 export LANG=C #faster.
 
@@ -211,17 +212,15 @@ if [ "$OENEW" ];then
     DEPENDSx=''
    fi
    
+   #20230618 recompiled qemu and it found incomplete deps. fix...
+   DEPENDSxx="$(grep "^\"${xDB_nameonly}\.do_prepare_recipe_sysroot" ${OEPATH}/${BUILDFOLDER}/task-depends.dot | cut -f 4 -d '"' | sed -e 's%\.do_.*%%' | grep -vE "^${xDB_nameonly}$|^${xDB_nameonly} |\-native|\-cross|packagegroup" | sort -u)"
+   DEPENDSxxx="${DEPENDSx}
+${DEPENDSxx}"
+   DEPENDSx="$(echo -n "$DEPENDSxxx" | sed '/^$/d' | sort -u)"
    if [ "$DEPENDSx" ];then
     DEPENDS0="$(echo "$DEPENDSx" | tr '\n' ' ' | tr -s ' ' | sed -e 's% $%%')"
    else
-    #fallback...
-    #20221223 dep with "." was getting truncated, ex glib-2.0 to glib-2, fixed...
-    DEPENDSx="$(grep "^\"${xDB_nameonly}\.do_prepare_recipe_sysroot" ${OEPATH}/${BUILDFOLDER}/task-depends.dot | cut -f 4 -d '"' | sed -e 's%\.do_.*%%' | grep -vE "^${xDB_nameonly}$|^${xDB_nameonly} |\-native|\-cross|packagegroup" | sort -u)"
-    if [ "$DEPENDSx" ];then
-     DEPENDS0="$(echo "$DEPENDSx" | tr '\n' ' ' | tr -s ' ' | sed -e 's% $%%')"
-    else
-     DEPENDS0=""
-    fi
+    DEPENDS0=""
    fi
    
    if [ "$DEPENDS0" ];then
