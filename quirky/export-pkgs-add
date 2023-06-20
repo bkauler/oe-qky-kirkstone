@@ -216,7 +216,7 @@ if [ "$OENEW" ];then
    DEPENDSxx="$(grep "^\"${xDB_nameonly}\.do_prepare_recipe_sysroot" ${OEPATH}/${BUILDFOLDER}/task-depends.dot | cut -f 4 -d '"' | sed -e 's%\.do_.*%%' | grep -vE "^${xDB_nameonly}$|^${xDB_nameonly} |\-native|\-cross|packagegroup" | sort -u)"
    DEPENDSxxx="${DEPENDSx}
 ${DEPENDSxx}"
-   DEPENDSx="$(echo -n "$DEPENDSxxx" | sed '/^$/d' | sort -u)"
+   DEPENDSx="$(echo -n "$DEPENDSxxx" | tr ' ' '\n' | sed '/^$/d' | sort -u)"
    if [ "$DEPENDSx" ];then
     DEPENDS0="$(echo "$DEPENDSx" | tr '\n' ' ' | tr -s ' ' | sed -e 's% $%%')"
    else
