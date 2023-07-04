@@ -1,0 +1,4 @@
+20230704
+--------
+libblockdev is a dep of udisks2
+cutting down the deps a bit.
