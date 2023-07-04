@@ -1,0 +1,4 @@
+20230704
+--------
+copied to here, as only want libdevmapper, dep for libblockdev,
+as much less size than lvm2. have named it libdevmapper2
