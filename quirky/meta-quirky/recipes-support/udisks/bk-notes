@@ -1,0 +1,7 @@
+20230704
+--------
+created a patch to remove polkit dep
+ref: https://github.com/storaged-project/udisks/pull/857#issuecomment-1023357601
+ref: https://github.com/agners/udisks/tree/573a9b6988c48abb7579acbe634d6b532ecb8517
+the patch applies ok to 2.9.4
+
