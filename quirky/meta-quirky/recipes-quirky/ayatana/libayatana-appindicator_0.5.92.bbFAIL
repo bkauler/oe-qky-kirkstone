@@ -1,0 +1,28 @@
+# Recipe created by recipetool
+# recipetool create -o libayatana-appindicator_0.5.92.bb https://github.com/AyatanaIndicators/libayatana-appindicator/archive/refs/tags/0.5.92.tar.gz
+
+LICENSE = "GPL-3.0-only & LGPL-2.1-only & LGPL-3.0-only"
+LIC_FILES_CHKSUM = "file://COPYING;md5=6a6a8e020838b23406c81b19c1d46df6 \
+                    file://COPYING.GPL.3;md5=d32239bcb673463ab874e80d47fae504 \
+                    file://COPYING.LGPL.2.1;md5=2d5025d4aa3495befef8f17206a5b0a1"
+
+SRC_URI = "https://github.com/AyatanaIndicators/libayatana-appindicator/archive/refs/tags/${PV}.tar.gz"
+
+SRC_URI[md5sum] = "58ab97d0c2e1c5941d287ff6164afaaf"
+SRC_URI[sha256sum] = "adedcf160dae7547971d475b42062cab278d54ec075537e6958ffdbf2d996857"
+
+# NOTE: unable to map the following CMake package dependencies: GObjectIntrospection Vala CoverageReport
+# NOTE: unable to map the following pkg-config dependencies: gtk-sharp-2.0 gtk-sharp-3.0 mono
+#       (this is based on recipes that have previously been built and packaged)
+inherit cmake pkgconfig python3native
+
+EXTRA_OECMAKE = "-DENABLE_BINDINGS_VALA=OFF -DENABLE_BINDINGS_MONO=OFF \
+                 -DENABLE_COVERAGE=OFF -DENABLE_WERROR=OFF -DENABLE_TESTS=OFF \
+                 -DENABLE_GTKDOC=OFF"
+
+DEPENDS = "gtk+3 glib-2.0 libx11 glib-2.0-native libayatana-indicator \
+           libdbusmenu gobject-introspection gobject-introspection-native"
+
+HOMEPAGE = "https://github.com/AyatanaIndicators/libayatana-appindicator"
+SUMMARY = "Ayatana application indicators"
+
