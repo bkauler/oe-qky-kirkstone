@@ -1,0 +1,7 @@
+01_qemu_parallel_typo.diff
+0002-Remove-VLAN-stuff-QEMU-doesn-t-support-it-anymore.patch
+0003-Fix-build-with-GCC-10.patch
+0004-manpage-fix-groff-message-aqemu.1-Empty-input-line-1.patch
+0005-fix-spelling-of-some-words.patch
+0006-Update-desktop-file-and-move-icons-to-share-icons.patch
+0007-Fix-crash-because-of-duplicated-widget-name.patch

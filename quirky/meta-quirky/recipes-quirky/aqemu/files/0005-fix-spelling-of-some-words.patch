@@ -1,0 +1,358 @@
+From: Alexis Murzeau <amubtdx@gmail.com>
+Date: Sat, 5 Dec 2020 19:23:10 +0100
+Subject: fix spelling of some words
+
+These were found by lintian.
+
+Forwarded: https://github.com/tobimensch/aqemu/pull/95
+---
+ resources/translations/English.ts   |  8 ++++----
+ resources/translations/French.ts    |  8 ++++----
+ resources/translations/German.ts    | 10 +++++-----
+ resources/translations/Russian.ts   | 10 +++++-----
+ resources/translations/Ukrainian.ts | 10 +++++-----
+ src/Advanced_Settings_Window.ui     |  2 +-
+ src/Convert_HDD_Image_Window.cpp    |  2 +-
+ src/Emulator_Options_Window.ui      |  2 +-
+ src/Error_Log_Window.ui             |  4 ++--
+ src/First_Start_Wizard.cpp          |  4 ++--
+ src/Utils.cpp                       |  2 +-
+ src/docopt/docopt_private.h         |  4 ++--
+ src/main.cpp                        |  4 ++--
+ 13 files changed, 35 insertions(+), 35 deletions(-)
+
+diff --git a/resources/translations/English.ts b/resources/translations/English.ts
+index 2b041c1..6fccd43 100644
+--- a/resources/translations/English.ts
++++ b/resources/translations/English.ts
+@@ -1895,7 +1895,7 @@ Cluster Size: %3</source>
+     </message>
+     <message>
+         <location filename="Convert_HDD_Image_Window.cpp" line="231"/>
+-        <source>Conversion completed sucessfuly!</source>
++        <source>Conversion completed successfully!</source>
+         <translation type="unfinished"></translation>
+     </message>
+     <message>
+@@ -3408,7 +3408,7 @@ Do you want to show this message again?</source>
+     </message>
+     <message>
+         <location filename="Emulator_Options_Window.ui" line="394"/>
+-        <source>Use saved available emulator options (Recomended to choose it again after emulator updating)</source>
++        <source>Use saved available emulator options (Recommended to choose it again after emulator updating)</source>
+         <translation type="unfinished"></translation>
+     </message>
+     <message>
+@@ -3821,7 +3821,7 @@ Push the &quot;Next&quot; button to go to next page or &quot;Back&quot; button t
+     </message>
+     <message>
+         <location filename="First_Start_Wizard.cpp" line="777"/>
+-        <source>Set &amp;Versions Manualy</source>
++        <source>Set &amp;Versions Manually</source>
+         <translation type="unfinished"></translation>
+     </message>
+     <message>
+@@ -7919,7 +7919,7 @@ On Disk Size: </source>
+     </message>
+     <message>
+         <location filename="Utils.cpp" line="134"/>
+-        <source>This Fatal Error. Recomend Close AQEMU.</source>
++        <source>This Fatal Error. Recommend Close AQEMU.</source>
+         <translation type="unfinished"></translation>
+     </message>
+     <message>
+diff --git a/resources/translations/French.ts b/resources/translations/French.ts
+index 2c7d27e..aa180ed 100644
+--- a/resources/translations/French.ts
++++ b/resources/translations/French.ts
+@@ -1948,7 +1948,7 @@ Taille de cluster : %3</translation>
+     </message>
+     <message>
+         <location filename="Convert_HDD_Image_Window.cpp" line="231"/>
+-        <source>Conversion completed sucessfuly!</source>
++        <source>Conversion completed successfully!</source>
+         <translation>Conversion complètement terminée !</translation>
+     </message>
+     <message>
+@@ -3464,7 +3464,7 @@ Voulez-vous voir ce message la prochaine fois ?</translation>
+     </message>
+     <message>
+         <location filename="Emulator_Options_Window.ui" line="394"/>
+-        <source>Use saved available emulator options (Recomended to choose it again after emulator updating)</source>
++        <source>Use saved available emulator options (Recommended to choose it again after emulator updating)</source>
+         <translation>Utiliser les options disponibles sauvegardées de l&apos;émulateur (il est recommandé de rechoisir ceci après la mise à jour de l&apos;émulateur)</translation>
+     </message>
+     <message>
+@@ -3880,7 +3880,7 @@ Cliquez sur le boutton « Suivant » pour aller à la page suivante ou sur le bo
+     </message>
+     <message>
+         <location filename="First_Start_Wizard.cpp" line="777"/>
+-        <source>Set &amp;Versions Manualy</source>
++        <source>Set &amp;Versions Manually</source>
+         <translation>Paramètrer la &amp;version manuellement</translation>
+     </message>
+     <message>
+@@ -7981,7 +7981,7 @@ On Disk Size: </source>
+     </message>
+     <message>
+         <location filename="Utils.cpp" line="134"/>
+-        <source>This Fatal Error. Recomend Close AQEMU.</source>
++        <source>This Fatal Error. Recommend Close AQEMU.</source>
+         <translation>Erreur fatale. Il est recommandé de fermer AQEMU.</translation>
+     </message>
+     <message>
+diff --git a/resources/translations/German.ts b/resources/translations/German.ts
+index 22f3544..5b7d40c 100644
+--- a/resources/translations/German.ts
++++ b/resources/translations/German.ts
+@@ -2083,7 +2083,7 @@ Clustergröße: %3</translation>
+     </message>
+     <message>
+         <location filename="Convert_HDD_Image_Window.cpp" line="231"/>
+-        <source>Conversion completed sucessfuly!</source>
++        <source>Conversion completed successfully!</source>
+         <translation type="unfinished"></translation>
+     </message>
+     <message>
+@@ -3836,8 +3836,8 @@ Diese Nachricht erneut anzeigen?</translation>
+     </message>
+     <message>
+         <location filename="Emulator_Options_Window.ui" line="394"/>
+-        <source>Use saved available emulator options (Recomended to choose it again after emulator updating)</source>
+-        <oldsource>Use saved emulator available options (Recomend refind after update emulator)</oldsource>
++        <source>Use saved available emulator options (Recommended to choose it again after emulator updating)</source>
++        <oldsource>Use saved emulator available options (Recommend refind after update emulator)</oldsource>
+         <translation type="unfinished">Использовать сохранённое описание возможностей эмулятора
+ (Рекомендуется после обновления эмулятора выполнить заново поиск)</translation>
+     </message>
+@@ -4162,7 +4162,7 @@ Push the &quot;Next&quot; button to go to next page or &quot;Back&quot; button t
+     </message>
+     <message>
+         <location filename="First_Start_Wizard.cpp" line="777"/>
+-        <source>Set &amp;Versions Manualy</source>
++        <source>Set &amp;Versions Manually</source>
+         <translation>Установить версию &amp;вручную</translation>
+     </message>
+     <message>
+@@ -8322,7 +8322,7 @@ Check Permissions For File: </source>
+     </message>
+     <message>
+         <location filename="Utils.cpp" line="134"/>
+-        <source>This Fatal Error. Recomend Close AQEMU.</source>
++        <source>This Fatal Error. Recommend Close AQEMU.</source>
+         <translation>Это фатальная ошибка. Рекомендуется закрыть AQEMU.</translation>
+     </message>
+     <message>
+diff --git a/resources/translations/Russian.ts b/resources/translations/Russian.ts
+index 32e8bfe..ad73270 100644
+--- a/resources/translations/Russian.ts
++++ b/resources/translations/Russian.ts
+@@ -2071,7 +2071,7 @@ Cluster Size: %3</source>
+     </message>
+     <message>
+         <location filename="Convert_HDD_Image_Window.cpp" line="231"/>
+-        <source>Conversion completed sucessfuly!</source>
++        <source>Conversion completed successfully!</source>
+         <translation>Конвертация завершена успешно!</translation>
+     </message>
+     <message>
+@@ -3833,8 +3833,8 @@ Show this message again?</source>
+     </message>
+     <message>
+         <location filename="Emulator_Options_Window.ui" line="394"/>
+-        <source>Use saved available emulator options (Recomended to choose it again after emulator updating)</source>
+-        <oldsource>Use saved emulator available options (Recomend refind after update emulator)</oldsource>
++        <source>Use saved available emulator options (Recommended to choose it again after emulator updating)</source>
++        <oldsource>Use saved emulator available options (Recommend refind after update emulator)</oldsource>
+         <translation>Использовать сохранённое описание возможностей эмулятора
+ (Рекомендуется после обновления эмулятора выполнить заново поиск)</translation>
+     </message>
+@@ -4162,7 +4162,7 @@ Push the &quot;Next&quot; button to go to next page or &quot;Back&quot; button t
+     </message>
+     <message>
+         <location filename="First_Start_Wizard.cpp" line="777"/>
+-        <source>Set &amp;Versions Manualy</source>
++        <source>Set &amp;Versions Manually</source>
+         <translation>Установить версию &amp;вручную</translation>
+     </message>
+     <message>
+@@ -8340,7 +8340,7 @@ Check Permissions For File: </source>
+     </message>
+     <message>
+         <location filename="Utils.cpp" line="134"/>
+-        <source>This Fatal Error. Recomend Close AQEMU.</source>
++        <source>This Fatal Error. Recommend Close AQEMU.</source>
+         <translation>Это фатальная ошибка. Рекомендуется закрыть AQEMU.</translation>
+     </message>
+     <message>
+diff --git a/resources/translations/Ukrainian.ts b/resources/translations/Ukrainian.ts
+index 9e9b8e2..a9c70e2 100644
+--- a/resources/translations/Ukrainian.ts
++++ b/resources/translations/Ukrainian.ts
+@@ -1912,7 +1912,7 @@ Cluster Size: %3</source>
+     </message>
+     <message>
+         <location filename="Convert_HDD_Image_Window.cpp" line="231"/>
+-        <source>Conversion completed sucessfuly!</source>
++        <source>Conversion completed successfully!</source>
+         <translation type="unfinished"></translation>
+     </message>
+     <message>
+@@ -3449,8 +3449,8 @@ Do you want to show this message again?</source>
+     </message>
+     <message>
+         <location filename="Emulator_Options_Window.ui" line="394"/>
+-        <source>Use saved available emulator options (Recomended to choose it again after emulator updating)</source>
+-        <oldsource>Use saved emulator available options (Recomend refind after update emulator)</oldsource>
++        <source>Use saved available emulator options (Recommended to choose it again after emulator updating)</source>
++        <oldsource>Use saved emulator available options (Recommend refind after update emulator)</oldsource>
+         <translation type="unfinished"></translation>
+     </message>
+     <message>
+@@ -3867,7 +3867,7 @@ Push the &quot;Next&quot; button to go to next page or &quot;Back&quot; button t
+     </message>
+     <message>
+         <location filename="First_Start_Wizard.cpp" line="777"/>
+-        <source>Set &amp;Versions Manualy</source>
++        <source>Set &amp;Versions Manually</source>
+         <translation type="unfinished"></translation>
+     </message>
+     <message>
+@@ -8001,7 +8001,7 @@ On Disk Size: </source>
+     </message>
+     <message>
+         <location filename="Utils.cpp" line="134"/>
+-        <source>This Fatal Error. Recomend Close AQEMU.</source>
++        <source>This Fatal Error. Recommend Close AQEMU.</source>
+         <translation type="unfinished"></translation>
+     </message>
+     <message>
+diff --git a/src/Advanced_Settings_Window.ui b/src/Advanced_Settings_Window.ui
+index c3c0faf..24c0b4c 100644
+--- a/src/Advanced_Settings_Window.ui
++++ b/src/Advanced_Settings_Window.ui
+@@ -2240,7 +2240,7 @@ Bus.Path value is changed. Update it in USB settings.</string>
+                <item>
+                 <widget class="QRadioButton" name="RB_USB_ID_VendorProduct">
+                  <property name="text">
+-                  <string>Vendor_ID + Product_ID - Recomend If you do &amp;not connect multiple 
++                  <string>Vendor_ID + Product_ID - Recommend If you do &amp;not connect multiple 
+ identical USB devices to the host system.</string>
+                  </property>
+                 </widget>
+diff --git a/src/Convert_HDD_Image_Window.cpp b/src/Convert_HDD_Image_Window.cpp
+index 8f9a122..0f8f10a 100644
+--- a/src/Convert_HDD_Image_Window.cpp
++++ b/src/Convert_HDD_Image_Window.cpp
+@@ -225,7 +225,7 @@ void Convert_HDD_Image_Window::Conversion_Done( bool ok )
+ 	{
+ 		ProgDial->accept();
+ 		Conv_Thread.terminate();
+-		QMessageBox::information( this, tr("Information:"), tr("Conversion completed sucessfuly!") );
++		QMessageBox::information( this, tr("Information:"), tr("Conversion completed successfully!") );
+ 		accept();
+ 	}
+ 	else
+diff --git a/src/Emulator_Options_Window.ui b/src/Emulator_Options_Window.ui
+index b7dad8b..5b6aff5 100644
+--- a/src/Emulator_Options_Window.ui
++++ b/src/Emulator_Options_Window.ui
+@@ -306,7 +306,7 @@
+         <item>
+          <widget class="QRadioButton" name="RB_Save_Options">
+           <property name="text">
+-           <string>&amp;Use saved available emulator options (Recomended to choose it again after emulator updating)</string>
++           <string>&amp;Use saved available emulator options (Recommended to choose it again after emulator updating)</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+diff --git a/src/Error_Log_Window.ui b/src/Error_Log_Window.ui
+index adc5292..209302b 100644
+--- a/src/Error_Log_Window.ui
++++ b/src/Error_Log_Window.ui
+@@ -40,7 +40,7 @@
+         <item>
+          <widget class="QRadioButton" name="RB_Normal_Mode">
+           <property name="text">
+-           <string>Everytime an error occurs or an option is &amp;deprecated.</string>
++           <string>Every time an error occurs or an option is &amp;deprecated.</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
+@@ -50,7 +50,7 @@
+         <item>
+          <widget class="QRadioButton" name="RB_User_Normal_Mode">
+           <property name="text">
+-           <string>Everytime an error occurs. (Defau&amp;lt)</string>
++           <string>Every time an error occurs. (Defau&amp;lt)</string>
+           </property>
+           <property name="checked">
+            <bool>false</bool>
+diff --git a/src/First_Start_Wizard.cpp b/src/First_Start_Wizard.cpp
+index a6f0b2f..5891e0c 100644
+--- a/src/First_Start_Wizard.cpp
++++ b/src/First_Start_Wizard.cpp
+@@ -352,7 +352,7 @@ void First_Start_Wizard::on_Button_Find_Emulators_clicked()
+ 			// Set default emulators
+ 			if( qemuEmulatorsList.count() > 0 )
+ 			{
+-				// Enable Edit Emulator Version Manualy Button
++				// Enable Edit Emulator Version Manually Button
+ 				ui.Button_Edit->setEnabled( true );
+ 
+ 				// Find and set QEMU default emulator
+@@ -621,7 +621,7 @@ void First_Start_Wizard::retranslateUi()
+ 	ui.Label_Find_Emulators->setText( tr("To work correctly AQEMU must find QEMU. To search automatically click on \"Search\". If the search can't find QEMU, you can reconfigure AQEMU later. You can do it in the \"File->Settings\" dialog.") );
+ 	ui.Button_Find_Emulators->setText( tr("&Search") );
+ 	ui.Button_Skip_Find->setText( tr("S&kip Search") );
+-	ui.Button_Edit->setText( tr("Set &Versions Manualy") );
++	ui.Button_Edit->setText( tr("Set &Versions Manually") );
+ 	ui.Label_Add_Emulator_Help->setText( "Help text (not written...)" );
+ 	ui.Label_Add_Emulator_Path->setText( "Path to the emulator directory" );
+ 	ui.Label_Add_Emulator_Version->setText( "Emulator version" );
+diff --git a/src/Utils.cpp b/src/Utils.cpp
+index c6cc078..4176d6a 100644
+--- a/src/Utils.cpp
++++ b/src/Utils.cpp
+@@ -156,7 +156,7 @@ void AQGraphic_Warning( const QString &sender, const QString &caption, const QSt
+ 	{
+ 		QMessageBox::warning( NULL, caption,
+ 					QString("Sender: %1\nMessage: %2\n").arg(sender).arg(mes) +
+-					QObject::tr("This Fatal Error. Recomend Close AQEMU."),
++					QObject::tr("This Fatal Error. Recommend Close AQEMU."),
+ 					QMessageBox::Ok );
+ 	}
+ 	else
+diff --git a/src/docopt/docopt_private.h b/src/docopt/docopt_private.h
+index b323a2e..64ed4b5 100644
+--- a/src/docopt/docopt_private.h
++++ b/src/docopt/docopt_private.h
+@@ -135,11 +135,11 @@ namespace docopt {
+ 		}
+ 		
+ 		virtual std::string const& name() const override {
+-			throw std::runtime_error("Logic error: name() shouldnt be called on a BranchPattern");
++			throw std::runtime_error("Logic error: name() shouldn't be called on a BranchPattern");
+ 		}
+ 		
+ 		virtual value const& getValue() const {
+-			throw std::runtime_error("Logic error: name() shouldnt be called on a BranchPattern");
++			throw std::runtime_error("Logic error: name() shouldn't be called on a BranchPattern");
+ 		}
+ 		
+ 		virtual std::vector<Pattern*> flat(bool (*filter)(Pattern const*)) override {
+diff --git a/src/main.cpp b/src/main.cpp
+index 40a3c61..eb370d6 100644
+--- a/src/main.cpp
++++ b/src/main.cpp
+@@ -314,8 +314,8 @@ int main( int argc, char *argv[] )
+ 	{
+ 		First_Start_Wizard *first_start_win = new First_Start_Wizard( NULL );
+ 		
+-		if( first_start_win->exec() == QDialog::Accepted ) AQDebug( "int main( int argc, char *argv[] )", "Fisrt Start Wizard Complete" );
+-		else AQWarning( "int main( int argc, char *argv[] )", "Fisrt Start Wizard Canceled!" );
++		if( first_start_win->exec() == QDialog::Accepted ) AQDebug( "int main( int argc, char *argv[] )", "First Start Wizard Complete" );
++		else AQWarning( "int main( int argc, char *argv[] )", "First Start Wizard Canceled!" );
+ 		
+ 		delete first_start_win;
+ 	}

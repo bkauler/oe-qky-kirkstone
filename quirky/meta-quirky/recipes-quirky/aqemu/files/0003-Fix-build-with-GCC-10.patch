@@ -1,0 +1,21 @@
+From: Alexis Murzeau <amubtdx@gmail.com>
+Date: Sat, 15 Aug 2020 15:39:47 +0200
+Subject: Fix build with GCC 10 (Closes: #957003)
+
+Forwarded: https://github.com/tobimensch/aqemu/pull/69
+---
+ src/docopt/docopt_value.h | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/src/docopt/docopt_value.h b/src/docopt/docopt_value.h
+index 8f32778..bc2b029 100644
+--- a/src/docopt/docopt_value.h
++++ b/src/docopt/docopt_value.h
+@@ -13,6 +13,7 @@
+ #include <vector>
+ #include <functional> // std::hash
+ #include <iosfwd>
++#include <stdexcept>
+ 
+ namespace docopt {
+ 

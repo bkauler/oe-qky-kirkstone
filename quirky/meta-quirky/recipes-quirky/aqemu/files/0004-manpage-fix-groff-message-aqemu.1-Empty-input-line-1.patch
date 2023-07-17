@@ -1,0 +1,21 @@
+From: Alexis Murzeau <amubtdx@gmail.com>
+Date: Sat, 5 Dec 2020 18:14:19 +0100
+Subject: manpage: fix groff-message aqemu.1 Empty input line #10
+
+Forwarded: https://github.com/tobimensch/aqemu/pull/96
+---
+ resources/docs/aqemu.1 | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/resources/docs/aqemu.1 b/resources/docs/aqemu.1
+index bfaf7cc..1d3ba2f 100644
+--- a/resources/docs/aqemu.1
++++ b/resources/docs/aqemu.1
+@@ -7,7 +7,6 @@
+ .Sh SYNOPSIS
+ .Nm aqemu
+ .Op Ar options
+-
+ .Sh DESCRIPTION
+ Frontend for qemu.
+ .Sh OPTIONS

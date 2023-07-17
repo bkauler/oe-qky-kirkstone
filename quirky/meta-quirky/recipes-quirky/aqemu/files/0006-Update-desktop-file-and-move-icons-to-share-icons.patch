@@ -1,0 +1,51 @@
+From: Alexis Murzeau <amubtdx@gmail.com>
+Date: Sat, 5 Dec 2020 22:34:46 +0100
+Subject: Update desktop file and move icons to share/icons
+
+Install icons in share/icons/hicolor/<size>/aqemu.png directory
+Merge debian-specific desktop file to upstream supplied one.
+
+Forwarded: https://github.com/tobimensch/aqemu/pull/94
+---
+ CMakeLists.txt          | 4 ++--
+ menu_data/aqemu.desktop | 8 ++++++--
+ 2 files changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 2dd5eb7..640a9c1 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -253,8 +253,8 @@ INSTALL( FILES ${os_templates} DESTINATION share/aqemu/os_templates )
+ FILE( GLOB links "${CMAKE_CURRENT_SOURCE_DIR}/resources/docs/links.html" )
+ INSTALL( FILES ${links} DESTINATION share/aqemu/docs )
+ 
+-FILE( GLOB pixmaps "${CMAKE_CURRENT_SOURCE_DIR}/menu_data/*.png" )
+-INSTALL( FILES ${pixmaps} DESTINATION share/pixmaps )
++INSTALL( FILES ${CMAKE_CURRENT_SOURCE_DIR}/menu_data/aqemu_48x48.png DESTINATION share/icons/hicolor/48x48/apps/ RENAME aqemu.png)
++INSTALL( FILES ${CMAKE_CURRENT_SOURCE_DIR}/menu_data/aqemu_64x64.png DESTINATION share/icons/hicolor/64x64/apps/ RENAME aqemu.png)
+ 
+ FILE( GLOB app_menu "${CMAKE_CURRENT_SOURCE_DIR}/menu_data/aqemu.desktop" )
+ INSTALL( FILES ${app_menu} DESTINATION share/applications )
+diff --git a/menu_data/aqemu.desktop b/menu_data/aqemu.desktop
+index 50d6033..2c9f345 100644
+--- a/menu_data/aqemu.desktop
++++ b/menu_data/aqemu.desktop
+@@ -1,4 +1,6 @@
+ [Desktop Entry]
++Name=AQEMU
++GenericName=QEMU & KVM Virtual Machine Manager
+ Exec=aqemu
+ Terminal=false
+ Type=Application
+@@ -6,7 +8,9 @@ Icon=aqemu
+ StartupNotify=true
+ Categories=System;Emulator;
+ 
+-Name=AQEMU
+ Comment=Virtual machine manager
+-Name[ru]=AQEMU
+ Comment[ru]=Управление виртуальными машинами
++Comment[en]=Front-end for QEMU and KVM
++Comment[it]=Interfaccia Grafica per QEMU e KVM
++Comment[fr]=Interface graphique pour QEMU et KVM
++Keywords=qt,qemu,front-end,emulator

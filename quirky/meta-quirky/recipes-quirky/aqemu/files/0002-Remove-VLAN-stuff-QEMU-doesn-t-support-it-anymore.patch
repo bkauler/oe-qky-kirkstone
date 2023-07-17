@@ -1,0 +1,2303 @@
+From: Alexis Murzeau <amubtdx@gmail.com>
+Date: Thu, 16 May 2019 00:04:47 +0200
+Subject: Remove VLAN stuff, QEMU doesn't support it anymore
+
+If QEMU is started with vlan argument, it will fail and exit with an
+error. Remove the vlan argument and related stuff (like UI objects) so
+QEMU can work again.
+
+Forwarded: https://github.com/tobimensch/aqemu/pull/61
+---
+ src/Network_Widget.cpp     | 103 ++---
+ src/Network_Widget.ui      | 910 +++++++++++++++++++++------------------------
+ src/Old_Network_Widget.cpp |  32 +-
+ src/Old_Network_Widget.h   |   1 -
+ src/Old_Network_Widget.ui  |  59 +--
+ src/VM.cpp                 |  99 ++---
+ src/VM_Devices.cpp         |  39 --
+ src/VM_Devices.h           |  12 +-
+ 8 files changed, 503 insertions(+), 752 deletions(-)
+
+diff --git a/src/Network_Widget.cpp b/src/Network_Widget.cpp
+index de1d2a2..6ef0b78 100644
+--- a/src/Network_Widget.cpp
++++ b/src/Network_Widget.cpp
+@@ -254,12 +254,6 @@ void Network_Widget::Connect_Slots()
+ 	connect( ui.Edit_macaddr, SIGNAL(textChanged(const QString &)),
+ 			 this, SIGNAL(Changed()) );
+ 	
+-	connect( ui.CH_vlan, SIGNAL(clicked()),
+-			 this, SIGNAL(Changed()) );
+-	
+-	connect( ui.SB_vlan, SIGNAL(valueChanged(int)),
+-			 this, SIGNAL(Changed()) );
+-	
+ 	connect( ui.CH_name, SIGNAL(clicked()),
+ 			 this, SIGNAL(Changed()) );
+ 	
+@@ -480,12 +474,6 @@ void Network_Widget::Disconnect_Slots()
+ 	disconnect( ui.Edit_macaddr, SIGNAL(textChanged(const QString &)),
+ 				this, SIGNAL(Changed()) );
+ 	
+-	disconnect( ui.CH_vlan, SIGNAL(clicked()),
+-				this, SIGNAL(Changed()) );
+-	
+-	disconnect( ui.SB_vlan, SIGNAL(valueChanged(int)),
+-				this, SIGNAL(Changed()) );
+-	
+ 	disconnect( ui.CH_name, SIGNAL(clicked()),
+ 				this, SIGNAL(Changed()) );
+ 	
+@@ -761,37 +749,37 @@ void Network_Widget::on_Items_List_currentItemChanged( QListWidgetItem *current,
+ 
+ void Network_Widget::on_TB_Help_clicked()
+ {
+-	// -net nic[,vlan=n][,macaddr=addr][,model=type][,name=name]
++	// -net nic[,macaddr=addr][,model=type][,name=name]
+ 	if( ui.CB_Network_Type->currentText() == "nic" )
+-		QMessageBox::information( this, tr("nic"), tr("-net nic[,vlan=n][,macaddr=addr][,model=type][,name=name] \nCreate a new Network Interface Card and connect it to VLAN n (n = 0 is the default). The NIC is an ne2k_pci by default on the PC target. Optionally, the MAC address can be changed to addr and a name can be assigned for use in monitor commands. If no \'-net\' option is specified, a single NIC is created. Qemu can emulate several different models of network card. Valid values for type are i82551, i82557b, i82559er, ne2k_pci, ne2k_isa, pcnet, rtl8139, e1000, smc91c111, lance and mcf_fec. Not all devices are supported on all targets. Use -net nic,model=? for a list of available devices for your target.") );
++		QMessageBox::information( this, tr("nic"), tr("-net nic[,macaddr=addr][,model=type][,name=name] \nCreate a new Network Interface Card and connect it to emulated hub with ID 0 (i.e. the default hub). The NIC is an ne2k_pci by default on the PC target. Optionally, the MAC address can be changed to addr and a name can be assigned for use in monitor commands. If no \'-net\' option is specified, a single NIC is created. Qemu can emulate several different models of network card. Valid values for type are i82551, i82557b, i82559er, ne2k_pci, ne2k_isa, pcnet, rtl8139, e1000, smc91c111, lance and mcf_fec. Not all devices are supported on all targets. Use -net nic,model=? for a list of available devices for your target.") );
+ 	
+-	// -net user[,vlan=n][,hostname=name][,name=name]
++	// -net user[,hostname=name][,name=name]
+ 	else if( ui.CB_Network_Type->currentText() == "user" )
+-		QMessageBox::information( this, tr("user"), tr("-net user[,vlan=n][,hostname=name][,name=name] \nUse the user mode network stack which requires no administrator privilege to run. \'hostname=name\' can be used to specify the client hostname reported by the builtin DHCP server.") );
++		QMessageBox::information( this, tr("user"), tr("-net user[,hostname=name][,name=name] \nUse the user mode network stack which requires no administrator privilege to run. \'hostname=name\' can be used to specify the client hostname reported by the builtin DHCP server.") );
+ 	
+ 	// -net channel,port:dev
+ 	else if( ui.CB_Network_Type->currentText() == "channel" )
+ 		QMessageBox::information( this, tr("channel"), tr("-net channel,port:dev \nForward \'user\' TCP connection to port port to character device dev") );
+ 	
+-	// -net tap[,vlan=n][,name=name][,fd=h][,ifname=name][,script=file][,downscript=dfile]
++	// -net tap[,name=name][,fd=h][,ifname=name][,script=file][,downscript=dfile]
+ 	else if( ui.CB_Network_Type->currentText() == "tap" )
+-		QMessageBox::information( this, tr("tap"), tr("-net tap[,vlan=n][,name=name][,fd=h][,ifname=name][,script=file][,downscript=dfile] \nConnect the host TAP network interface name to VLAN n, use the network script file to configure it and the network script dfile to deconfigure it. If name is not provided, the OS automatically provides one. \'fd\'=h can be used to specify the handle of an already opened host TAP interface. The default network configure script is \'/etc/qemu-ifup\' and the default network deconfigure script is \'/etc/qemu-ifdown\'. Use \'script=no\' or \'downscript=no\' to disable script execution.") );
++		QMessageBox::information( this, tr("tap"), tr("-net tap[,name=name][,fd=h][,ifname=name][,script=file][,downscript=dfile] \nConnect the host TAP network interface name to emulated hub with ID 0 (i.e. the default hub), use the network script file to configure it and the network script dfile to deconfigure it. If name is not provided, the OS automatically provides one. \'fd\'=h can be used to specify the handle of an already opened host TAP interface. The default network configure script is \'/etc/qemu-ifup\' and the default network deconfigure script is \'/etc/qemu-ifdown\'. Use \'script=no\' or \'downscript=no\' to disable script execution.") );
+ 	
+-	// -net socket[,vlan=n][,name=name][,fd=h][,listen=[host]:port][,connect=host:port]
++	// -net socket[,name=name][,fd=h][,listen=[host]:port][,connect=host:port]
+ 	else if( ui.CB_Network_Type->currentText() == "socket" )
+-		QMessageBox::information( this, tr("socket"), tr("-net socket[,vlan=n][,name=name][,fd=h][,listen=[host]:port][,connect=host:port] \nConnect the VLAN n to a remote VLAN in another QEMU virtual machine using a TCP socket connection. If \'listen\' is specified, QEMU waits for incoming connections on port (host is optional). \'connect\' is used to connect to another QEMU instance using the \'listen\' option. \'fd\'=h specifies an already opened TCP socket.") );
++		QMessageBox::information( this, tr("socket"), tr("-net socket[,name=name][,fd=h][,listen=[host]:port][,connect=host:port] \nConnect the guest's network to another QEMU virtual machine using a TCP socket connection. If \'listen\' is specified, QEMU waits for incoming connections on port (host is optional). \'connect\' is used to connect to another QEMU instance using the \'listen\' option. \'fd\'=h specifies an already opened TCP socket.") );
+ 	
+-	// -net socket[,vlan=n][,name=name][,fd=h][,mcast=maddr:port]
++	// -net socket[,name=name][,fd=h][,mcast=maddr:port]
+ 	else if( ui.CB_Network_Type->currentText() == "multicast socket" )
+-		QMessageBox::information( this, tr("socket"), tr("-net socket[,vlan=n][,name=name][,fd=h][,mcast=maddr:port] \nCreate a VLAN n shared with another QEMU virtual machines using a UDP multicast socket, effectively making a bus for every QEMU with same multicast address maddr and port. \nNOTES: \n1. Several QEMU can be running on different hosts and share same bus (assuming correct multicast setup for these hosts). \n2. mcast support is compatible with User Mode Linux (argument \'ethN=mcast\'), see http://user-mode-linux.sf.net. \n3. Use \'fd=h\' to specify an already opened UDP multicast socket.") );
++		QMessageBox::information( this, tr("socket"), tr("-net socket[,name=name][,fd=h][,mcast=maddr:port] \nConfigure a socket host network backend to share the guest's network traffic with another QEMU virtual machines using a UDP multicast socket, effectively making a bus for every QEMU with same multicast address maddr and port. \nNOTES: \n1. Several QEMU can be running on different hosts and share same bus (assuming correct multicast setup for these hosts). \n2. mcast support is compatible with User Mode Linux (argument \'ethN=mcast\'), see http://user-mode-linux.sf.net. \n3. Use \'fd=h\' to specify an already opened UDP multicast socket.") );
+ 	
+-	// -net vde[,vlan=n][,name=name][,sock=socketpath][,port=n][,group=groupname][,mode=octalmode]
++	// -net vde[,name=name][,sock=socketpath][,port=n][,group=groupname][,mode=octalmode]
+ 	else if( ui.CB_Network_Type->currentText() == "vde" )
+-		QMessageBox::information( this, tr("vde"), tr("-net vde[,vlan=n][,name=name][,sock=socketpath][,port=n][,group=groupname][,mode=octalmode] \nConnect VLAN n to PORT n of a vde switch running on host and listening for incoming connections on socketpath. Use GROUP groupname and MODE octalmode to change default ownership and permissions for communication port. This option is available only if QEMU has been compiled with vde support enabled.") );
++		QMessageBox::information( this, tr("vde"), tr("-net vde[,name=name][,sock=socketpath][,port=n][,group=groupname][,mode=octalmode] \nConfigure VDE backend to connect to PORT n of a vde switch running on host and listening for incoming connections on socketpath. Use GROUP groupname and MODE octalmode to change default ownership and permissions for communication port. This option is available only if QEMU has been compiled with vde support enabled.") );
+ 	
+-	// -net dump[,vlan=n][,file=file][,len=len]
++	// -net dump[,file=file][,len=len]
+ 	else if( ui.CB_Network_Type->currentText() == "dump" )
+-		QMessageBox::information( this, tr("dump"), tr("-net dump[,vlan=n][,file=f][,len=n] \ndump traffic on vlan \'n\' to file \'f\' (max n bytes per packet)") );
++		QMessageBox::information( this, tr("dump"), tr("-net dump[,file=f][,len=n] \ndump traffic to file \'f\' (max n bytes per packet)") );
+ 	
+ 	else
+ 	{
+@@ -823,9 +811,6 @@ void Network_Widget::on_TB_Browse_downscript_clicked()
+ void Network_Widget::on_CB_Network_Type_currentIndexChanged( int index )
+ {
+ 	// Hide All
+-	ui.CH_vlan->setVisible( false );
+-	ui.SB_vlan->setVisible( false );
+-	
+ 	ui.CH_macaddr->setVisible( false );
+ 	ui.Edit_macaddr->setVisible( false );
+ 	ui.TB_Generate_New_MAC->setVisible( false );
+@@ -935,12 +920,9 @@ void Network_Widget::on_CB_Network_Type_currentIndexChanged( int index )
+ 	ui.CH_vhostfd->setVisible( false );
+ 	ui.SB_vhostfd->setVisible( false );
+ 	
+-	// -net nic[,vlan=n][,macaddr=mac][,model=type][,name=str][,addr=str][,vectors=v]
++	// -net nic[,macaddr=mac][,model=type][,name=str][,addr=str][,vectors=v]
+ 	if( ui.CB_Network_Type->currentText() == "nic" )
+ 	{
+-		ui.CH_vlan->setVisible( true );
+-		ui.SB_vlan->setVisible( true );
+-		
+ 		ui.CH_macaddr->setVisible( true );
+ 		ui.Edit_macaddr->setVisible( true );
+ 		ui.TB_Generate_New_MAC->setVisible( true );
+@@ -957,14 +939,11 @@ void Network_Widget::on_CB_Network_Type_currentIndexChanged( int index )
+ 		ui.CH_vectors->setVisible( true );
+ 		ui.SB_vectors->setVisible( true );
+ 	}
+-	// -net user[,vlan=n][,name=str][,net=addr[/mask]][,host=addr][,restrict=y|n]
++	// -net user[,name=str][,net=addr[/mask]][,host=addr][,restrict=y|n]
+ 	//			[,hostname=host][,dhcpstart=addr][,dns=addr][,tftp=dir][,bootfile=f]
+ 	//			[,hostfwd=rule][,guestfwd=rule][,smb=dir[,smbserver=addr]]
+ 	else if( ui.CB_Network_Type->currentText() == "user" )
+ 	{
+-		ui.CH_vlan->setVisible( true );
+-		ui.SB_vlan->setVisible( true );
+-		
+ 		ui.CH_hostname->setVisible( true );
+ 		ui.Edit_hostname->setVisible( true );
+ 		
+@@ -1012,13 +991,10 @@ void Network_Widget::on_CB_Network_Type_currentIndexChanged( int index )
+ 		ui.Label_port_dev->setVisible( true );
+ 		ui.Edit_port_dev->setVisible( true );
+ 	}
+-	// -net tap[,vlan=n][,name=str][,fd=h][,ifname=name][,script=file][,downscript=dfile]
++	// -net tap[,name=str][,fd=h][,ifname=name][,script=file][,downscript=dfile]
+ 	//		   [,sndbuf=nbytes][,vnet_hdr=on|off][,vhost=on|off][,vhostfd=h]
+ 	else if( ui.CB_Network_Type->currentText() == "tap" )
+ 	{
+-		ui.CH_vlan->setVisible( true );
+-		ui.SB_vlan->setVisible( true );
+-		
+ 		ui.CH_name->setVisible( true );
+ 		ui.Edit_name->setVisible( true );
+ 		
+@@ -1048,12 +1024,9 @@ void Network_Widget::on_CB_Network_Type_currentIndexChanged( int index )
+ 		ui.CH_vhostfd->setVisible( true );
+ 		ui.SB_vhostfd->setVisible( true );
+ 	}
+-	// -net socket[,vlan=n][,name=str][,fd=h][,listen=[host]:port][,connect=host:port]
++	// -net socket[,name=str][,fd=h][,listen=[host]:port][,connect=host:port]
+ 	else if( ui.CB_Network_Type->currentText() == "socket" )
+ 	{
+-		ui.CH_vlan->setVisible( true );
+-		ui.SB_vlan->setVisible( true );
+-		
+ 		ui.CH_name->setVisible( true );
+ 		ui.Edit_name->setVisible( true );
+ 		
+@@ -1066,12 +1039,9 @@ void Network_Widget::on_CB_Network_Type_currentIndexChanged( int index )
+ 		ui.CH_connect->setVisible( true );
+ 		ui.Edit_connect->setVisible( true );
+ 	}
+-	// -net socket[,vlan=n][,name=str][,fd=h][,mcast=maddr:port]
++	// -net socket[,name=str][,fd=h][,mcast=maddr:port]
+ 	else if( ui.CB_Network_Type->currentText() == "multicast socket" )
+ 	{
+-		ui.CH_vlan->setVisible( true );
+-		ui.SB_vlan->setVisible( true );
+-		
+ 		ui.CH_name->setVisible( true );
+ 		ui.Edit_name->setVisible( true );
+ 		
+@@ -1081,12 +1051,9 @@ void Network_Widget::on_CB_Network_Type_currentIndexChanged( int index )
+ 		ui.CH_mcast->setVisible( true );
+ 		ui.Edit_mcast->setVisible( true );
+ 	}
+-	// -net vde[,vlan=n][,name=str][,sock=socketpath][,port=n][,group=groupname][,mode=octalmode]
++	// -net vde[,name=str][,sock=socketpath][,port=n][,group=groupname][,mode=octalmode]
+ 	else if( ui.CB_Network_Type->currentText() == "vde" )
+ 	{
+-		ui.CH_vlan->setVisible( true );
+-		ui.SB_vlan->setVisible( true );
+-		
+ 		ui.CH_name->setVisible( true );
+ 		ui.Edit_name->setVisible( true );
+ 		
+@@ -1102,12 +1069,9 @@ void Network_Widget::on_CB_Network_Type_currentIndexChanged( int index )
+ 		ui.CH_mode->setVisible( true );
+ 		ui.Edit_mode->setVisible( true );
+ 	}
+-	// -net dump[,vlan=n][,file=file][,len=len]
++	// -net dump[,file=file][,len=len]
+ 	else if( ui.CB_Network_Type->currentText() == "dump" )
+ 	{
+-		ui.CH_vlan->setVisible( true );
+-		ui.SB_vlan->setVisible( true );
+-		
+ 		ui.CH_file->setVisible( true );
+ 		ui.Edit_file->setVisible( true );
+ 		
+@@ -1307,9 +1271,6 @@ void Network_Widget::on_CB_Network_Type_currentIndexChanged( int index )
+ 	if( ! PSO_Net_hostfwd )
+ 	if( ! PSO_Net_guestfwd )
+ 	
+-	ui.CH_vlan->setVisible( false );
+-	ui.SB_vlan->setVisible( false );
+-	
+ 	ui.CH_macaddr->setVisible( false );
+ 	ui.Edit_macaddr->setVisible( false );
+ 	ui.TB_Generate_New_MAC->setVisible( false );
+@@ -1421,10 +1382,6 @@ VM_Net_Card_Nativ Network_Widget::Get_Net_Card_From_Ui() const
+ 	card.Use_MAC_Address( ui.CH_macaddr->isChecked() );
+ 	card.Set_MAC_Address( ui.Edit_macaddr->text() );
+ 	
+-	// VLAN
+-	card.Use_VLAN( ui.CH_vlan->isChecked() );
+-	card.Set_VLAN( ui.SB_vlan->value() );
+-	
+ 	// name
+ 	card.Use_Name( ui.CH_name->isChecked() );
+ 	card.Set_Name( ui.Edit_name->text() );
+@@ -1655,10 +1612,6 @@ void Network_Widget::Set_Net_Card_To_Ui( const VM_Net_Card_Nativ &card )
+ 	ui.CH_macaddr->setChecked( card.Use_MAC_Address() );
+ 	ui.Edit_macaddr->setText( card.Get_MAC_Address() );
+ 	
+-	// VLAN
+-	ui.CH_vlan->setChecked( card.Use_VLAN() );
+-	ui.SB_vlan->setValue( card.Get_VLAN() );
+-	
+ 	// name
+ 	ui.CH_name->setChecked( card.Use_Name() );
+ 	ui.Edit_name->setText( card.Get_Name() );
+@@ -1833,12 +1786,12 @@ bool Network_Widget::Net_Card_is_Valid()
+ 	
+ 	switch( ui.CB_Network_Type->currentIndex() )
+ 	{
+-		// -net nic[,vlan=n][,macaddr=addr][,model=type][,name=name]
++		// -net nic[,macaddr=addr][,model=type][,name=name]
+ 		case 0:
+ 			u_macaddr = u_name = true;
+ 			break;
+ 		
+-		// -net user[,vlan=n][,hostname=name][,name=name]
++		// -net user[,hostname=name][,name=name]
+ 		case 1:
+ 			u_hostname = u_name = true;
+ 			break;
+@@ -1848,27 +1801,27 @@ bool Network_Widget::Net_Card_is_Valid()
+ 			u_port_dev = true;
+ 			break;
+ 		
+-		// -net tap[,vlan=n][,name=name][,fd=h][,ifname=name][,script=file][,downscript=dfile]
++		// -net tap[,name=name][,fd=h][,ifname=name][,script=file][,downscript=dfile]
+ 		case 3:
+ 			u_name = u_ifname = u_script = u_downscript = true;
+ 			break;
+ 		
+-		// -net socket[,vlan=n][,name=name][,fd=h][,listen=[host]:port][,connect=host:port]
++		// -net socket[,name=name][,fd=h][,listen=[host]:port][,connect=host:port]
+ 		case 4:
+ 			u_name = u_listen = u_connect = true;
+ 			break;
+ 		
+-		// -net socket[,vlan=n][,name=name][,fd=h][,mcast=maddr:port]
++		// -net socket[,name=name][,fd=h][,mcast=maddr:port]
+ 		case 5:
+ 			u_name = u_mcast = true;
+ 			break;
+ 		
+-		// -net vde[,vlan=n][,name=name][,sock=socketpath][,port=n][,group=groupname][,mode=octalmode]
++		// -net vde[,name=name][,sock=socketpath][,port=n][,group=groupname][,mode=octalmode]
+ 		case 6:
+ 			u_name = u_sock = u_group = u_mode = true;
+ 			break;
+ 		
+-		// -net dump[,vlan=n][,file=file][,len=len]
++		// -net dump[,file=file][,len=len]
+ 		case 7:
+ 			u_file = u_len = true;
+ 			break;
+diff --git a/src/Network_Widget.ui b/src/Network_Widget.ui
+index 6562ad8..f85f61d 100644
+--- a/src/Network_Widget.ui
++++ b/src/Network_Widget.ui
+@@ -151,8 +151,8 @@
+        <rect>
+         <x>0</x>
+         <y>0</y>
+-        <width>347</width>
+-        <height>1579</height>
++        <width>361</width>
++        <height>1073</height>
+        </rect>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout">
+@@ -183,81 +183,8 @@
+           <property name="bottomMargin">
+            <number>0</number>
+           </property>
+-          <item row="0" column="0">
+-           <widget class="QLabel" name="Label_Network_Type">
+-            <property name="sizePolicy">
+-             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+-              <horstretch>0</horstretch>
+-              <verstretch>0</verstretch>
+-             </sizepolicy>
+-            </property>
+-            <property name="text">
+-             <string>Connection type</string>
+-            </property>
+-           </widget>
+-          </item>
+-          <item row="0" column="1">
+-           <layout class="QHBoxLayout" name="horizontalLayout_3">
+-            <property name="spacing">
+-             <number>4</number>
+-            </property>
+-            <property name="sizeConstraint">
+-             <enum>QLayout::SetMinimumSize</enum>
+-            </property>
+-            <item>
+-             <widget class="QComboBox" name="CB_Network_Type">
+-              <property name="sizePolicy">
+-               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+-                <horstretch>0</horstretch>
+-                <verstretch>0</verstretch>
+-               </sizepolicy>
+-              </property>
+-              <property name="currentIndex">
+-               <number>-1</number>
+-              </property>
+-             </widget>
+-            </item>
+-            <item>
+-             <widget class="QToolButton" name="TB_Help">
+-              <property name="text">
+-               <string>?</string>
+-              </property>
+-              <property name="icon">
+-               <iconset resource="../resources/icons.qrc">
+-                <normaloff>:/help.png</normaloff>:/help.png</iconset>
+-              </property>
+-             </widget>
+-            </item>
+-           </layout>
+-          </item>
+-          <item row="1" column="0">
+-           <widget class="QLabel" name="Label_model">
+-            <property name="sizePolicy">
+-             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+-              <horstretch>0</horstretch>
+-              <verstretch>0</verstretch>
+-             </sizepolicy>
+-            </property>
+-            <property name="text">
+-             <string>Model</string>
+-            </property>
+-           </widget>
+-          </item>
+-          <item row="1" column="1">
+-           <widget class="QComboBox" name="CB_model">
+-            <property name="enabled">
+-             <bool>false</bool>
+-            </property>
+-            <property name="sizePolicy">
+-             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+-              <horstretch>0</horstretch>
+-              <verstretch>0</verstretch>
+-             </sizepolicy>
+-            </property>
+-           </widget>
+-          </item>
+-          <item row="2" column="0">
+-           <widget class="QCheckBox" name="CH_macaddr">
++          <item row="16" column="0">
++           <widget class="QCheckBox" name="CH_mode">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+@@ -265,7 +192,7 @@
+              </sizepolicy>
+             </property>
+             <property name="text">
+-             <string>macaddr</string>
++             <string>mode</string>
+             </property>
+            </widget>
+           </item>
+@@ -312,8 +239,8 @@
+             </item>
+            </layout>
+           </item>
+-          <item row="3" column="0">
+-           <widget class="QCheckBox" name="CH_vlan">
++          <item row="14" column="0">
++           <widget class="QCheckBox" name="CH_port">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+@@ -321,25 +248,12 @@
+              </sizepolicy>
+             </property>
+             <property name="text">
+-             <string>vlan</string>
+-            </property>
+-           </widget>
+-          </item>
+-          <item row="3" column="1">
+-           <widget class="QSpinBox" name="SB_vlan">
+-            <property name="enabled">
+-             <bool>false</bool>
+-            </property>
+-            <property name="sizePolicy">
+-             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+-              <horstretch>0</horstretch>
+-              <verstretch>0</verstretch>
+-             </sizepolicy>
++             <string>port</string>
+             </property>
+            </widget>
+           </item>
+-          <item row="4" column="0">
+-           <widget class="QCheckBox" name="CH_name">
++          <item row="2" column="0">
++           <widget class="QCheckBox" name="CH_macaddr">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+@@ -347,25 +261,12 @@
+              </sizepolicy>
+             </property>
+             <property name="text">
+-             <string>name</string>
+-            </property>
+-           </widget>
+-          </item>
+-          <item row="4" column="1">
+-           <widget class="QLineEdit" name="Edit_name">
+-            <property name="enabled">
+-             <bool>false</bool>
+-            </property>
+-            <property name="sizePolicy">
+-             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+-              <horstretch>0</horstretch>
+-              <verstretch>0</verstretch>
+-             </sizepolicy>
++             <string>macaddr</string>
+             </property>
+            </widget>
+           </item>
+-          <item row="5" column="0">
+-           <widget class="QCheckBox" name="CH_hostname">
++          <item row="0" column="0">
++           <widget class="QLabel" name="Label_Network_Type">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+@@ -373,12 +274,12 @@
+              </sizepolicy>
+             </property>
+             <property name="text">
+-             <string>hostname</string>
++             <string>Connection type</string>
+             </property>
+            </widget>
+           </item>
+-          <item row="5" column="1">
+-           <widget class="QLineEdit" name="Edit_hostname">
++          <item row="3" column="1">
++           <widget class="QLineEdit" name="Edit_name">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+@@ -391,29 +292,6 @@
+            </widget>
+           </item>
+           <item row="6" column="0">
+-           <widget class="QLabel" name="Label_port_dev">
+-            <property name="sizePolicy">
+-             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+-              <horstretch>0</horstretch>
+-              <verstretch>0</verstretch>
+-             </sizepolicy>
+-            </property>
+-            <property name="text">
+-             <string>port:dev</string>
+-            </property>
+-           </widget>
+-          </item>
+-          <item row="6" column="1">
+-           <widget class="QLineEdit" name="Edit_port_dev">
+-            <property name="sizePolicy">
+-             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+-              <horstretch>0</horstretch>
+-              <verstretch>0</verstretch>
+-             </sizepolicy>
+-            </property>
+-           </widget>
+-          </item>
+-          <item row="7" column="0">
+            <widget class="QCheckBox" name="CH_fd">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+@@ -426,7 +304,7 @@
+             </property>
+            </widget>
+           </item>
+-          <item row="7" column="1">
++          <item row="6" column="1">
+            <widget class="QSpinBox" name="SB_fd">
+             <property name="enabled">
+              <bool>false</bool>
+@@ -439,8 +317,8 @@
+             </property>
+            </widget>
+           </item>
+-          <item row="8" column="0">
+-           <widget class="QCheckBox" name="CH_ifname">
++          <item row="18" column="0">
++           <widget class="QCheckBox" name="CH_len">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+@@ -448,12 +326,19 @@
+              </sizepolicy>
+             </property>
+             <property name="text">
+-             <string>ifname</string>
++             <string>len</string>
+             </property>
+            </widget>
+           </item>
+-          <item row="8" column="1">
+-           <widget class="QLineEdit" name="Edit_ifname">
++          <item row="19" column="1">
++           <widget class="QLineEdit" name="Edit_addr">
++            <property name="enabled">
++             <bool>false</bool>
++            </property>
++           </widget>
++          </item>
++          <item row="17" column="1">
++           <widget class="QLineEdit" name="Edit_file">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+@@ -466,7 +351,7 @@
+            </widget>
+           </item>
+           <item row="9" column="0">
+-           <widget class="QCheckBox" name="CH_script">
++           <widget class="QCheckBox" name="CH_downscript">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+@@ -474,62 +359,19 @@
+              </sizepolicy>
+             </property>
+             <property name="text">
+-             <string>script</string>
++             <string>downscript</string>
+             </property>
+            </widget>
+           </item>
+-          <item row="9" column="1">
+-           <layout class="QHBoxLayout" name="horizontalLayout">
+-            <property name="spacing">
+-             <number>4</number>
+-            </property>
+-            <property name="sizeConstraint">
+-             <enum>QLayout::SetMinimumSize</enum>
+-            </property>
+-            <item>
+-             <widget class="QLineEdit" name="Edit_script">
+-              <property name="enabled">
+-               <bool>false</bool>
+-              </property>
+-              <property name="sizePolicy">
+-               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+-                <horstretch>0</horstretch>
+-                <verstretch>0</verstretch>
+-               </sizepolicy>
+-              </property>
+-             </widget>
+-            </item>
+-            <item>
+-             <widget class="QToolButton" name="TB_Browse_script">
+-              <property name="enabled">
+-               <bool>false</bool>
+-              </property>
+-              <property name="text">
+-               <string>...</string>
+-              </property>
+-              <property name="icon">
+-               <iconset resource="../resources/icons.qrc">
+-                <normaloff>:/open-file.png</normaloff>:/open-file.png</iconset>
+-              </property>
+-             </widget>
+-            </item>
+-           </layout>
+-          </item>
+-          <item row="10" column="0">
+-           <widget class="QCheckBox" name="CH_downscript">
+-            <property name="sizePolicy">
+-             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+-              <horstretch>0</horstretch>
+-              <verstretch>0</verstretch>
+-             </sizepolicy>
+-            </property>
++          <item row="33" column="0">
++           <widget class="QCheckBox" name="CH_vhostfd">
+             <property name="text">
+-             <string>downscript</string>
++             <string>vhostfd</string>
+             </property>
+            </widget>
+           </item>
+-          <item row="10" column="1">
+-           <layout class="QHBoxLayout" name="horizontalLayout_2">
++          <item row="0" column="1">
++           <layout class="QHBoxLayout" name="horizontalLayout_3">
+             <property name="spacing">
+              <number>4</number>
+             </property>
+@@ -537,62 +379,70 @@
+              <enum>QLayout::SetMinimumSize</enum>
+             </property>
+             <item>
+-             <widget class="QLineEdit" name="Edit_downscript">
+-              <property name="enabled">
+-               <bool>false</bool>
+-              </property>
++             <widget class="QComboBox" name="CB_Network_Type">
+               <property name="sizePolicy">
+                <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                 <horstretch>0</horstretch>
+                 <verstretch>0</verstretch>
+                </sizepolicy>
+               </property>
++              <property name="currentIndex">
++               <number>-1</number>
++              </property>
+              </widget>
+             </item>
+             <item>
+-             <widget class="QToolButton" name="TB_Browse_downscript">
+-              <property name="enabled">
+-               <bool>false</bool>
+-              </property>
++             <widget class="QToolButton" name="TB_Help">
+               <property name="text">
+-               <string>...</string>
++               <string>?</string>
+               </property>
+               <property name="icon">
+                <iconset resource="../resources/icons.qrc">
+-                <normaloff>:/open-file.png</normaloff>:/open-file.png</iconset>
++                <normaloff>:/help.png</normaloff>:/help.png</iconset>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+-          <item row="11" column="0">
+-           <widget class="QCheckBox" name="CH_listen">
++          <item row="16" column="1">
++           <widget class="QLineEdit" name="Edit_mode">
++            <property name="enabled">
++             <bool>false</bool>
++            </property>
+             <property name="sizePolicy">
+-             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
++             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
++           </widget>
++          </item>
++          <item row="31" column="0">
++           <widget class="QCheckBox" name="CH_vnet_hdr">
+             <property name="text">
+-             <string>listen</string>
++             <string>vnet_hdr</string>
+             </property>
+            </widget>
+           </item>
+-          <item row="11" column="1">
+-           <widget class="QLineEdit" name="Edit_listen">
++          <item row="30" column="0">
++           <widget class="QCheckBox" name="CH_sndbuf">
++            <property name="text">
++             <string>sndbuf</string>
++            </property>
++           </widget>
++          </item>
++          <item row="33" column="1">
++           <widget class="QSpinBox" name="SB_vhostfd">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+-            <property name="sizePolicy">
+-             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+-              <horstretch>0</horstretch>
+-              <verstretch>0</verstretch>
+-             </sizepolicy>
++            <property name="maximum">
++             <number>999999999</number>
+             </property>
+            </widget>
+           </item>
+-          <item row="12" column="0">
+-           <widget class="QCheckBox" name="CH_connect">
++          <item row="17" column="0">
++           <widget class="QCheckBox" name="CH_file">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+@@ -600,12 +450,46 @@
+              </sizepolicy>
+             </property>
+             <property name="text">
+-             <string>connect</string>
++             <string>file</string>
+             </property>
+            </widget>
+           </item>
+-          <item row="12" column="1">
+-           <widget class="QLineEdit" name="Edit_connect">
++          <item row="30" column="1">
++           <widget class="QSpinBox" name="SB_sndbuf">
++            <property name="enabled">
++             <bool>false</bool>
++            </property>
++            <property name="maximum">
++             <number>999999999</number>
++            </property>
++           </widget>
++          </item>
++          <item row="32" column="1">
++           <widget class="QComboBox" name="CB_vhost">
++            <property name="enabled">
++             <bool>false</bool>
++            </property>
++            <item>
++             <property name="text">
++              <string>on</string>
++             </property>
++            </item>
++            <item>
++             <property name="text">
++              <string>off</string>
++             </property>
++            </item>
++           </widget>
++          </item>
++          <item row="35" column="1">
++           <widget class="QLineEdit" name="Edit_guestfwd">
++            <property name="enabled">
++             <bool>false</bool>
++            </property>
++           </widget>
++          </item>
++          <item row="1" column="1">
++           <widget class="QComboBox" name="CB_model">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+@@ -617,7 +501,7 @@
+             </property>
+            </widget>
+           </item>
+-          <item row="13" column="0">
++          <item row="12" column="0">
+            <widget class="QCheckBox" name="CH_mcast">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+@@ -630,20 +514,7 @@
+             </property>
+            </widget>
+           </item>
+-          <item row="13" column="1">
+-           <widget class="QLineEdit" name="Edit_mcast">
+-            <property name="enabled">
+-             <bool>false</bool>
+-            </property>
+-            <property name="sizePolicy">
+-             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+-              <horstretch>0</horstretch>
+-              <verstretch>0</verstretch>
+-             </sizepolicy>
+-            </property>
+-           </widget>
+-          </item>
+-          <item row="14" column="0">
++          <item row="13" column="0">
+            <widget class="QCheckBox" name="CH_sock">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+@@ -656,8 +527,15 @@
+             </property>
+            </widget>
+           </item>
++          <item row="32" column="0">
++           <widget class="QCheckBox" name="CH_vhost">
++            <property name="text">
++             <string>vhost</string>
++            </property>
++           </widget>
++          </item>
+           <item row="14" column="1">
+-           <widget class="QLineEdit" name="Edit_sock">
++           <widget class="QSpinBox" name="SB_port">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+@@ -667,10 +545,48 @@
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
++            <property name="maximum">
++             <number>65000</number>
++            </property>
+            </widget>
+           </item>
+-          <item row="15" column="0">
+-           <widget class="QCheckBox" name="CH_port">
++          <item row="25" column="0">
++           <widget class="QCheckBox" name="CH_dns">
++            <property name="text">
++             <string>dns</string>
++            </property>
++           </widget>
++          </item>
++          <item row="21" column="0">
++           <widget class="QCheckBox" name="CH_net">
++            <property name="text">
++             <string>net</string>
++            </property>
++           </widget>
++          </item>
++          <item row="29" column="1">
++           <widget class="QLineEdit" name="Edit_smbserver">
++            <property name="enabled">
++             <bool>false</bool>
++            </property>
++           </widget>
++          </item>
++          <item row="24" column="1">
++           <widget class="QLineEdit" name="Edit_dhcpstart">
++            <property name="enabled">
++             <bool>false</bool>
++            </property>
++           </widget>
++          </item>
++          <item row="34" column="0">
++           <widget class="QCheckBox" name="CH_hostfwd">
++            <property name="text">
++             <string>hostfwd</string>
++            </property>
++           </widget>
++          </item>
++          <item row="8" column="0">
++           <widget class="QCheckBox" name="CH_script">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+@@ -678,28 +594,43 @@
+              </sizepolicy>
+             </property>
+             <property name="text">
+-             <string>port</string>
++             <string>script</string>
+             </property>
+            </widget>
+           </item>
+-          <item row="15" column="1">
+-           <widget class="QSpinBox" name="SB_port">
++          <item row="31" column="1">
++           <widget class="QComboBox" name="CB_vnet_hdr">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+-            <property name="sizePolicy">
+-             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+-              <horstretch>0</horstretch>
+-              <verstretch>0</verstretch>
+-             </sizepolicy>
++            <item>
++             <property name="text">
++              <string>on</string>
++             </property>
++            </item>
++            <item>
++             <property name="text">
++              <string>off</string>
++             </property>
++            </item>
++           </widget>
++          </item>
++          <item row="35" column="0">
++           <widget class="QCheckBox" name="CH_guestfwd">
++            <property name="text">
++             <string>guestfwd</string>
+             </property>
+-            <property name="maximum">
+-             <number>65000</number>
++           </widget>
++          </item>
++          <item row="34" column="1">
++           <widget class="QLineEdit" name="Edit_hostfwd">
++            <property name="enabled">
++             <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+-          <item row="16" column="0">
+-           <widget class="QCheckBox" name="CH_group">
++          <item row="5" column="0">
++           <widget class="QLabel" name="Label_port_dev">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+@@ -707,12 +638,26 @@
+              </sizepolicy>
+             </property>
+             <property name="text">
+-             <string>group</string>
++             <string>port:dev</string>
+             </property>
+            </widget>
+           </item>
+-          <item row="16" column="1">
+-           <widget class="QLineEdit" name="Edit_group">
++          <item row="26" column="0">
++           <widget class="QCheckBox" name="CH_tftp">
++            <property name="text">
++             <string>tftp</string>
++            </property>
++           </widget>
++          </item>
++          <item row="25" column="1">
++           <widget class="QLineEdit" name="Edit_dns">
++            <property name="enabled">
++             <bool>false</bool>
++            </property>
++           </widget>
++          </item>
++          <item row="7" column="1">
++           <widget class="QLineEdit" name="Edit_ifname">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+@@ -724,8 +669,15 @@
+             </property>
+            </widget>
+           </item>
+-          <item row="17" column="0">
+-           <widget class="QCheckBox" name="CH_mode">
++          <item row="26" column="1">
++           <widget class="QLineEdit" name="Edit_tftp">
++            <property name="enabled">
++             <bool>false</bool>
++            </property>
++           </widget>
++          </item>
++          <item row="1" column="0">
++           <widget class="QLabel" name="Label_model">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+@@ -733,38 +685,38 @@
+              </sizepolicy>
+             </property>
+             <property name="text">
+-             <string>mode</string>
++             <string>Model</string>
+             </property>
+            </widget>
+           </item>
+-          <item row="17" column="1">
+-           <widget class="QLineEdit" name="Edit_mode">
+-            <property name="enabled">
+-             <bool>false</bool>
+-            </property>
++          <item row="15" column="0">
++           <widget class="QCheckBox" name="CH_group">
+             <property name="sizePolicy">
+-             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
++             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
++            <property name="text">
++             <string>group</string>
++            </property>
+            </widget>
+           </item>
+-          <item row="18" column="0">
+-           <widget class="QCheckBox" name="CH_file">
++          <item row="4" column="1">
++           <widget class="QLineEdit" name="Edit_hostname">
++            <property name="enabled">
++             <bool>false</bool>
++            </property>
+             <property name="sizePolicy">
+-             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
++             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
+-            <property name="text">
+-             <string>file</string>
+-            </property>
+            </widget>
+           </item>
+-          <item row="18" column="1">
+-           <widget class="QLineEdit" name="Edit_file">
++          <item row="12" column="1">
++           <widget class="QLineEdit" name="Edit_mcast">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+@@ -776,8 +728,8 @@
+             </property>
+            </widget>
+           </item>
+-          <item row="19" column="0">
+-           <widget class="QCheckBox" name="CH_len">
++          <item row="4" column="0">
++           <widget class="QCheckBox" name="CH_hostname">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+               <horstretch>0</horstretch>
+@@ -785,11 +737,11 @@
+              </sizepolicy>
+             </property>
+             <property name="text">
+-             <string>len</string>
++             <string>hostname</string>
+             </property>
+            </widget>
+           </item>
+-          <item row="19" column="1">
++          <item row="18" column="1">
+            <widget class="QComboBox" name="CB_len">
+             <property name="enabled">
+              <bool>false</bool>
+@@ -832,139 +784,261 @@
+             </item>
+            </widget>
+           </item>
+-          <item row="20" column="0">
+-           <widget class="QCheckBox" name="CH_addr">
++          <item row="15" column="1">
++           <widget class="QLineEdit" name="Edit_group">
++            <property name="enabled">
++             <bool>false</bool>
++            </property>
++            <property name="sizePolicy">
++             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
++              <horstretch>0</horstretch>
++              <verstretch>0</verstretch>
++             </sizepolicy>
++            </property>
++           </widget>
++          </item>
++          <item row="13" column="1">
++           <widget class="QLineEdit" name="Edit_sock">
++            <property name="enabled">
++             <bool>false</bool>
++            </property>
++            <property name="sizePolicy">
++             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
++              <horstretch>0</horstretch>
++              <verstretch>0</verstretch>
++             </sizepolicy>
++            </property>
++           </widget>
++          </item>
++          <item row="24" column="0">
++           <widget class="QCheckBox" name="CH_dhcpstart">
+             <property name="text">
+-             <string>addr</string>
++             <string>dhcpstart</string>
++            </property>
++           </widget>
++          </item>
++          <item row="7" column="0">
++           <widget class="QCheckBox" name="CH_ifname">
++            <property name="sizePolicy">
++             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
++              <horstretch>0</horstretch>
++              <verstretch>0</verstretch>
++             </sizepolicy>
++            </property>
++            <property name="text">
++             <string>ifname</string>
+             </property>
+            </widget>
+           </item>
+-          <item row="20" column="1">
+-           <widget class="QLineEdit" name="Edit_addr">
+-            <property name="enabled">
+-             <bool>false</bool>
++          <item row="9" column="1">
++           <layout class="QHBoxLayout" name="horizontalLayout_2">
++            <property name="spacing">
++             <number>4</number>
++            </property>
++            <property name="sizeConstraint">
++             <enum>QLayout::SetMinimumSize</enum>
++            </property>
++            <item>
++             <widget class="QLineEdit" name="Edit_downscript">
++              <property name="enabled">
++               <bool>false</bool>
++              </property>
++              <property name="sizePolicy">
++               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
++                <horstretch>0</horstretch>
++                <verstretch>0</verstretch>
++               </sizepolicy>
++              </property>
++             </widget>
++            </item>
++            <item>
++             <widget class="QToolButton" name="TB_Browse_downscript">
++              <property name="enabled">
++               <bool>false</bool>
++              </property>
++              <property name="text">
++               <string>...</string>
++              </property>
++              <property name="icon">
++               <iconset resource="../resources/icons.qrc">
++                <normaloff>:/open-file.png</normaloff>:/open-file.png</iconset>
++              </property>
++             </widget>
++            </item>
++           </layout>
++          </item>
++          <item row="11" column="0">
++           <widget class="QCheckBox" name="CH_connect">
++            <property name="sizePolicy">
++             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
++              <horstretch>0</horstretch>
++              <verstretch>0</verstretch>
++             </sizepolicy>
++            </property>
++            <property name="text">
++             <string>connect</string>
++            </property>
++           </widget>
++          </item>
++          <item row="3" column="0">
++           <widget class="QCheckBox" name="CH_name">
++            <property name="sizePolicy">
++             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
++              <horstretch>0</horstretch>
++              <verstretch>0</verstretch>
++             </sizepolicy>
++            </property>
++            <property name="text">
++             <string>name</string>
++            </property>
++           </widget>
++          </item>
++          <item row="8" column="1">
++           <layout class="QHBoxLayout" name="horizontalLayout">
++            <property name="spacing">
++             <number>4</number>
++            </property>
++            <property name="sizeConstraint">
++             <enum>QLayout::SetMinimumSize</enum>
++            </property>
++            <item>
++             <widget class="QLineEdit" name="Edit_script">
++              <property name="enabled">
++               <bool>false</bool>
++              </property>
++              <property name="sizePolicy">
++               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
++                <horstretch>0</horstretch>
++                <verstretch>0</verstretch>
++               </sizepolicy>
++              </property>
++             </widget>
++            </item>
++            <item>
++             <widget class="QToolButton" name="TB_Browse_script">
++              <property name="enabled">
++               <bool>false</bool>
++              </property>
++              <property name="text">
++               <string>...</string>
++              </property>
++              <property name="icon">
++               <iconset resource="../resources/icons.qrc">
++                <normaloff>:/open-file.png</normaloff>:/open-file.png</iconset>
++              </property>
++             </widget>
++            </item>
++           </layout>
++          </item>
++          <item row="5" column="1">
++           <widget class="QLineEdit" name="Edit_port_dev">
++            <property name="sizePolicy">
++             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
++              <horstretch>0</horstretch>
++              <verstretch>0</verstretch>
++             </sizepolicy>
+             </property>
+            </widget>
+           </item>
+-          <item row="21" column="0">
+-           <widget class="QCheckBox" name="CH_vectors">
++          <item row="27" column="0">
++           <widget class="QCheckBox" name="CH_bootfile">
+             <property name="text">
+-             <string>vectors</string>
++             <string>bootfile</string>
+             </property>
+            </widget>
+           </item>
+-          <item row="21" column="1">
+-           <widget class="QSpinBox" name="SB_vectors">
++          <item row="11" column="1">
++           <widget class="QLineEdit" name="Edit_connect">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+-            <property name="maximum">
+-             <number>999999999</number>
+-            </property>
+-           </widget>
+-          </item>
+-          <item row="22" column="0">
+-           <widget class="QCheckBox" name="CH_net">
+-            <property name="text">
+-             <string>net</string>
++            <property name="sizePolicy">
++             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
++              <horstretch>0</horstretch>
++              <verstretch>0</verstretch>
++             </sizepolicy>
+             </property>
+            </widget>
+           </item>
+-          <item row="22" column="1">
++          <item row="21" column="1">
+            <widget class="QLineEdit" name="Edit_net">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+-          <item row="23" column="0">
+-           <widget class="QCheckBox" name="CH_host">
+-            <property name="text">
+-             <string>host</string>
+-            </property>
+-           </widget>
+-          </item>
+-          <item row="23" column="1">
+-           <widget class="QLineEdit" name="Edit_host">
++          <item row="10" column="1">
++           <widget class="QLineEdit" name="Edit_listen">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
++            <property name="sizePolicy">
++             <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
++              <horstretch>0</horstretch>
++              <verstretch>0</verstretch>
++             </sizepolicy>
++            </property>
+            </widget>
+           </item>
+-          <item row="24" column="0">
++          <item row="23" column="0">
+            <widget class="QCheckBox" name="CH_restrict">
+             <property name="text">
+              <string>restrict</string>
+             </property>
+            </widget>
+           </item>
+-          <item row="24" column="1">
+-           <widget class="QComboBox" name="CB_restrict">
+-            <property name="enabled">
+-             <bool>false</bool>
++          <item row="19" column="0">
++           <widget class="QCheckBox" name="CH_addr">
++            <property name="text">
++             <string>addr</string>
+             </property>
+-            <item>
+-             <property name="text">
+-              <string>y</string>
+-             </property>
+-            </item>
+-            <item>
+-             <property name="text">
+-              <string>n</string>
+-             </property>
+-            </item>
+            </widget>
+           </item>
+-          <item row="25" column="0">
+-           <widget class="QCheckBox" name="CH_dhcpstart">
++          <item row="10" column="0">
++           <widget class="QCheckBox" name="CH_listen">
++            <property name="sizePolicy">
++             <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
++              <horstretch>0</horstretch>
++              <verstretch>0</verstretch>
++             </sizepolicy>
++            </property>
+             <property name="text">
+-             <string>dhcpstart</string>
++             <string>listen</string>
+             </property>
+            </widget>
+           </item>
+-          <item row="25" column="1">
+-           <widget class="QLineEdit" name="Edit_dhcpstart">
++          <item row="22" column="1">
++           <widget class="QLineEdit" name="Edit_host">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+-          <item row="26" column="0">
+-           <widget class="QCheckBox" name="CH_dns">
+-            <property name="text">
+-             <string>dns</string>
+-            </property>
+-           </widget>
+-          </item>
+-          <item row="26" column="1">
+-           <widget class="QLineEdit" name="Edit_dns">
++          <item row="20" column="1">
++           <widget class="QSpinBox" name="SB_vectors">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+-           </widget>
+-          </item>
+-          <item row="27" column="0">
+-           <widget class="QCheckBox" name="CH_tftp">
+-            <property name="text">
+-             <string>tftp</string>
++            <property name="maximum">
++             <number>999999999</number>
+             </property>
+            </widget>
+           </item>
+-          <item row="27" column="1">
+-           <widget class="QLineEdit" name="Edit_tftp">
+-            <property name="enabled">
+-             <bool>false</bool>
++          <item row="28" column="0">
++           <widget class="QCheckBox" name="CH_smb">
++            <property name="text">
++             <string>smb</string>
+             </property>
+            </widget>
+           </item>
+-          <item row="28" column="0">
+-           <widget class="QCheckBox" name="CH_bootfile">
++          <item row="29" column="0">
++           <widget class="QCheckBox" name="CH_smbserver">
+             <property name="text">
+-             <string>bootfile</string>
++             <string>smbserver</string>
+             </property>
+            </widget>
+           </item>
+-          <item row="28" column="1">
++          <item row="27" column="1">
+            <layout class="QHBoxLayout" name="horizontalLayout_5">
+             <property name="spacing">
+              <number>4</number>
+@@ -992,14 +1066,7 @@
+             </item>
+            </layout>
+           </item>
+-          <item row="29" column="0">
+-           <widget class="QCheckBox" name="CH_smb">
+-            <property name="text">
+-             <string>smb</string>
+-            </property>
+-           </widget>
+-          </item>
+-          <item row="29" column="1">
++          <item row="28" column="1">
+            <layout class="QHBoxLayout" name="horizontalLayout_6">
+             <property name="spacing">
+              <number>4</number>
+@@ -1027,127 +1094,34 @@
+             </item>
+            </layout>
+           </item>
+-          <item row="30" column="0">
+-           <widget class="QCheckBox" name="CH_smbserver">
+-            <property name="text">
+-             <string>smbserver</string>
+-            </property>
+-           </widget>
+-          </item>
+-          <item row="30" column="1">
+-           <widget class="QLineEdit" name="Edit_smbserver">
+-            <property name="enabled">
+-             <bool>false</bool>
+-            </property>
+-           </widget>
+-          </item>
+-          <item row="31" column="0">
+-           <widget class="QCheckBox" name="CH_sndbuf">
+-            <property name="text">
+-             <string>sndbuf</string>
+-            </property>
+-           </widget>
+-          </item>
+-          <item row="31" column="1">
+-           <widget class="QSpinBox" name="SB_sndbuf">
+-            <property name="enabled">
+-             <bool>false</bool>
+-            </property>
+-            <property name="maximum">
+-             <number>999999999</number>
+-            </property>
+-           </widget>
+-          </item>
+-          <item row="32" column="0">
+-           <widget class="QCheckBox" name="CH_vnet_hdr">
+-            <property name="text">
+-             <string>vnet_hdr</string>
+-            </property>
+-           </widget>
+-          </item>
+-          <item row="32" column="1">
+-           <widget class="QComboBox" name="CB_vnet_hdr">
+-            <property name="enabled">
+-             <bool>false</bool>
+-            </property>
+-            <item>
+-             <property name="text">
+-              <string>on</string>
+-             </property>
+-            </item>
+-            <item>
+-             <property name="text">
+-              <string>off</string>
+-             </property>
+-            </item>
+-           </widget>
+-          </item>
+-          <item row="33" column="0">
+-           <widget class="QCheckBox" name="CH_vhost">
+-            <property name="text">
+-             <string>vhost</string>
+-            </property>
+-           </widget>
+-          </item>
+-          <item row="33" column="1">
+-           <widget class="QComboBox" name="CB_vhost">
++          <item row="23" column="1">
++           <widget class="QComboBox" name="CB_restrict">
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+             <item>
+              <property name="text">
+-              <string>on</string>
++              <string>y</string>
+              </property>
+             </item>
+             <item>
+              <property name="text">
+-              <string>off</string>
++              <string>n</string>
+              </property>
+             </item>
+            </widget>
+           </item>
+-          <item row="34" column="0">
+-           <widget class="QCheckBox" name="CH_vhostfd">
+-            <property name="text">
+-             <string>vhostfd</string>
+-            </property>
+-           </widget>
+-          </item>
+-          <item row="34" column="1">
+-           <widget class="QSpinBox" name="SB_vhostfd">
+-            <property name="enabled">
+-             <bool>false</bool>
+-            </property>
+-            <property name="maximum">
+-             <number>999999999</number>
+-            </property>
+-           </widget>
+-          </item>
+-          <item row="35" column="0">
+-           <widget class="QCheckBox" name="CH_hostfwd">
++          <item row="20" column="0">
++           <widget class="QCheckBox" name="CH_vectors">
+             <property name="text">
+-             <string>hostfwd</string>
+-            </property>
+-           </widget>
+-          </item>
+-          <item row="35" column="1">
+-           <widget class="QLineEdit" name="Edit_hostfwd">
+-            <property name="enabled">
+-             <bool>false</bool>
++             <string>vectors</string>
+             </property>
+            </widget>
+           </item>
+-          <item row="36" column="0">
+-           <widget class="QCheckBox" name="CH_guestfwd">
++          <item row="22" column="0">
++           <widget class="QCheckBox" name="CH_host">
+             <property name="text">
+-             <string>guestfwd</string>
+-            </property>
+-           </widget>
+-          </item>
+-          <item row="36" column="1">
+-           <widget class="QLineEdit" name="Edit_guestfwd">
+-            <property name="enabled">
+-             <bool>false</bool>
++             <string>host</string>
+             </property>
+            </widget>
+           </item>
+@@ -1180,8 +1154,6 @@
+   <tabstop>TB_Generate_New_MAC</tabstop>
+   <tabstop>CB_Network_Type</tabstop>
+   <tabstop>TB_Help</tabstop>
+-  <tabstop>CH_vlan</tabstop>
+-  <tabstop>SB_vlan</tabstop>
+   <tabstop>CH_name</tabstop>
+   <tabstop>Edit_name</tabstop>
+   <tabstop>CH_hostname</tabstop>
+@@ -1223,22 +1195,6 @@
+   <include location="../resources/icons.qrc"/>
+  </resources>
+  <connections>
+-  <connection>
+-   <sender>CH_vlan</sender>
+-   <signal>toggled(bool)</signal>
+-   <receiver>SB_vlan</receiver>
+-   <slot>setEnabled(bool)</slot>
+-   <hints>
+-    <hint type="sourcelabel">
+-     <x>57</x>
+-     <y>260</y>
+-    </hint>
+-    <hint type="destinationlabel">
+-     <x>278</x>
+-     <y>256</y>
+-    </hint>
+-   </hints>
+-  </connection>
+   <connection>
+    <sender>CH_macaddr</sender>
+    <signal>toggled(bool)</signal>
+diff --git a/src/Old_Network_Widget.cpp b/src/Old_Network_Widget.cpp
+index eb8c88e..b276507 100644
+--- a/src/Old_Network_Widget.cpp
++++ b/src/Old_Network_Widget.cpp
+@@ -140,9 +140,6 @@ void Old_Network_Widget::Connect_Slots()
+ 	connect( ui.SB_Port, SIGNAL(valueChanged(int)),
+ 			 this, SIGNAL(Changed()) );
+ 	
+-	connect( ui.SB_VLAN, SIGNAL(valueChanged(int)),
+-			 this, SIGNAL(Changed()) );
+-	
+ 	connect( ui.CH_TUN_TAP_Script, SIGNAL(clicked()),
+ 			 this, SIGNAL(Changed()) );
+ 	
+@@ -176,9 +173,6 @@ void Old_Network_Widget::Disconnect_Slots()
+ 	disconnect( ui.SB_Port, SIGNAL(valueChanged(int)),
+ 				this, SIGNAL(Changed()) );
+ 	
+-	disconnect( ui.SB_VLAN, SIGNAL(valueChanged(int)),
+-				this, SIGNAL(Changed()) );
+-	
+ 	disconnect( ui.CH_TUN_TAP_Script, SIGNAL(clicked()),
+ 				this, SIGNAL(Changed()) );
+ 	
+@@ -310,8 +304,6 @@ void Old_Network_Widget::on_CB_Connection_Mode_currentIndexChanged( int index )
+ 			ui.Label_MAC->setEnabled( true );
+ 			ui.Edit_MAC_Address->setEnabled( true );
+ 			ui.TB_Generate_New_MAC->setEnabled( true );
+-			ui.Label_VLAN->setEnabled( true );
+-			ui.SB_VLAN->setEnabled( true );
+ 			ui.CH_TUN_TAP_Script->setEnabled( false );
+ 			ui.Edit_TUN_TAP_Script->setEnabled( false );
+ 			ui.TB_Browse_TUN_Script->setEnabled( false );
+@@ -334,8 +326,6 @@ void Old_Network_Widget::on_CB_Connection_Mode_currentIndexChanged( int index )
+ 			ui.Label_MAC->setEnabled( true );
+ 			ui.Edit_MAC_Address->setEnabled( true );
+ 			ui.TB_Generate_New_MAC->setEnabled( true );
+-			ui.Label_VLAN->setEnabled( true );
+-			ui.SB_VLAN->setEnabled( true );
+ 			ui.CH_TUN_TAP_Script->setEnabled( true );
+ 			ui.Edit_TUN_TAP_Script->setEnabled( true );
+ 			ui.TB_Browse_TUN_Script->setEnabled( true );
+@@ -358,8 +348,6 @@ void Old_Network_Widget::on_CB_Connection_Mode_currentIndexChanged( int index )
+ 			ui.Label_MAC->setEnabled( true );
+ 			ui.Edit_MAC_Address->setEnabled( true );
+ 			ui.TB_Generate_New_MAC->setEnabled( true );
+-			ui.Label_VLAN->setEnabled( true );
+-			ui.SB_VLAN->setEnabled( true );
+ 			ui.CH_TUN_TAP_Script->setEnabled( false );
+ 			ui.Edit_TUN_TAP_Script->setEnabled( false );
+ 			ui.TB_Browse_TUN_Script->setEnabled( false );
+@@ -382,8 +370,6 @@ void Old_Network_Widget::on_CB_Connection_Mode_currentIndexChanged( int index )
+ 			ui.Label_MAC->setEnabled( true );
+ 			ui.Edit_MAC_Address->setEnabled( true );
+ 			ui.TB_Generate_New_MAC->setEnabled( true );
+-			ui.Label_VLAN->setEnabled( true );
+-			ui.SB_VLAN->setEnabled( true );
+ 			ui.CH_TUN_TAP_Script->setEnabled( false );
+ 			ui.Edit_TUN_TAP_Script->setEnabled( false );
+ 			ui.TB_Browse_TUN_Script->setEnabled( false );
+@@ -406,8 +392,6 @@ void Old_Network_Widget::on_CB_Connection_Mode_currentIndexChanged( int index )
+ 			ui.Label_MAC->setEnabled( true );
+ 			ui.Edit_MAC_Address->setEnabled( true );
+ 			ui.TB_Generate_New_MAC->setEnabled( true );
+-			ui.Label_VLAN->setEnabled( true );
+-			ui.SB_VLAN->setEnabled( true );
+ 			ui.CH_TUN_TAP_Script->setEnabled( false );
+ 			ui.Edit_TUN_TAP_Script->setEnabled( false );
+ 			ui.TB_Browse_TUN_Script->setEnabled( false );
+@@ -430,8 +414,6 @@ void Old_Network_Widget::on_CB_Connection_Mode_currentIndexChanged( int index )
+ 			ui.Label_MAC->setEnabled( true );
+ 			ui.Edit_MAC_Address->setEnabled( true );
+ 			ui.TB_Generate_New_MAC->setEnabled( true );
+-			ui.Label_VLAN->setEnabled( true );
+-			ui.SB_VLAN->setEnabled( true );
+ 			ui.CH_TUN_TAP_Script->setEnabled( false );
+ 			ui.Edit_TUN_TAP_Script->setEnabled( false );
+ 			ui.TB_Browse_TUN_Script->setEnabled( false );
+@@ -441,7 +423,7 @@ void Old_Network_Widget::on_CB_Connection_Mode_currentIndexChanged( int index )
+ 			ui.SB_File_Descriptor->setEnabled( false );
+ 			break;
+ 			
+-		case 6: // create shared VLAN via UDP multicast socket
++		case 6: // use an UDP multicast socket
+             if(set_net_mode)
+     			Network_Cards[ ui.Network_Cards_List->currentRow() ].Set_Net_Mode( VM::Net_Mode_Multicast );
+ 			
+@@ -454,8 +436,6 @@ void Old_Network_Widget::on_CB_Connection_Mode_currentIndexChanged( int index )
+ 			ui.Label_MAC->setEnabled( true );
+ 			ui.Edit_MAC_Address->setEnabled( true );
+ 			ui.TB_Generate_New_MAC->setEnabled( true );
+-			ui.Label_VLAN->setEnabled( true );
+-			ui.SB_VLAN->setEnabled( true );
+ 			ui.CH_TUN_TAP_Script->setEnabled( false );
+ 			ui.Edit_TUN_TAP_Script->setEnabled( false );
+ 			ui.TB_Browse_TUN_Script->setEnabled( false );
+@@ -478,8 +458,6 @@ void Old_Network_Widget::on_CB_Connection_Mode_currentIndexChanged( int index )
+ 			ui.Label_MAC->setEnabled( true );
+ 			ui.Edit_MAC_Address->setEnabled( true );
+ 			ui.TB_Generate_New_MAC->setEnabled( true );
+-			ui.Label_VLAN->setEnabled( true );
+-			ui.SB_VLAN->setEnabled( true );
+ 			ui.CH_TUN_TAP_Script->setEnabled( false );
+ 			ui.Edit_TUN_TAP_Script->setEnabled( false );
+ 			ui.TB_Browse_TUN_Script->setEnabled( false );
+@@ -502,8 +480,6 @@ void Old_Network_Widget::on_CB_Connection_Mode_currentIndexChanged( int index )
+ 			ui.Label_MAC->setEnabled( false );
+ 			ui.Edit_MAC_Address->setEnabled( false );
+ 			ui.TB_Generate_New_MAC->setEnabled( false );
+-			ui.Label_VLAN->setEnabled( false );
+-			ui.SB_VLAN->setEnabled( false );
+ 			ui.CH_TUN_TAP_Script->setEnabled( false );
+ 			ui.Edit_TUN_TAP_Script->setEnabled( false );
+ 			ui.TB_Browse_TUN_Script->setEnabled( false );
+@@ -555,11 +531,6 @@ void Old_Network_Widget::on_SB_Port_valueChanged( int i )
+ 	Network_Cards[ ui.Network_Cards_List->currentRow() ].Set_Port( i );
+ }
+ 
+-void Old_Network_Widget::on_SB_VLAN_valueChanged( int i )
+-{
+-	Network_Cards[ ui.Network_Cards_List->currentRow() ].Set_VLAN( i );
+-}
+-
+ void Old_Network_Widget::on_CH_TUN_TAP_Script_stateChanged( int state )
+ {
+ 	if( state == Qt::Checked ) Network_Cards[ ui.Network_Cards_List->currentRow() ].Set_Use_TUN_TAP_Script( true );
+@@ -657,7 +628,6 @@ void Old_Network_Widget::Set_Net_Card_To_Ui( const VM_Net_Card &card )
+ 	ui.Edit_IP_Address->setText( card.Get_IP_Address() );
+ 	ui.Edit_MAC_Address->setText( card.Get_MAC_Address() );
+ 	ui.SB_Port->setValue( card.Get_Port() );
+-	ui.SB_VLAN->setValue( card.Get_VLAN() );
+ 	ui.CH_TUN_TAP_Script->setChecked( card.Get_Use_TUN_TAP_Script() );
+ 	ui.Edit_TUN_TAP_Script->setText( card.Get_TUN_TAP_Script() );
+ 	ui.Edit_Interface_Name->setText( card.Get_Interface_Name() );
+diff --git a/src/Old_Network_Widget.h b/src/Old_Network_Widget.h
+index 52fb937..f2d084c 100644
+--- a/src/Old_Network_Widget.h
++++ b/src/Old_Network_Widget.h
+@@ -54,7 +54,6 @@ class Old_Network_Widget: public QWidget
+ 		void on_Edit_IP_Address_textChanged();
+ 		void on_Edit_MAC_Address_textChanged();
+ 		void on_SB_Port_valueChanged( int i );
+-		void on_SB_VLAN_valueChanged( int i );
+ 		void on_CH_TUN_TAP_Script_stateChanged( int state );
+ 		void on_Edit_TUN_TAP_Script_textChanged();
+ 		void on_Edit_Interface_Name_textChanged();
+diff --git a/src/Old_Network_Widget.ui b/src/Old_Network_Widget.ui
+index caaef00..6c7b071 100644
+--- a/src/Old_Network_Widget.ui
++++ b/src/Old_Network_Widget.ui
+@@ -163,7 +163,7 @@
+         </property>
+        </widget>
+       </item>
+-      <item row="6" column="1">
++      <item row="5" column="1">
+        <widget class="QLineEdit" name="Edit_MAC_Address">
+         <property name="text">
+          <string/>
+@@ -176,7 +176,7 @@
+         </property>
+        </widget>
+       </item>
+-      <item row="8" column="2">
++      <item row="7" column="2">
+        <widget class="QToolButton" name="TB_Browse_TUN_Script">
+         <property name="text">
+          <string>...</string>
+@@ -215,7 +215,7 @@
+         </property>
+        </widget>
+       </item>
+-      <item row="6" column="5">
++      <item row="5" column="5">
+        <widget class="QSpinBox" name="SB_File_Descriptor">
+         <property name="minimumSize">
+          <size>
+@@ -243,23 +243,7 @@
+         </property>
+        </widget>
+       </item>
+-      <item row="3" column="5">
+-       <widget class="QSpinBox" name="SB_VLAN">
+-        <property name="minimumSize">
+-         <size>
+-          <width>80</width>
+-          <height>0</height>
+-         </size>
+-        </property>
+-        <property name="maximumSize">
+-         <size>
+-          <width>80</width>
+-          <height>16777215</height>
+-         </size>
+-        </property>
+-       </widget>
+-      </item>
+-      <item row="6" column="2">
++      <item row="5" column="2">
+        <widget class="QToolButton" name="TB_Generate_New_MAC">
+         <property name="toolTip">
+          <string>Generate New MAC</string>
+@@ -273,25 +257,6 @@
+         </property>
+        </widget>
+       </item>
+-      <item row="3" column="4">
+-       <widget class="QLabel" name="Label_VLAN">
+-        <property name="sizePolicy">
+-         <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+-          <horstretch>0</horstretch>
+-          <verstretch>0</verstretch>
+-         </sizepolicy>
+-        </property>
+-        <property name="text">
+-         <string>V&amp;LAN:</string>
+-        </property>
+-        <property name="alignment">
+-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+-        </property>
+-        <property name="buddy">
+-         <cstring>SB_VLAN</cstring>
+-        </property>
+-       </widget>
+-      </item>
+       <item row="0" column="1" colspan="5">
+        <widget class="QComboBox" name="CB_Network_Card_Model">
+         <property name="maxCount">
+@@ -302,7 +267,7 @@
+       <item row="3" column="1">
+        <widget class="QLineEdit" name="Edit_Hostname"/>
+       </item>
+-      <item row="9" column="0">
++      <item row="8" column="0">
+        <widget class="QLabel" name="Label_If_Name">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+@@ -373,7 +338,7 @@
+         </item>
+         <item>
+          <property name="text">
+-          <string>Create shared VLAN via UDP multicast socket</string>
++          <string>Use an UDP multicast socket</string>
+          </property>
+         </item>
+         <item>
+@@ -388,7 +353,7 @@
+         </item>
+        </widget>
+       </item>
+-      <item row="6" column="4">
++      <item row="5" column="4">
+        <widget class="QLabel" name="Label_File_Descriptor">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+@@ -407,7 +372,7 @@
+         </property>
+        </widget>
+       </item>
+-      <item row="8" column="0" alignment="Qt::AlignRight">
++      <item row="7" column="0" alignment="Qt::AlignRight">
+        <widget class="QCheckBox" name="CH_TUN_TAP_Script">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+@@ -442,7 +407,7 @@
+         </property>
+        </spacer>
+       </item>
+-      <item row="8" column="1">
++      <item row="7" column="1">
+        <widget class="QLineEdit" name="Edit_TUN_TAP_Script"/>
+       </item>
+       <item row="3" column="3">
+@@ -461,10 +426,10 @@
+         </property>
+        </spacer>
+       </item>
+-      <item row="9" column="1">
++      <item row="8" column="1">
+        <widget class="QLineEdit" name="Edit_Interface_Name"/>
+       </item>
+-      <item row="6" column="0">
++      <item row="5" column="0">
+        <widget class="QLabel" name="Label_MAC">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+@@ -483,7 +448,7 @@
+         </property>
+        </widget>
+       </item>
+-      <item row="7" column="0">
++      <item row="6" column="0">
+        <spacer name="verticalSpacer_2">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+diff --git a/src/VM.cpp b/src/VM.cpp
+index f2e3380..696b8ff 100644
+--- a/src/VM.cpp
++++ b/src/VM.cpp
+@@ -1930,12 +1930,6 @@ bool Virtual_Machine::Create_VM_File( const QString &file_name, bool template_mo
+ 			Dom_Text = New_Dom_Document.createTextNode( QString::number(Network_Cards[nx].Get_Port()) );
+ 			Sec_Element.appendChild( Dom_Text );
+ 			
+-			// VLAN
+-			Sec_Element = New_Dom_Document.createElement( "VLAN" );
+-			Dom_Element.appendChild( Sec_Element );
+-			Dom_Text = New_Dom_Document.createTextNode( QString::number(Network_Cards[nx].Get_VLAN()) );
+-			Sec_Element.appendChild( Dom_Text );
+-			
+ 			// Use TUN TAP Script
+ 			Sec_Element = New_Dom_Document.createElement( "Use_TUN_TAP_Script" );
+ 			Dom_Element.appendChild( Sec_Element );
+@@ -2053,17 +2047,6 @@ bool Virtual_Machine::Create_VM_File( const QString &file_name, bool template_mo
+ 			Dom_Text = New_Dom_Document.createTextNode( Network_Cards_Nativ[nx].Get_MAC_Address() );
+ 			Sec_Element.appendChild( Dom_Text );
+ 			
+-			// VLAN
+-			Sec_Element = New_Dom_Document.createElement( "Use_VLAN" );
+-			Dom_Element.appendChild( Sec_Element );
+-			Dom_Text = New_Dom_Document.createTextNode( Network_Cards_Nativ[nx].Use_VLAN() ? "yes" : "no" );
+-			Sec_Element.appendChild( Dom_Text );
+-			
+-			Sec_Element = New_Dom_Document.createElement( "VLAN" );
+-			Dom_Element.appendChild( Sec_Element );
+-			Dom_Text = New_Dom_Document.createTextNode( QString::number(Network_Cards_Nativ[nx].Get_VLAN()) );
+-			Sec_Element.appendChild( Dom_Text );
+-			
+ 			// Name
+ 			Sec_Element = New_Dom_Document.createElement( "Use_Name" );
+ 			Dom_Element.appendChild( Sec_Element );
+@@ -4182,9 +4165,6 @@ bool Virtual_Machine::Load_VM( const QString &file_name )
+ 				// Port
+ 				tmp_card.Set_Port( Second_Element.firstChildElement("Port").text().toInt() );
+ 				
+-				// VLAN
+-				tmp_card.Set_VLAN( Second_Element.firstChildElement("VLAN").text().toInt() );
+-				
+ 				// Use TUN TAP Script
+ 				tmp_card.Set_Use_TUN_TAP_Script( ! (Second_Element.firstChildElement("Use_TUN_TAP_Script").text() == "false") );
+ 				
+@@ -4244,12 +4224,6 @@ bool Virtual_Machine::Load_VM( const QString &file_name )
+ 				tmp_card.Set_Card_Model( Second_Element.firstChildElement("Card_Model").text() );
+ 				tmp_card.Use_MAC_Address( Second_Element.firstChildElement("Use_MAC_Address").text() == "yes" );
+ 				
+-				tmp_card.Set_MAC_Address( Second_Element.firstChildElement("MAC_Address").text() );
+-				tmp_card.Use_VLAN( Second_Element.firstChildElement("Use_VLAN").text() == "yes" );
+-				
+-				tmp_card.Set_VLAN( Second_Element.firstChildElement("VLAN").text().toInt() );
+-				tmp_card.Use_Name( Second_Element.firstChildElement("Use_Name").text() == "yes" );
+-				
+ 				tmp_card.Set_Name( Second_Element.firstChildElement("Name").text() );
+ 				tmp_card.Use_Hostname( Second_Element.firstChildElement("Use_Hostname").text() == "yes" );
+ 				
+@@ -5702,30 +5676,30 @@ QStringList Virtual_Machine::Build_QEMU_Args()
+ 			for( int nc = 0; nc < Network_Cards_Nativ.count(); nc++ )
+ 			{
+ 				QString nic_str = "";
+-				bool u_vlan, u_macaddr, u_model, u_name, u_hostname, u_port_dev, u_fd, u_ifname, u_script,
++				bool u_macaddr, u_model, u_name, u_hostname, u_port_dev, u_fd, u_ifname, u_script,
+ 					 u_downscript, u_listen, u_connect, u_mcast, u_sock, u_port, u_group, u_mode, u_file,
+ 					 u_len, u_addr, u_vectors, u_net, u_host, u_restrict, u_dhcpstart, u_dns, u_tftp, u_bootfile,
+ 					 u_hostfwd, u_guestfwd, u_smb, u_smbserver, u_sndbuf, u_vnet_hdr, u_vhost, u_vhostfd;
+ 				
+-				u_vlan = u_macaddr = u_model = u_name = u_hostname = u_port_dev = u_fd = u_ifname = u_script =
++				u_macaddr = u_model = u_name = u_hostname = u_port_dev = u_fd = u_ifname = u_script =
+ 				u_downscript = u_listen = u_connect = u_mcast = u_sock = u_port = u_group = u_mode = u_file =
+ 				u_len = u_addr = u_vectors = u_net = u_host = u_restrict = u_dhcpstart = u_dns = u_tftp = u_bootfile =
+ 				u_hostfwd = u_guestfwd = u_smb = u_smbserver = u_sndbuf = u_vnet_hdr = u_vhost = u_vhostfd = false;
+ 				
+ 				switch( Network_Cards_Nativ[nc].Get_Network_Type() )
+ 				{
+-					// -net nic[,vlan=n][,macaddr=mac][,model=type][,name=str][,addr=str][,vectors=v]
++					// -net nic[,macaddr=mac][,model=type][,name=str][,addr=str][,vectors=v]
+ 					case VM::Net_Mode_Nativ_NIC:
+ 						nic_str += "nic";
+-						u_vlan = u_macaddr = u_model = u_name = u_addr = u_vectors = true;
++						u_macaddr = u_model = u_name = u_addr = u_vectors = true;
+ 						break;
+ 						
+-					// -net user[,vlan=n][,name=str][,net=addr[/mask]][,host=addr][,restrict=y|n]
++					// -net user[,name=str][,net=addr[/mask]][,host=addr][,restrict=y|n]
+ 					//			[,hostname=host][,dhcpstart=addr][,dns=addr][,tftp=dir][,bootfile=f]
+ 					//			[,hostfwd=rule][,guestfwd=rule][,smb=dir[,smbserver=addr]]
+ 					case VM::Net_Mode_Nativ_User:
+ 						nic_str += "user";
+-						u_vlan = u_name = u_net = u_host = u_restrict = u_hostname = u_dhcpstart = u_dns =
++						u_name = u_net = u_host = u_restrict = u_hostname = u_dhcpstart = u_dns =
+ 							     u_tftp = u_bootfile = u_hostfwd = u_guestfwd = u_smb = u_smbserver = true;
+ 						break;
+ 						
+@@ -5735,37 +5709,37 @@ QStringList Virtual_Machine::Build_QEMU_Args()
+ 						u_port_dev = true;
+ 						break;
+ 						
+-					// -net tap[,vlan=n][,name=str][,fd=h][,ifname=name][,script=file][,downscript=dfile]
++					// -net tap[,name=str][,fd=h][,ifname=name][,script=file][,downscript=dfile]
+ 					//		   [,sndbuf=nbytes][,vnet_hdr=on|off][,vhost=on|off][,vhostfd=h]
+ 					case VM::Net_Mode_Nativ_TAP:
+ 						nic_str += "tap";
+-						u_vlan = u_name = u_fd = u_ifname = u_script = u_downscript = u_sndbuf = u_vnet_hdr = u_vhost = u_vhostfd = true;
++						u_name = u_fd = u_ifname = u_script = u_downscript = u_sndbuf = u_vnet_hdr = u_vhost = u_vhostfd = true;
+ 						break;
+ 						
+-					// -net socket[,vlan=n][,name=str][,fd=h][,listen=[host]:port][,connect=host:port]
++					// -net socket[,name=str][,fd=h][,listen=[host]:port][,connect=host:port]
+ 					case VM::Net_Mode_Nativ_Socket:
+ 						nic_str += "socket";
+-						u_vlan = u_name = u_fd = u_listen = u_connect = true;
++						u_name = u_fd = u_listen = u_connect = true;
+ 						break;
+ 						
+-					// -net socket[,vlan=n][,name=str][,fd=h][,mcast=maddr:port]
++					// -net socket[,name=str][,fd=h][,mcast=maddr:port]
+ 					case VM::Net_Mode_Nativ_MulticastSocket:
+ 						nic_str += "socket";
+-						u_vlan = u_name = u_fd = u_mcast = true;
++						u_name = u_fd = u_mcast = true;
+ 						break;
+ 						
+-					// -net vde[,vlan=n][,name=str][,sock=socketpath][,port=n][,group=groupname][,mode=octalmode]
++					// -net vde[,name=str][,sock=socketpath][,port=n][,group=groupname][,mode=octalmode]
+ 					case VM::Net_Mode_Nativ_VDE:
+ 						if( ! Current_Emulator_Devices.PSO_Net_type_vde ) continue;
+ 						nic_str += "vde";
+-						u_vlan = u_name = u_sock = u_port = u_group = u_mode = true;
++						u_name = u_sock = u_port = u_group = u_mode = true;
+ 						break;
+ 						
+-					// -net dump[,vlan=n][,file=file][,len=len]
++					// -net dump[,file=file][,len=len]
+ 					case VM::Net_Mode_Nativ_Dump:
+ 						if( ! Current_Emulator_Devices.PSO_Net_type_dump ) continue;
+ 						nic_str += "dump";
+-						u_vlan = u_file = u_len = true;
++						u_file = u_len = true;
+ 						break;
+ 						
+ 					default:
+@@ -5773,9 +5747,6 @@ QStringList Virtual_Machine::Build_QEMU_Args()
+ 				}
+ 				
+ 				// Create String
+-				if( Network_Cards_Nativ[nc].Use_VLAN() && u_vlan )
+-					nic_str += ",vlan=" + QString::number( Network_Cards_Nativ[nc].Get_VLAN() );
+-				
+ 				if( Network_Cards_Nativ[nc].Use_MAC_Address() && u_macaddr )
+ 					nic_str += ",macaddr=" + Network_Cards_Nativ[ nc ].Get_MAC_Address();
+ 				
+@@ -5935,7 +5906,7 @@ QStringList Virtual_Machine::Build_QEMU_Args()
+ 			for( int nc = 0; nc < Network_Cards.count(); nc++ )
+ 			{
+ 				Args << "-net";
+-				QString nic_str = "nic,vlan=" + QString::number( Network_Cards[nc].Get_VLAN() );
++				QString nic_str = "nic";
+ 				
+ 				if( ! Network_Cards[nc].Get_MAC_Address().isEmpty() ) // Use MAC?
+ 					nic_str += ",macaddr=" + Network_Cards[nc].Get_MAC_Address();
+@@ -5955,16 +5926,13 @@ QStringList Virtual_Machine::Build_QEMU_Args()
+ 					
+ 					case VM::Net_Mode_Usermode:
+ 						if( Network_Cards[nc].Get_Hostname().isEmpty() )
+-							Args << "-net" << QString( "user,vlan=" + QString::number(Network_Cards[nc].Get_VLAN()) );
+-						else
+-							Args << "-net" << QString( "user,vlan=" + QString::number(Network_Cards[nc].Get_VLAN()) +
+-									",hostname=" + Network_Cards[nc].Get_Hostname() );
++							Args << "-net" << QString( "user" );
+ 						break;
+ 					
+ 					case VM::Net_Mode_Tuntap:
+ 						Args << "-net" ;
+ 						
+-						tap_tmp = QString( "tap,vlan=" + QString::number(Network_Cards[nc].Get_VLAN()) );
++						tap_tmp = QString( "tap" );
+ 						
+ 						if( ! Network_Cards[nc].Get_Interface_Name().isEmpty() )
+ 							tap_tmp += QString( ",ifname=" + Network_Cards[nc].Get_Interface_Name() );
+@@ -5988,7 +5956,7 @@ QStringList Virtual_Machine::Build_QEMU_Args()
+ 						break;
+ 						
+ 					case VM::Net_Mode_Tuntapfd:
+-						Args << "-net" << QString( "tap,vlan=" + QString::number(Network_Cards[nc].Get_VLAN()) +
++						Args << "-net" << QString( "tap" +
+ 												   ((Network_Cards[nc].Get_File_Descriptor() > 0) ? ",fd=" + QString::number(Network_Cards[nc].Get_File_Descriptor()) : "") +
+ 												   ((Network_Cards[nc].Get_Interface_Name().isEmpty() == false) ? ",ifname=" + Network_Cards[nc].Get_Interface_Name() : "") );
+ 						break;
+@@ -5996,53 +5964,42 @@ QStringList Virtual_Machine::Build_QEMU_Args()
+ 					case VM::Net_Mode_Tcplisten:
+ 						if( Network_Cards[nc].Get_IP_Address().isEmpty() )
+ 						{
+-							Args << "-net" << QString( "socket,vlan=" + QString::number(Network_Cards[nc].Get_VLAN()) +
+-									",listen=:" + QString::number(Network_Cards[nc].Get_Port()) );
++							Args << "-net" << QString( "socket" );
+ 						}
+ 						else
+ 						{
+-							Args << "-net" << QString( "socket,vlan=" + QString::number(Network_Cards[nc].Get_VLAN()) +
+-									",listen=" + Network_Cards[nc].Get_IP_Address() + ":" +
+-									QString::number(Network_Cards[nc].Get_Port()) );
++							Args << "-net" << QString( "socket" );
+ 						}
+ 						break;
+ 						
+ 					case VM::Net_Mode_Tcpfd:
+-						Args << "-net" << QString( "socket,vlan=" + QString::number(Network_Cards[nc].Get_VLAN()) +
+-								",fd=" + QString::number(Network_Cards[nc].Get_File_Descriptor()) );
++						Args << "-net" << QString( "socket" );
+ 						break;
+ 						
+ 					case VM::Net_Mode_Tcpconnect:
+ 						if( Network_Cards[nc].Get_IP_Address().isEmpty() )
+ 						{
+-							Args << "-net" << QString( "socket,vlan=" + QString::number(Network_Cards[nc].Get_VLAN()) +
+-									",connect=:" + QString::number(Network_Cards[nc].Get_Port()) );
++							Args << "-net" << QString( "socket" );
+ 						}
+ 						else
+ 						{
+-							Args << "-net" << QString( "socket,vlan=" + QString::number(Network_Cards[nc].Get_VLAN()) +
+-									",connect=" + Network_Cards[nc].Get_IP_Address() +
+-									":" + QString::number(Network_Cards[nc].Get_Port()) );
++							Args << "-net" << QString( "socket" );
+ 						}
+ 						break;
+ 						
+ 					case VM::Net_Mode_Multicast:
+ 						if( Network_Cards[nc].Get_IP_Address().isEmpty() )
+ 						{
+-							Args << "-net" << QString( "socket,vlan=" + QString::number(Network_Cards[nc].Get_VLAN()) +
+-									",mcast=:" + QString::number(Network_Cards[nc].Get_Port()) );
++							Args << "-net" << QString( "socket" );
+ 						}
+ 						else
+ 						{
+-							Args << "-net" << QString( "socket,vlan=" + QString::number(Network_Cards[nc].Get_VLAN()) +
+-									",mcast=" + Network_Cards[nc].Get_IP_Address() +
+-									":" + QString::number(Network_Cards[nc].Get_Port()) );
++							Args << "-net" << QString( "socket" );
+ 						}
+ 						break;
+ 						
+ 					case VM::Net_Mode_Multicastfd:
+-						Args << "-net" << QString( "socket,vlan=" + QString::number(Network_Cards[nc].Get_VLAN()) +
+-								",fd=" + QString::number(Network_Cards[nc].Get_File_Descriptor()) );
++						Args << "-net" << QString( "socket" );
+ 						break;
+ 						
+ 					default:
+diff --git a/src/VM_Devices.cpp b/src/VM_Devices.cpp
+index bf41c56..bc8d546 100644
+--- a/src/VM_Devices.cpp
++++ b/src/VM_Devices.cpp
+@@ -2380,7 +2380,6 @@ VM_Net_Card_Nativ::VM_Net_Card_Nativ()
+ 	Network_Mode = VM::Net_Mode_Nativ_NIC;
+ 	Card_Model = "";
+ 	MAC = "";
+-	VLAN = 0;
+ 	Name = "";
+ 	Hostname = "";
+ 	PortDev = "";
+@@ -2416,7 +2415,6 @@ VM_Net_Card_Nativ::VM_Net_Card_Nativ()
+ 	VHostFd = false;
+ 	
+ 	_Use_MAC = false;
+-	_Use_VLAN = false;
+ 	_Use_Name = false;
+ 	_Use_Hostname = false;
+ 	_Use_File_Descriptor = false;
+@@ -2456,7 +2454,6 @@ VM_Net_Card_Nativ::VM_Net_Card_Nativ( const VM_Net_Card_Nativ &nc )
+ 	Network_Mode = nc.Get_Network_Type();
+ 	Card_Model = nc.Get_Card_Model();
+ 	MAC = nc.Get_MAC_Address();
+-	VLAN = nc.Get_VLAN();
+ 	Name = nc.Get_Name();
+ 	Hostname = nc.Get_Hostname();
+ 	PortDev = nc.Get_PortDev();
+@@ -2492,7 +2489,6 @@ VM_Net_Card_Nativ::VM_Net_Card_Nativ( const VM_Net_Card_Nativ &nc )
+ 	VHostFd = nc.Get_VHostFd();
+ 	
+ 	_Use_MAC = nc.Use_MAC_Address();
+-	_Use_VLAN = nc.Use_VLAN();
+ 	_Use_Name = nc.Use_Name();
+ 	_Use_Hostname = nc.Use_Hostname();
+ 	_Use_File_Descriptor = nc.Use_File_Descriptor();
+@@ -2532,7 +2528,6 @@ bool VM_Net_Card_Nativ::operator==( const VM_Net_Card_Nativ &nc ) const
+ 	if( Network_Mode == nc.Get_Network_Type() &&
+ 		Card_Model == nc.Get_Card_Model() &&
+ 		MAC == nc.Get_MAC_Address() &&
+-		VLAN == nc.Get_VLAN() &&
+ 		Name == nc.Get_Name() &&
+ 		Hostname == nc.Get_Hostname() &&
+ 		PortDev == nc.Get_PortDev() &&
+@@ -2567,7 +2562,6 @@ bool VM_Net_Card_Nativ::operator==( const VM_Net_Card_Nativ &nc ) const
+ 		VHost == nc.Get_VHost() &&
+ 		VHostFd == nc.Get_VHostFd() &&
+ 		_Use_MAC == nc.Use_MAC_Address() &&
+-		_Use_VLAN == nc.Use_VLAN() &&
+ 		_Use_Name == nc.Use_Name() &&
+ 		_Use_Hostname == nc.Use_Hostname() &&
+ 		_Use_File_Descriptor == nc.Use_File_Descriptor() &&
+@@ -2661,26 +2655,6 @@ void VM_Net_Card_Nativ::Set_MAC_Address( const QString &ma )
+ 	MAC = ma;
+ }
+ 
+-bool VM_Net_Card_Nativ::Use_VLAN() const
+-{
+-	return _Use_VLAN;
+-}
+-
+-void VM_Net_Card_Nativ::Use_VLAN( bool use )
+-{
+-	_Use_VLAN = use;
+-}
+-
+-int VM_Net_Card_Nativ::Get_VLAN() const
+-{
+-	return VLAN;
+-}
+-
+-void VM_Net_Card_Nativ::Set_VLAN( int vl )
+-{
+-	VLAN = vl;
+-}
+-
+ bool VM_Net_Card_Nativ::Use_Name() const
+ {
+ 	return _Use_Name;
+@@ -3345,7 +3319,6 @@ VM_Net_Card::VM_Net_Card()
+ 	MAC = "";
+ 	Hostname = "";
+ 	Port = 0;
+-	VLAN = 0;
+ 	Use_TUN_TAP_Script = true;
+ 	TUN_TAP_Script = "";
+ 	Interface_Name = "";
+@@ -3360,7 +3333,6 @@ VM_Net_Card::VM_Net_Card( const VM_Net_Card &nc )
+ 	IP = nc.Get_IP_Address();
+ 	MAC = nc.Get_MAC_Address();
+ 	Port = nc.Get_Port();
+-	VLAN = nc.Get_VLAN();
+ 	Use_TUN_TAP_Script = nc.Get_Use_TUN_TAP_Script();
+ 	TUN_TAP_Script = nc.Get_TUN_TAP_Script();
+ 	Interface_Name = nc.Get_Interface_Name();
+@@ -3375,7 +3347,6 @@ bool VM_Net_Card::operator==( const VM_Net_Card &nc ) const
+ 		IP == nc.Get_IP_Address() &&
+ 		MAC == nc.Get_MAC_Address() &&
+ 		Port == nc.Get_Port() &&
+-		VLAN == nc.Get_VLAN() &&
+ 		Use_TUN_TAP_Script == nc.Get_Use_TUN_TAP_Script() &&
+ 		TUN_TAP_Script == nc.Get_TUN_TAP_Script() &&
+ 		Interface_Name == nc.Get_Interface_Name() &&
+@@ -3596,16 +3567,6 @@ void VM_Net_Card::Set_Port( int p )
+ 	Port = p;
+ }
+ 
+-int VM_Net_Card::Get_VLAN() const
+-{
+-	return VLAN;
+-}
+-
+-void VM_Net_Card::Set_VLAN( int vl )
+-{
+-	VLAN = vl;
+-}
+-
+ bool VM_Net_Card::Get_Use_TUN_TAP_Script() const
+ {
+ 	return Use_TUN_TAP_Script;
+diff --git a/src/VM_Devices.h b/src/VM_Devices.h
+index e0537ba..02eb425 100644
+--- a/src/VM_Devices.h
++++ b/src/VM_Devices.h
+@@ -698,9 +698,6 @@ class VM_Net_Card
+ 		int Get_Port() const;
+ 		void Set_Port( int p );
+ 		
+-		int Get_VLAN() const;
+-		void Set_VLAN( int vl );
+-		
+ 		bool Get_Use_TUN_TAP_Script() const;
+ 		void Set_Use_TUN_TAP_Script( bool use );
+ 		
+@@ -720,7 +717,6 @@ class VM_Net_Card
+ 		QString IP;
+ 		QString MAC;
+ 		int Port;
+-		int VLAN;
+ 		bool Use_TUN_TAP_Script;
+ 		QString TUN_TAP_Script;
+ 		QString Interface_Name;
+@@ -750,11 +746,6 @@ class VM_Net_Card_Nativ
+ 		const QString &Get_MAC_Address() const;
+ 		void Set_MAC_Address( const QString &ma );
+ 		
+-		bool Use_VLAN() const;
+-		void Use_VLAN( bool use );
+-		int Get_VLAN() const;
+-		void Set_VLAN( int vl );
+-		
+ 		bool Use_Name() const;
+ 		void Use_Name( bool use );
+ 		const QString &Get_Name() const;
+@@ -922,7 +913,6 @@ class VM_Net_Card_Nativ
+ 		VM::Network_Mode_Nativ Network_Mode;
+ 		QString Card_Model;
+ 		QString MAC;
+-		int VLAN;
+ 		QString Name;
+ 		QString Hostname;
+ 		QString PortDev;
+@@ -957,7 +947,7 @@ class VM_Net_Card_Nativ
+ 		bool VHost;
+ 		int VHostFd;
+ 		
+-		bool _Use_MAC, _Use_VLAN, _Use_Name, _Use_Hostname, _Use_File_Descriptor,
++		bool _Use_MAC, _Use_Name, _Use_Hostname, _Use_File_Descriptor,
+ 			 _Use_Interface_Name, _Use_TUN_TAP_Script, _Use_TUN_TAP_Down_Script,
+ 			 _Use_Listen, _Use_Connect, _Use_MCast, _Use_Sock, _Use_Port, _Use_Group,
+ 			 _Use_Mode, _Use_File, _Use_Len, _Use_Addr, _Use_Vectors, _Use_Net, 

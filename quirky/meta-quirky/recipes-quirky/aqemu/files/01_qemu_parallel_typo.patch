@@ -1,0 +1,25 @@
+From: Andrey Skvortsov <andrej.skvortzov@gmail.com>
+Date: Sun, 6 Dec 2020 02:03:03 +0100
+Subject: Fix type when LPT parallel option is selected.
+
+Forwarded: https://github.com/tobimensch/aqemu/pull/93
+Last-Update: 2015-02-23
+
+===================================================================
+---
+ src/VM.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/VM.cpp b/src/VM.cpp
+index a75951c..f2e3380 100644
+--- a/src/VM.cpp
++++ b/src/VM.cpp
+@@ -6186,7 +6186,7 @@ QStringList Virtual_Machine::Build_QEMU_Args()
+ 	{
+ 		if( Parallel_Ports[ix].Get_Port_Redirection() == VM::PR_Default ) continue;
+ 		
+-		Args << "-Parallel";
++		Args << "-parallel";
+ 		
+ 		switch( Parallel_Ports[ix].Get_Port_Redirection() )
+ 		{
