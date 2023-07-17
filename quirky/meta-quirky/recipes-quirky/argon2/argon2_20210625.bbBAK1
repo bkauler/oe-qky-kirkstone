@@ -12,22 +12,12 @@ SRC_URI = "http://distro.ibiblio.org/easyos/source/alphabetical/a/argon2-${PV}.t
 SRC_URI[md5sum] = "95ed960fab9cdff508667d42f680fd40"
 SRC_URI[sha256sum] = "f1af4d353d490e16c9c7645db90c37a61002528ba5d15f5464c0013ca23373ec"
 
-#BK 20230714 "illegal instruction" in Compaq Presario, try these fixes...
 do_configure () {
- #true
- sed -i '/^AR=ar/d' ${S}Makefile
+ true
 }
 
 do_compile () {
- #oe_runmake
- #20230714 also...
- if [ "${TARGET_ARCH}" == "x86_64" ];then
-  oe_runmake OPTTARGET=nocona
- elif [ "${TARGET_ARCH}" == "aarch64" ];then
-  oe_runmake OPTTARGET=aarch64
- else
-  oe_runmake
- fi
+ oe_runmake
 }
 
 do_install () {
