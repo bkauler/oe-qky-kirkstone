@@ -1,0 +1,27 @@
+# Recipe created by recipetool
+# recipetool create -o goffice_0.10.55.bb https://download.gnome.org/sources/goffice/0.10/goffice-0.10.55.tar.xz
+
+LICENSE = "GPL-3.0-only & GPL-2.0-only"
+LIC_FILES_CHKSUM = "file://COPYING;md5=6dc33ff21e1ba1ac1a2a1069d361e29e \
+                    file://COPYING-gpl2;md5=fa1348b178f4a7322170203c6c36f4c3 \
+                    file://COPYING-gpl3;md5=d32239bcb673463ab874e80d47fae504"
+
+#SRC_URI = "https://download.gnome.org/sources/goffice/0.10/goffice-${PV}.tar.xz"
+#SRC_URI[md5sum] = "c3e5f9e2fcdd63e4cd50721610abefc2"
+#SRC_URI[sha256sum] = "16a221191855a6a6c0d06b1ef8e481cf3f52041a654ec96d35817045ba1a99af"
+
+SRC_URI[archive.md5sum] = "c3e5f9e2fcdd63e4cd50721610abefc2"
+SRC_URI[archive.sha256sum] = "16a221191855a6a6c0d06b1ef8e481cf3f52041a654ec96d35817045ba1a99af"
+
+
+DEPENDS = "libgsf ghostscript glib-2.0 gobject-introspection intltool-native \
+           gtk+3 gdk-pixbuf librsvg libxslt gsettings-desktop-schemas \
+           libxml-parser-perl-native pango cairo libpcre libart-lgpl"
+
+#  gnomebase
+inherit gettext pkgconfig perlnative autotools gnomebase
+
+EXTRA_OECONF = ""
+
+HOMEPAGE = "https://gitlab.gnome.org/GNOME/goffice"
+SUMMARY = "gtk library for gnumeric"
