@@ -14,3 +14,9 @@ update chromium from 111.0.5563.64 to 111.0.5563.147
 May 29, 2023
 ------------
 latest is kirkstone 4.0.10, bitbake 2.0.10
+
+Aug 6, 2023
+-----------
+bump meta-browser; chromium 114.0.5735.198
+NO compile fail. trying 113.0.5672.126
+
