@@ -26,9 +26,9 @@ do_compile () {
 }
 
 do_install () {
-    install -d ${D}/sbin
-    install -m755 hotplug2stdout ${D}/sbin
-    install -m755 hotplug2stdout_notimeout ${D}/sbin
+    install -d ${D}${sbindir}
+    install -m755 hotplug2stdout ${D}${sbindir}
+    install -m755 hotplug2stdout_notimeout ${D}${sbindir}
 }
 
 HOMEPAGE = "https://bkhome.org/news"

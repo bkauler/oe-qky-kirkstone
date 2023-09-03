@@ -79,6 +79,6 @@ ${CC} -static -o dialog dialog.o -L. -ldialog -lncursesw -ltinfow -lm ${LDFLAGS}
 }
 
 do_install() {
- install -d ${D}/bin
- install -m 755 dialog ${D}/bin
+ install -d ${D}${bindir}
+ install -m 755 dialog ${D}${bindir}
 }

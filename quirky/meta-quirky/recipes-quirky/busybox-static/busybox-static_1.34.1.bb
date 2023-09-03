@@ -32,8 +32,8 @@ do_compile () {
 
 do_install () {
  #oe_runmake install
- install -d ${D}/bin
- install -m 755 busybox ${D}/bin
+ install -d ${D}${bindir}
+ install -m 755 busybox ${D}${bindir}
 }
 
 SUMMARY = "swiss-army-knife utilities"

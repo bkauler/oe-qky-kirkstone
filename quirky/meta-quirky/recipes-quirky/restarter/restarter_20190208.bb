@@ -26,8 +26,8 @@ do_compile () {
 }
 
 do_install () {
- install -m 755 -d ${D}/sbin
- install -m 755 ${S}/restarter ${D}/sbin
+ install -m 755 -d ${D}${sbindir}
+ install -m 755 ${S}/restarter ${D}${sbindir}
 }
 
 HOMEPAGE = "https://bitbucket.org/sivann/restarter/src/master/"

@@ -25,8 +25,8 @@ do_compile () {
 
 do_install () {
 	#oe_runmake install
-	install -d ${D}/bin
-	install -m755 fscryptctl ${D}/bin
+	install -d ${D}${bindir}
+	install -m755 fscryptctl ${D}${bindir}
 }
 
 SUMMARY = "fscrypt management utility for ext4 and f2fs"

@@ -17,8 +17,8 @@ do_compile () {
 }
 
 do_install () {
-    install -d ${D}/sbin
-    install -m755 puppyserialdetect ${D}/sbin
+    install -d ${D}${sbindir}
+    install -m755 puppyserialdetect ${D}${sbindir}
 }
 
 HOMEPAGE = "https://bkhome.org/news"

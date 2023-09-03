@@ -113,26 +113,25 @@ do_compile () {
 }
 
 do_install () {
- install -d ${D}/bin
- install -d ${D}/usr/bin
- install -d ${D}/usr/sbin
+ install -d ${D}${bindir}
+ install -d ${D}${sbindir}
  install -d ${D}/usr/local/petget
  install -d ${D}/usr/local/pup_event
  install -d ${D}/usr/local/debget
 
- install -m755 gcc/vercmp ${D}/bin
- install -m755 gcc/truncate ${D}/usr/bin
- install -m755 gcc/bitflip ${D}/usr/sbin
- install -m755 gcc/getcurpos ${D}/usr/sbin
- install -m755 gcc/getpixelcolor ${D}/usr/sbin
- install -m755 gcc/printcols ${D}/usr/sbin
- install -m755 gcc/getlocalip ${D}/usr/sbin
+ install -m755 gcc/vercmp ${D}${bindir}
+ install -m755 gcc/truncate ${D}${bindir}
+ install -m755 gcc/bitflip ${D}${sbindir}
+ install -m755 gcc/getcurpos ${D}${sbindir}
+ install -m755 gcc/getpixelcolor ${D}${sbindir}
+ install -m755 gcc/printcols ${D}${sbindir}
+ install -m755 gcc/getlocalip ${D}${sbindir}
  #install -m755 gcc/debdb2pupdb ${D}/usr/local/petget
  #install -m755 gcc/find_cat ${D}/usr/local/petget
  install -m755 gcc/pup_event_frontend_d ${D}/usr/local/pup_event
 
- install -m755 bacon/popup ${D}/usr/sbin
- install -m755 bacon/welcome1stboot ${D}/usr/sbin
+ install -m755 bacon/popup ${D}${sbindir}
+ install -m755 bacon/welcome1stboot ${D}${sbindir}
  #install -m755 bacon/debdb2pupdb ${D}/usr/local/petget
  install -m755 bacon/find_cat ${D}/usr/local/petget
  install -m755 bacon/pup_event_ipc ${D}/usr/local/pup_event
