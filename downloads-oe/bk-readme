@@ -20,3 +20,12 @@ Aug 6, 2023
 bump meta-browser; chromium 114.0.5735.198
 NO compile fail. trying 113.0.5672.126
 
+Sept. 3, 2023
+-------------
+kirkstone 4.0.12, bitbake 2.0.12
+ref: https://github.com/OSSystems/meta-browser/issues/732
+ have pulled openembedded-core/meta/recipes-graphics/libva from langdale
+ so latest chromium will compile.
+ ...see meta-quirky/recipes-graphics/libva
+
+
