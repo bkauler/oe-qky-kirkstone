@@ -15,7 +15,7 @@ SRC_URI[sha256sum] = "f1af4d353d490e16c9c7645db90c37a61002528ba5d15f5464c0013ca2
 #BK 20230714 "illegal instruction" in Compaq Presario, try these fixes...
 do_configure () {
  #true
- sed -i '/^AR=ar/d' ${S}Makefile
+ sed -i '/^AR=ar/d' ${S}/Makefile
 }
 
 do_compile () {
