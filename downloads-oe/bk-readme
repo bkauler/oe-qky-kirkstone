@@ -27,5 +27,7 @@ ref: https://github.com/OSSystems/meta-browser/issues/732
  have pulled openembedded-core/meta/recipes-graphics/libva from langdale
  so latest chromium will compile.
  ...see meta-quirky/recipes-graphics/libva
+ also got openembedded-core/meta/classes-recipe/github-releases.bbclass
+ put it into meta/classes -- might have to remove when update to langdale+
 
 
