@@ -4,7 +4,7 @@
 SUMMARY = "EFI boot manager software"
 HOMEPAGE = "https://sourceforge.net/projects/refind/"
 
-LICENSE = "GPL-3.0-only & GPL-2.1-only"
+LICENSE = "GPL-3.0-only & GPL-2.0-or-later"
 LIC_FILES_CHKSUM = "file://COPYING.txt;md5=d32239bcb673463ab874e80d47fae504 \
                     file://LICENSE.txt;md5=9396e07c1572dd19fb709d14874e00ec"
 

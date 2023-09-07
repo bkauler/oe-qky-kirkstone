@@ -23,7 +23,8 @@ do_compile () {
 }
 
 do_install () {
-	oe_runmake install BASEDIR=${D}
+	#20230905 $bindir required for usrmerge...
+	oe_runmake install BASEDIR=${D} BINDIR=${bindir}
 }
 
 HOMEPAGE = "https://packages.ubuntu.com/source/disco/hostname"
