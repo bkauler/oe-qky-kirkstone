@@ -19,10 +19,14 @@ DEPENDS += "python3-wheel-native"
 #distutils-common-base.bbclass is deprecated, please use setuptools3-base.bbclass instead
 #distutils3.bbclass is deprecated, please use setuptools3.bbclass instead
 #inherit distutils3
-inherit setuptools3
+#inherit setuptools3
+#20231013 setuptools3 fails...
+inherit distutils3 python3-dir python3native
 
 do_install:append() {
- mv -f ${D}/usr/sbin/iotop ${D}/usr/sbin/iotop-py
+ install -d ${D}/usr/bin
+ mv -f ${D}/usr/sbin/iotop ${D}/usr/bin/iotop-py
+ rmdir ${D}/usr/sbin
 }
 
 RDEPENDS:${PN} += "python3-core python3-ctypes python3-curses python3-io \
