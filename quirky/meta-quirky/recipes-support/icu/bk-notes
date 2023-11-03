@@ -1,0 +1,4 @@
+20231101
+--------
+firefox 119.0 requires icu >=73.2 if have --with-system-icu
+got it from openembedded-core master.
