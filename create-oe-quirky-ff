@@ -1,0 +1,272 @@
+#!/bin/sh
+#20220225
+#20221217 support destination oe-quirky already exists.
+#20230405 create meta-quirky-cut for musl build.
+#20231014 have split meta-browser to meta-chromium and meta-firefox
+#20231030 meta-rust. new build-amd64-ff
+#20231030 replace folder 'oe-quirky' with variable QFOLDER
+
+if [ ! -d downloads-oe ];then #sanity check.
+ echo "Error, folder downloads-oe does not exist."
+ exit
+fi
+
+#BUILDSPATH='/mnt/build/oe-kirkstone' ###SET THIS###
+BUILDSPATH='/mnt/build/builds/oe/kirkstone'
+if [ ! -d $BUILDSPATH ];then
+ echo "Error, folder ${BUILDSPATH} does not exist."
+ exit
+fi
+QFOLDER='oe-quirky-ff' ###SET THIS###
+
+#20221217 allow ${QFOLDER} to pre-exist
+if [ -d ${BUILDSPATH}/${QFOLDER} ];then
+ echo "${BUILDSPATH}/${QFOLDER} already exists, updating..."
+ for A in `find ${BUILDSPATH}/${QFOLDER} -mindepth 1 -maxdepth 1 -type d -not -name 'build-*' | tr '\n' ' '`
+ do
+  rm -rf ${A}
+ done
+ sync
+ for A in `find ${BUILDSPATH}/${QFOLDER} -mindepth 1 -maxdepth 1 -type f -or -type l | tr '\n' ' '`
+ do
+  rm -f ${A}
+ done
+ sync
+fi
+
+PROJECTPATH="$(pwd)"
+
+#20221201 check some utilities exist...
+COREexe=''; UTILexe=''; BADflg=0
+if ! which sha224sum >/dev/null;then COREexe='sha224sum '; fi
+if ! which sha384sum >/dev/null;then COREexe="${COREexe}sha384sum "; fi
+RPflg="$(realpath --help 2>&1 | tr -s ' ' | grep -o '^ \-m,')"
+if [ "$RPflg" == "" ];then
+ echo "The full 'realpath' utility from the 'coreutils' package is required."
+ echo "Note: busybox realpath is inadequate."
+ BADflg=1
+fi
+if [ "$COREexe" ];then
+ echo "These utilities from the 'coreutils' package are required:"
+ echo "$COREexe"
+ BADflg=1
+fi
+if ! which setterm >/dev/null;then UTILexe='setterm '; fi
+if [ "$UTILexe" ];then
+ echo "These utilities from the 'util-linux' package are required:"
+ echo "$UTILexe"
+ BADflg=1
+fi
+if [ $BADflg -eq 1 ];then
+ echo "Note, in a busybox-based distro such as Puppy Linux and derivatives,
+it may be unwise to install all of 'coreutils' or 'util-linux'.
+Just extract the missing utilities from them."
+ echo "Aborting"
+ exit
+fi
+
+#20221201 need these to fetch from https sites...
+if which update-ca-certificates >/dev/null;then
+ mkdir -p /etc/ssl/certs
+ [ "$(find /etc/ssl/certs -mindepth 1 -maxdepth 1)" == "" ] && update-ca-certificates > /dev/null 2>&1 #populates /etc/ssl
+else
+ echo "Error, 'ca-certificates' package is not installed."
+ exit
+fi
+
+mkdir -p ${BUILDSPATH}/${QFOLDER}
+echo "Populating ${BUILDSPATH}/${QFOLDER}..."
+tar -xf downloads-oe/openembedded-core.tar.gz --directory=${BUILDSPATH}/${QFOLDER} --strip=1
+tar -xf downloads-oe/meta-openembedded.tar.gz --directory=${BUILDSPATH}/${QFOLDER} --strip=1
+tar -xf downloads-oe/bitbake.tar.gz --directory=${BUILDSPATH}/${QFOLDER}
+tar -xf downloads-oe/meta-yocto.tar.gz --directory=${BUILDSPATH}/${QFOLDER} --strip=1
+sync
+
+#20221130
+tar -xf downloads-oe/meta-office.tar.gz --directory=${BUILDSPATH}/${QFOLDER}
+tar -xf downloads-oe/meta-qt5.tar.gz --directory=${BUILDSPATH}/${QFOLDER}
+#20211217 attempting build, maybe this not needed:
+sed -i -e 's%{OE_QMAKE_CXXFLAGS}%{OE_QMAKE_CXXFLAGS} -fpermissive%' ${BUILDSPATH}/${QFOLDER}/meta-qt5/classes/qmake5_base.bbclass
+sed -i -e 's%{CXXFLAGS}%{CXXFLAGS} -fpermissive%' ${BUILDSPATH}/${QFOLDER}/meta-qt5/classes/qmake5_base.bbclass
+#tar -xf downloads-oe/meta-qt5-extra.tar.gz --directory=${BUILDSPATH}/${QFOLDER}
+sync
+
+#20221201
+tar -xf downloads-oe/meta-conan.tar.gz --directory=${BUILDSPATH}/${QFOLDER}
+#20221202
+tar -xf downloads-oe/meta-clang.tar.gz --directory=${BUILDSPATH}/${QFOLDER}
+
+#20231014
+#tar -xf downloads-oe/meta-browser.tar.gz --directory=${BUILDSPATH}/${QFOLDER} --strip=1
+tar -xf downloads-oe/meta-chromium.tar.gz --directory=${BUILDSPATH}/${QFOLDER} --strip=1
+tar -xf downloads-oe/meta-firefox.tar.gz --directory=${BUILDSPATH}/${QFOLDER} --strip=1
+#20231030 meta-firefox has nss-3.93 dep but config fails. delete these lines:
+#DEPENDS += "${@bb.utils.contains("TUNE_FEATURES", "crypto", "", "nss-3.93", d)}"
+#RDEPENDS:${PN} += "${@bb.utils.contains("TUNE_FEATURES", "crypto", "", "nss-3.93 nspr", d)}"
+#EXTRA_OECONF += '${@bb.utils.contains("TUNE_FEATURES", "crypto", "", "--with-system-nss", d)}'
+sed -i '/nss/d' ${BUILDSPATH}/${QFOLDER}/meta-firefox/recipes-browser/firefox/firefox.inc
+
+#20221211  20221212 staying with 1.59... 20231030 change tcmode-default.inc...
+##have got rust 1.65.0 and cargo out of oe-core, delete old 1.59...
+#rm -rf ${BUILDSPATH}/${QFOLDER}/meta/recipes-devtools/cargo
+#rm -rf ${BUILDSPATH}/${QFOLDER}/meta/recipes-devtools/rust
+sed -i -e 's/^RUSTVERSION .*/RUSTVERSION ?= "1.72.0"/' ${BUILDSPATH}/${QFOLDER}/meta/conf/distro/include/tcmode-default.inc
+##quirky/meta has the update...
+#sync
+
+#20231030 rust...
+tar -xf downloads-oe/meta-rust.tar.gz --directory=${BUILDSPATH}/${QFOLDER}
+
+#20231030
+##flutter... no, fetch fail...
+#tar -xf downloads-oe/meta-flutter.tar.gz --directory=${BUILDSPATH}/${QFOLDER}
+
+#customization for quirky/easyos...
+cp -a -f --remove-destination quirky/* ${BUILDSPATH}/${QFOLDER}/
+sync
+
+#20230405 for musl build  20230916
+cp -a ${BUILDSPATH}/${QFOLDER}/meta-quirky ${BUILDSPATH}/${QFOLDER}/meta-quirky-cut
+for aCUT in recipes-browser/chromium recipes-devtools/clang recipes-gnome/evince recipes-gnome/gthumb recipes-gnome/gtk4 recipes-gnome/nautilus recipes-graphics/harfbuzz recipes-graphics/mesa recipes-graphics/scribus recipes-libreoffice/libreoffice recipes-multimedia/sox recipes-multimedia/vlc recipes-multimedia/x265 recipes-qt/qt5 recipes-quirky/freetype-static recipes-quirky/gui-engine recipes-quirky/libsdl-fb recipes-quirky/obs recipes-quirky/vym recipes-support/mlt recipes-support/redland recipes-quirky/keepassxc recipes-multimedia/shotcut recipes-quirky/symphytum recipes-quirky/aqemu recipes-quirky/qtemu recipes-quirky/qlipper
+do
+ rm -rf ${BUILDSPATH}/${QFOLDER}/meta-quirky-cut/${aCUT}
+done
+
+# copy the docs also...
+cp -a docs ${BUILDSPATH}/${QFOLDER}/
+
+# hacks...
+#allow run as root...
+sed -i -e 's%if 0 == os\.getuid%if 9999 == os.getuid%' ${BUILDSPATH}/${QFOLDER}/meta/classes/sanity.bbclass
+
+#20221201 python executable links...
+[ ! -e /usr/bin/python2 ] && [ -e /usr/bin/python2.7 ] && ln -s python2.7 /usr/bin/python2
+FNDPY3="$(find /usr/bin -maxdepth 1 -type f -name 'python3.[0-9][0-9]' | head -n 1)"
+if [ ! "$FNDPY3" ];then
+ FNDPY3="$(find /usr/bin -maxdepth 1 -type f -name 'python3.[0-9]' | head -n 1)"
+fi
+if [ ! "$FNDPY3" ];then
+ echo "Error, Python >= 3.4 is required."
+ exit
+fi
+BASEPY3="$(basename $FNDPY3)"
+[ ! -e /usr/bin/python3 ] && ln -s $BASEPY3 /usr/bin/python3
+
+#download src-pkgs folder...
+mkdir -p ${BUILDSPATH}/downloads
+ln -snfr ${BUILDSPATH}/downloads ${BUILDSPATH}/${QFOLDER}/build-amd64/downloads
+ln -snfr ${BUILDSPATH}/downloads ${BUILDSPATH}/${QFOLDER}/build-amd64-musl/downloads
+ln -snfr ${BUILDSPATH}/downloads ${BUILDSPATH}/${QFOLDER}/build-amd64-ff/downloads
+
+#fix absolute paths in bblayers.conf...
+PTN1="s%ABSPATH%${BUILDSPATH}%"
+sed -i -e "$PTN1" ${BUILDSPATH}/${QFOLDER}/build-amd64/conf/bblayers.conf
+sed -i -e "$PTN1" ${BUILDSPATH}/${QFOLDER}/build-amd64-musl/conf/bblayers.conf
+sed -i -e "$PTN1" ${BUILDSPATH}/${QFOLDER}/build-amd64-ff/conf/bblayers.conf #20231030
+#20231030...
+PTN2="s%/oe-quirky/%/${QFOLDER}/%"
+sed -i -e "$PTN2" ${BUILDSPATH}/${QFOLDER}/build-amd64/conf/bblayers.conf
+sed -i -e "$PTN2" ${BUILDSPATH}/${QFOLDER}/build-amd64-musl/conf/bblayers.conf
+sed -i -e "$PTN2" ${BUILDSPATH}/${QFOLDER}/build-amd64-ff/conf/bblayers.conf #20231030
+
+#181202 to compile ghostscript with libgs, need this...
+#ref: https://patchwork.openembedded.org/patch/137913/
+echo '
+SECURITY_CFLAGS_pn-ghostscript = "${SECURITY_NO_PIE_CFLAGS}"' >> ${BUILDSPATH}/${QFOLDER}/meta/conf/distro/include/security_flags.inc
+#see also ${BUILDSPATH}/${QFOLDER}/meta-quirky/recipes-extended/ghostscript/ghostscript_9.20.bbappend
+
+#20200921 kill the msg "... has not been validated with this version ..."
+Wstr="bb.warn('Host distribution \"%s\""
+sed -i -e "s/${Wstr}/#${Wstr}/" ${BUILDSPATH}/${QFOLDER}/meta/classes/sanity.bbclass
+
+#oe gatesgarth pre-release, kernel 5.8.13, it wanted /usr/bin/awk in host
+#no harm in doing it now...
+ln -s ../../bin/awk /usr/bin/awk 2>/dev/null
+#20210908 meta-java needs this...
+ln -s ../../bin/gawk /usr/bin/gawk 2>/dev/null
+ln -s ../../bin/cut /usr/bin/cut 2>/dev/null
+
+#replace "core2" with "nocona"...
+sed -i -e 's%^DEFAULTTUNE .*%DEFAULTTUNE = "nocona-64"%' ${BUILDSPATH}/${QFOLDER}/meta-yocto-bsp/conf/machine/genericx86-64.conf
+sed -i -e 's%tune\-core2%tune-nocona%' ${BUILDSPATH}/${QFOLDER}/meta-yocto-bsp/conf/machine/genericx86-64.conf
+sed -i -e 's%^DEFAULTTUNE .*%DEFAULTTUNE = "i686"%' ${BUILDSPATH}/${QFOLDER}/meta-yocto-bsp/conf/machine/genericx86.conf
+sed -i -e 's%tune\-core2%tune-i686%' ${BUILDSPATH}/${QFOLDER}/meta-yocto-bsp/conf/machine/genericx86.conf
+
+#20221201 remove coz have my own .bbappend in meta-quirky/recipes-graphics/harfbuzz...
+rm -rf ${BUILDSPATH}/${QFOLDER}/meta-office/appends/harfbuzz
+
+#20221130 install 'shadow' pkg fails...
+sed -i -e 's%chown root:mail%#chown root:mail%' ${BUILDSPATH}/${QFOLDER}/meta/recipes-extended/shadow/shadow.inc
+# do_package 'dbus' pkg fails...
+DBUSBB="$(find ${BUILDSPATH}/${QFOLDER}/meta/recipes-core/dbus -mindepth 1 -maxdepth 1 -type f -name 'dbus_1.*.bb')"
+#sed -i -e 's%chown %#chown %' ${BUILDSPATH}/${QFOLDER}/meta/recipes-core/dbus/dbus_1.14.0.bb
+sed -i -e 's%chown %#chown %' ${DBUSBB}
+
+#20221201 libreoffice: clucene-core does not compile, use builtin
+sed -i '/clucene-core/d' ${BUILDSPATH}/${QFOLDER}/meta-office/recipes-libreoffice/libreoffice/libreoffice-native.bb
+#no, replace with libxinerama, which is required... no, dep done in libreoffice.bbappend
+sed -i '/clucene-core/d' ${BUILDSPATH}/${QFOLDER}/meta-office/recipes-libreoffice/libreoffice/libreoffice.bb
+#sed -i -e 's%clucene-core%libxinerama%' ${BUILDSPATH}/${QFOLDER}/meta-office/recipes-libreoffice/libreoffice/libreoffice.bb
+sed -i -e 's%with-system-clucene%without-system-clucene%' ${BUILDSPATH}/${QFOLDER}/meta-office/recipes-libreoffice/libreoffice/libreoffice.bb
+sed -i -e 's%with-system-clucene%without-system-clucene%' ${BUILDSPATH}/${QFOLDER}/meta-office/recipes-libreoffice/libreoffice/libreoffice.inc
+#pkg postgresql does not compile...
+sed -i '/ postgresql /d' ${BUILDSPATH}/${QFOLDER}/meta-office/recipes-libreoffice/libreoffice/libreoffice.bb
+#build without gstreamer dep...
+sed -i '/gstreamer/d' ${BUILDSPATH}/${QFOLDER}/meta-office/recipes-libreoffice/libreoffice/libreoffice.bb
+#have my own recipes for inkscape and scribus...
+rm -rf ${BUILDSPATH}/${QFOLDER}/meta-office/recipes-graphics
+#hack libreoffice.bb: disable do_install() as replacement in libreoffice.bbappend
+cp -a -f ${BUILDSPATH}/${QFOLDER}/meta-office/recipes-libreoffice/libreoffice/libreoffice.bb ${BUILDSPATH}/${QFOLDER}/meta-office/recipes-libreoffice/libreoffice/libreoffice.bbORIG
+sed -i -e 's%^do_install%XXXdo_install%' ${BUILDSPATH}/${QFOLDER}/meta-office/recipes-libreoffice/libreoffice/libreoffice.bb
+
+#20221201 annoying hard-coded revision#
+#ex: ${BUILDSPATH}/${QFOLDER}/meta/recipes-support/db/db_5.3.28.bb has "r1"
+BBFILES="$(find ${BUILDSPATH}/${QFOLDER}/meta* -type f -name '*.bb')"
+for aBBF in $BBFILES
+do
+ [ "$aBBF" == "" ] && continue
+ sed -i -e 's%^PR = "r[0-9]%#PR = %' $aBBF
+done
+sync
+
+#2021 libreoffice downloads extra source packages, have already got them here (for libreoffice 7.1.3.2)
+cd $PROJECTPATH
+if [ ! -d ${BUILDSPATH}/tarballs-libreoffice ];then
+ cd $BUILDSPATH
+ wget https://distro.ibiblio.org/easyos/source/extra/oe-qky-dunfell/tarballs-libreoffice.tar.gz
+ tar -xf tarballs-libreoffice.tar.gz
+ sync
+ rm -f tarballs-libreoffice.tar.gz
+ cd ${PROJECTPATH}
+fi
+
+#20221206
+#clash between these:
+# meta/recipes-devtools/llvm <<provides llvm 13.0.1
+# meta-clang/recipes-devtools/clang <<provides llvm 14.0.3
+#remove one of them...
+rm -rf ${BUILDSPATH}/${QFOLDER}/meta/recipes-devtools/llvm
+#and have created meta-quirky/recipes-devtools/clang/clang_%.bbappend
+# to rprovide what llvm did. 20221211 also do this...
+sed -i -e 's/^LLVMVERSION .*/LLVMVERSION ?= "14.0.3"/' ${BUILDSPATH}/${QFOLDER}/meta/conf/distro/include/tcmode-default.inc
+
+#20221211
+#make sure libc headers same as kernel (it was 5.16)
+sed -i -e 's/^LINUXLIBCVERSION .*/LINUXLIBCVERSION ?= "5.15%"/' ${BUILDSPATH}/${QFOLDER}/meta/conf/distro/include/tcmode-default.inc
+
+#20221207
+#mesa has been rolled back from 22.0.3 to 21.3.7 so as to keep old drivers.
+#looks like need this fix...
+sed -i -e 's%mesa-driver-crocus%mesa-driver-i965%' ${BUILDSPATH}/${QFOLDER}/meta/conf/machine/include/x86/x86-base.inc
+
+
+echo "$PROJECTPATH" > ${BUILDSPATH}/${QFOLDER}/PROJECTPATH
+sync
+
+echo "Folder '${BUILDSPATH}/${QFOLDER}' populated.
+Now what you have to do, is open a terminal in '${QFOLDER}'
+and run this, for pc x86_64 build:
+# source oe-init-build-env build-amd64
+# bitbake core-image-minimal
+"
+###end###
