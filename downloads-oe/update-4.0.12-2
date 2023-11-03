@@ -1,0 +1,22 @@
+#!/bin/sh
+
+#20231014
+#--------
+
+#rm -f meta-browser.tar.gz
+
+rm -rf meta-chromium 2>/dev/null
+rm -f meta-chromium.tar.gz 2>/dev/null
+git clone -b master https://github.com/OSSystems/meta-browser.git meta-chromium --depth 1
+rm -rf meta-chromium/.git
+rm -rf meta-chromium/meta-firefox
+dir2tgz meta-chromium
+sync
+
+rm -rf meta-firefox 2>/dev/null
+rm -f meta-firefox.tar.gz 2>/dev/null
+git clone -b fix-nspr-for-kirkstone https://github.com/OldManYellsAtCloud/meta-browser.git meta-firefox --depth 1
+rm -rf meta-firefox/.git
+rm -rf meta-firefox/meta-chromium
+dir2tgz meta-firefox
+sync

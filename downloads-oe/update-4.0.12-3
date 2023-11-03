@@ -1,0 +1,40 @@
+#!/bin/sh
+
+#20231030
+#--------
+
+#rm -f meta-browser.tar.gz
+
+rm -rf meta-chromium 2>/dev/null
+rm -f meta-chromium.tar.gz 2>/dev/null
+git clone -b master https://github.com/OSSystems/meta-browser.git meta-chromium --depth 1
+rm -rf meta-chromium/.git
+rm -rf meta-chromium/meta-firefox
+dir2tgz meta-chromium
+sync
+
+#20231030 now master...
+rm -rf meta-firefox 2>/dev/null
+rm -f meta-firefox.tar.gz 2>/dev/null
+git clone -b master https://github.com/OldManYellsAtCloud/meta-browser.git meta-firefox --depth 1
+rm -rf meta-firefox/.git
+rm -rf meta-firefox/meta-chromium
+dir2tgz meta-firefox
+sync
+
+#need this rust v1.66.1 for firefox...
+rm -rf meta-rust 2>/dev/null
+rm -f meta-rust.tar.gz 2>/dev/null
+git clone -b master https://github.com/meta-rust/meta-rust --depth 1
+rm -rf meta-rust/.git
+dir2tgz meta-rust
+sync
+
+#20231030 build error, leave this out, fetch fail...
+#rm -rf meta-flutter 2>/dev/null
+#rm -f meta-flutter.tar.gz 2>/dev/null
+#git clone -b kirkstone https://github.com/meta-flutter/meta-flutter --depth 1
+#rm -rf meta-flutter/.git
+#dir2tgz meta-flutter
+#sync
+
