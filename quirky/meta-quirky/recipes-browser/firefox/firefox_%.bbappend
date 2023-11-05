@@ -8,9 +8,10 @@ PACKAGECONFIG:append = " gpu openmax forbid-multiple-compositors disable-sandbox
 # ERROR: Nasm is required to build with AV1, FFVPX, JPEG and VPX, but it was not found.
 DEPENDS:append = " nasm-native"
 #try this instead of nasm...
+#20231103 add hunspell...
 DEPENDS:append = " gnutls zlib libpcre libvpx libjpeg-turbo libffi \
     libffi-native icu icu-native pixman pixman-native libevent \
-    libwebp ffmpeg"
+    libwebp ffmpeg hunspell hunspell-native"
 EXTRA_OECONF:append = " --enable-av1 --with-system-ffi --with-system-icu \
     --enable-system-pixman --with-system-libevent --with-system-jpeg \
     --with-system-libvpx --enable-system-webp"
