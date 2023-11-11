@@ -2,6 +2,7 @@
 #(c) Copyright 2023 Barry Kauler.
 #license GPLv3+
 #20221218 based on 0pre-oe in woofQ.
+#20231107 search for DEPENDS and RDEPENDS in .bbappends files also. DEPENDS_ now DEPENDS:
 
 export LANG=C #faster.
 
@@ -136,10 +137,18 @@ do
     expand_lines_func /tmp/0pre-oe/0pre-oe-inc
     INC='/tmp/0pre-oe/0pre-oe-inc'
    fi
+   #20231107 if a .bbappend exists...
+   BBAPPEND="$(find ${OEPATH}/meta-quirky -type f -name "${AGENNAME}_%.bbappend" -o -name "${AGENNAME}_${AVER}.bbappend" | head -n 1)"
+   if [ "$BBAPPEND" ];then
+    #convert multilines to single line...
+    cp -f $BBAPPEND /tmp/0pre-oe/0pre-oe-bbappend
+    expand_lines_func /tmp/0pre-oe/0pre-oe-bbappend
+    BBAPPEND='/tmp/0pre-oe/0pre-oe-bbappend'
+   fi
    ASUMMARY="$(grep '^SUMMARY = ' ${BB2} ${INC} | head -n 1 | cut -f 2 -d '"')"
    AHOMEPAGE="$(grep '^HOMEPAGE = ' ${BB2} ${INC} | head -n 1 | cut -f 2 -d '"')"
-   #also include RDEPENDS...
-   ADEPENDS="$(grep -E '^DEPENDS = |^DEPENDS \+= |^DEPENDS_\${PN} = |^DEPENDS_\${PN} \+= |^RDEPENDS = |^RDEPENDS \+= |^RDEPENDS_\${PN} = |^RDEPENDS_\${PN} \+= ' ${BB2} ${INC} | cut -f 2 -d '"' | tr '\t' ' ' | tr '\n' ' ' | tr -s ' ')"
+   #also include RDEPENDS...  20231107...
+   ADEPENDS="$(grep -E '^DEPENDS = |^DEPENDS:append = |^DEPENDS \+= |^DEPENDS:\${PN} = |^DEPENDS:\${PN} \+= |^RDEPENDS = |^RDEPENDS:append = |^RDEPENDS \+= |^RDEPENDS:\${PN} = |^RDEPENDS:\${PN} \+= ' ${BB2} ${INC} ${BBAPPEND} | cut -f 2 -d '"' | tr '\t' ' ' | tr '\n' ' ' | tr -s ' ')"
    [ "$ASUMMARY" ] && echo "${AGENNAME} ${ASUMMARY}" >> /tmp/0pre-oe/0pre-oe-descriptions0
    [ "$AHOMEPAGE" ] && echo "${AGENNAME} ${AHOMEPAGE}" >> /tmp/0pre-oe/0pre-oe-homepages0
    if [ "$ADEPENDS" ];then #fix...
