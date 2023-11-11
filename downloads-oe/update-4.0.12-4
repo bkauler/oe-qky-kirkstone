@@ -1,0 +1,11 @@
+#!/bin/sh
+
+#20231110
+#--------
+rm -rf meta-chromium 2>/dev/null
+rm -f meta-chromium.tar.gz 2>/dev/null
+git clone -b master https://github.com/OSSystems/meta-browser.git meta-chromium --depth 1
+rm -rf meta-chromium/.git
+rm -rf meta-chromium/meta-firefox
+dir2tgz meta-chromium
+sync

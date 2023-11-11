@@ -9,3 +9,6 @@ GN_ARGS += "use_system_lcms2=true use_system_libdrm=true \
 
 #20221226
 PARALLEL_MAKE = "-j 4"
+
+#20231107 these deps are required...
+RDEPENDS:append = " libcxx upower"
