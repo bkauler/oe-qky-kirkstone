@@ -8,7 +8,8 @@ SRC_URI = "http://ftp.gnome.org/pub/GNOME/sources/libgnomecanvas/2.30/libgnomeca
 SRC_URI[md5sum] = "3dbf66a8c492f4e044991669671234e2"
 SRC_URI[sha256sum] = "a8ca85e734ab03ecf1fba7d99e01ae2541d0df539c69a7da9414cde928c116da"
 
-DEPENDS = "intltool-native gtk+ libglade libart-lgpl xorgproto glib-2.0 glib-2.0-native"
+#20231113 added: gtk-doc-native
+DEPENDS = "intltool-native gtk+ libglade libart-lgpl xorgproto glib-2.0 glib-2.0-native gtk-doc-native"
 
 inherit perlnative pkgconfig gettext autotools
 
