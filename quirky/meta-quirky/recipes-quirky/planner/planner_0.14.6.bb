@@ -23,13 +23,19 @@ SRC_URI = "http://distro.ibiblio.org/quirky/quirky6/sources/t2/april/planner-${P
 SRC_URI[md5sum] = "1f33d201f5607ddc68b06026b772ad7b"
 SRC_URI[sha256sum] = "3a5577437cf1c1a27e35b5871b4d279fea622c19e6e1f32e26b44ef56d2edb7e"
 
-DEPENDS = "libxml2 gconf gconf-native intltool-native glib-2.0 libxslt gtk+ libebml libgnomecanvas freetype libart-lgpl glib-2.0-native"
+#20231114 added: gtk-doc-native
+DEPENDS = "libxml2 gconf gconf-native intltool-native glib-2.0 libxslt \
+      gtk+ libebml libgnomecanvas freetype libart-lgpl glib-2.0-native \
+      gtk-doc-native"
 
 # gconf
 # 2020-09-18 removed 'pythonnative', try 'python3native'
 inherit gettext pkgconfig python3native autotools-brokensep
 
-EXTRA_OECONF = "--disable-schemas-install --enable-compile-warnings=no --disable-glibtest --disable-python --disable-silent-rules --disable-static --enable-shared  --disable-update-mimedb --disable-gtk-doc"
+EXTRA_OECONF = "--disable-schemas-install --enable-compile-warnings=no \
+   --disable-glibtest --disable-python --disable-silent-rules \
+   --disable-static --enable-shared  --disable-update-mimedb \
+   --disable-gtk-doc"
 
 SROOT = "${WORKDIR}/recipe-sysroot"
 CFLAGS += "-I${SROOT}/usr/include/libxml2"
