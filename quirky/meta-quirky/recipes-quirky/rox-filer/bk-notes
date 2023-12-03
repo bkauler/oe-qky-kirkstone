@@ -34,3 +34,8 @@ Have fixed patch 009*
 kirkstone.
 error:  multiple definition of `session_auto_respawn'
 got patch for gcc10 form gentoo
+
+20231203
+--------
+remove "Customise Menu..." right-click menu item.
+ref: https://forum.puppylinux.com/viewtopic.php?p=105008#p105008

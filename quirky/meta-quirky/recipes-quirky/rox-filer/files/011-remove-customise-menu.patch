@@ -1,0 +1,14 @@
+diff -Naur rox-prev/ROX-Filer/src/appmenu.c rox-filer-2011-10-22-has_configure/ROX-Filer/src/appmenu.c
+--- rox-prev/ROX-Filer/src/appmenu.c	2011-10-23 01:48:50.000000000 +0800
++++ rox-filer-2011-10-22-has_configure/ROX-Filer/src/appmenu.c	2023-12-03 10:40:20.897027333 +0800
+@@ -360,10 +360,6 @@
+ 	g_free(path);
+ 
+ out:
+-	item = gtk_menu_item_new_with_label(_("Customise Menu..."));
+-	current_items = g_list_prepend(current_items, item);
+-	g_signal_connect(item, "activate", G_CALLBACK(customise_type), type);
+-	gtk_widget_show(item);
+ 
+ 	g_free(leaf);
+ }
