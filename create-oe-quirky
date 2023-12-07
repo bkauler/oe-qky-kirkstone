@@ -5,6 +5,7 @@
 #20231014 have split meta-browser to meta-chromium and meta-firefox
 #20231030 meta-rust. new build-amd64-ff
 #20231030 replace folder 'oe-quirky' with variable QFOLDER
+#20231207 change build-amd64-ff to build-amd64 (replace previous).
 
 if [ ! -d downloads-oe ];then #sanity check.
  echo "Error, folder downloads-oe does not exist."
@@ -100,17 +101,24 @@ tar -xf downloads-oe/meta-clang.tar.gz --directory=${BUILDSPATH}/${QFOLDER}
 #tar -xf downloads-oe/meta-browser.tar.gz --directory=${BUILDSPATH}/${QFOLDER} --strip=1
 tar -xf downloads-oe/meta-chromium.tar.gz --directory=${BUILDSPATH}/${QFOLDER} --strip=1
 tar -xf downloads-oe/meta-firefox.tar.gz --directory=${BUILDSPATH}/${QFOLDER} --strip=1
+#20231030 meta-firefox has nss-3.93 dep but config fails. delete these lines:
+#DEPENDS += "${@bb.utils.contains("TUNE_FEATURES", "crypto", "", "nss-3.93", d)}"
+#RDEPENDS:${PN} += "${@bb.utils.contains("TUNE_FEATURES", "crypto", "", "nss-3.93 nspr", d)}"
+#EXTRA_OECONF += '${@bb.utils.contains("TUNE_FEATURES", "crypto", "", "--with-system-nss", d)}'
+sed -i '/nss/d' ${BUILDSPATH}/${QFOLDER}/meta-firefox/recipes-browser/firefox/firefox.inc
 
-#20221211  20221212 staying with 1.59...
+#20221211  20221212 staying with 1.59... 20231030 change tcmode-default.inc...
 ##have got rust 1.65.0 and cargo out of oe-core, delete old 1.59...
 #rm -rf ${BUILDSPATH}/${QFOLDER}/meta/recipes-devtools/cargo
 #rm -rf ${BUILDSPATH}/${QFOLDER}/meta/recipes-devtools/rust
-#sed -i -e 's/^RUSTVERSION .*/RUSTVERSION ?= "1.65%"/' ${BUILDSPATH}/${QFOLDER}/meta/conf/distro/include/tcmode-default.inc
+sed -i -e 's/^RUSTVERSION .*/RUSTVERSION ?= "1.72.0"/' ${BUILDSPATH}/${QFOLDER}/meta/conf/distro/include/tcmode-default.inc
 ##quirky/meta has the update...
 #sync
 
 #20231030 rust...
 tar -xf downloads-oe/meta-rust.tar.gz --directory=${BUILDSPATH}/${QFOLDER}
+
+#20231030
 ##flutter... no, fetch fail...
 #tar -xf downloads-oe/meta-flutter.tar.gz --directory=${BUILDSPATH}/${QFOLDER}
 
@@ -149,18 +157,15 @@ BASEPY3="$(basename $FNDPY3)"
 mkdir -p ${BUILDSPATH}/downloads
 ln -snfr ${BUILDSPATH}/downloads ${BUILDSPATH}/${QFOLDER}/build-amd64/downloads
 ln -snfr ${BUILDSPATH}/downloads ${BUILDSPATH}/${QFOLDER}/build-amd64-musl/downloads
-ln -snfr ${BUILDSPATH}/downloads ${BUILDSPATH}/${QFOLDER}/build-amd64-ff/downloads
 
 #fix absolute paths in bblayers.conf...
 PTN1="s%ABSPATH%${BUILDSPATH}%"
 sed -i -e "$PTN1" ${BUILDSPATH}/${QFOLDER}/build-amd64/conf/bblayers.conf
 sed -i -e "$PTN1" ${BUILDSPATH}/${QFOLDER}/build-amd64-musl/conf/bblayers.conf
-sed -i -e "$PTN1" ${BUILDSPATH}/${QFOLDER}/build-amd64-ff/conf/bblayers.conf #20231030
 #20231030...
 PTN2="s%/oe-quirky/%/${QFOLDER}/%"
 sed -i -e "$PTN2" ${BUILDSPATH}/${QFOLDER}/build-amd64/conf/bblayers.conf
 sed -i -e "$PTN2" ${BUILDSPATH}/${QFOLDER}/build-amd64-musl/conf/bblayers.conf
-sed -i -e "$PTN2" ${BUILDSPATH}/${QFOLDER}/build-amd64-ff/conf/bblayers.conf #20231030
 
 #181202 to compile ghostscript with libgs, need this...
 #ref: https://patchwork.openembedded.org/patch/137913/
