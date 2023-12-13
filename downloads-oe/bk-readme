@@ -30,4 +30,7 @@ ref: https://github.com/OSSystems/meta-browser/issues/732
  also got openembedded-core/meta/classes-recipe/github-releases.bbclass
  put it into meta/classes -- might have to remove when update to langdale+
 
+Dec. 7, 2023
+------------
+kirkstone 4.0.14, bitbake 2.0.14
 
