@@ -107,11 +107,12 @@ tar -xf downloads-oe/meta-firefox.tar.gz --directory=${BUILDSPATH}/${QFOLDER} --
 #EXTRA_OECONF += '${@bb.utils.contains("TUNE_FEATURES", "crypto", "", "--with-system-nss", d)}'
 sed -i '/nss/d' ${BUILDSPATH}/${QFOLDER}/meta-firefox/recipes-browser/firefox/firefox.inc
 
+#20231207 bump 1.72.0 to 1.73.0
 #20221211  20221212 staying with 1.59... 20231030 change tcmode-default.inc...
 ##have got rust 1.65.0 and cargo out of oe-core, delete old 1.59...
 #rm -rf ${BUILDSPATH}/${QFOLDER}/meta/recipes-devtools/cargo
 #rm -rf ${BUILDSPATH}/${QFOLDER}/meta/recipes-devtools/rust
-sed -i -e 's/^RUSTVERSION .*/RUSTVERSION ?= "1.72.0"/' ${BUILDSPATH}/${QFOLDER}/meta/conf/distro/include/tcmode-default.inc
+sed -i -e 's/^RUSTVERSION .*/RUSTVERSION ?= "1.73.0"/' ${BUILDSPATH}/${QFOLDER}/meta/conf/distro/include/tcmode-default.inc
 ##quirky/meta has the update...
 #sync
 
