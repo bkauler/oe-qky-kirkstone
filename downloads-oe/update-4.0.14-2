@@ -1,0 +1,15 @@
+#!/bin/sh
+
+#119.x failed, try this...
+#https://github.com/OSSystems/meta-browser/issues/773
+#https://github.com/OSSystems/meta-browser/pull/777
+#https://github.com/MaxIhlenfeldt/meta-browser/tree/120.0.6099.109
+
+#ref: https://github.com/OSSystems/meta-browser
+rm -rf meta-chromium 2>/dev/null
+rm -f meta-chromium.tar.gz 2>/dev/null
+git clone -b 120.0.6099.109 https://github.com/MaxIhlenfeldt/meta-browser.git meta-chromium --depth 1
+rm -rf meta-chromium/.git
+rm -rf meta-chromium/meta-firefox
+dir2tgz meta-chromium
+sync
