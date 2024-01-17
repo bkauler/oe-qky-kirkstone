@@ -129,7 +129,7 @@ sync
 
 #20230405 for musl build  20230916
 cp -a ${BUILDSPATH}/${QFOLDER}/meta-quirky ${BUILDSPATH}/${QFOLDER}/meta-quirky-cut
-for aCUT in recipes-browser/chromium recipes-devtools/clang recipes-gnome/evince recipes-gnome/gthumb recipes-gnome/gtk4 recipes-gnome/nautilus recipes-graphics/harfbuzz recipes-graphics/mesa recipes-graphics/scribus recipes-libreoffice/libreoffice recipes-multimedia/sox recipes-multimedia/vlc recipes-multimedia/x265 recipes-qt/qt5 recipes-quirky/freetype-static recipes-quirky/gui-engine recipes-quirky/libsdl-fb recipes-quirky/obs recipes-quirky/vym recipes-support/mlt recipes-support/redland recipes-quirky/keepassxc recipes-multimedia/shotcut recipes-quirky/symphytum recipes-quirky/aqemu recipes-quirky/qtemu recipes-quirky/qlipper
+for aCUT in recipes-browser/chromium recipes-browser/firefox recipes-devtools/clang recipes-gnome/evince recipes-gnome/gthumb recipes-gnome/gtk4 recipes-gnome/nautilus recipes-graphics/harfbuzz recipes-graphics/mesa recipes-graphics/scribus recipes-libreoffice/libreoffice recipes-multimedia/sox recipes-multimedia/vlc recipes-multimedia/x265 recipes-qt/qt5 recipes-quirky/freetype-static recipes-quirky/gui-engine recipes-quirky/libsdl-fb recipes-quirky/obs recipes-quirky/vym recipes-support/mlt recipes-support/redland recipes-quirky/keepassxc recipes-multimedia/shotcut recipes-quirky/symphytum recipes-quirky/aqemu recipes-quirky/qtemu recipes-quirky/qlipper
 do
  rm -rf ${BUILDSPATH}/${QFOLDER}/meta-quirky-cut/${aCUT}
 done
