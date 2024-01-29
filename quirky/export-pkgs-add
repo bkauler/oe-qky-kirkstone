@@ -4,6 +4,7 @@
 #20221218 based on 0pre-oe in woofQ.
 #20230618 recompiled qemu and it found incomplete deps. fix.
 #20231107 search for DEPENDS and RDEPENDS in .bbappends files also. DEPENDS_ now DEPENDS:
+#20240127 separate build-number from DB_version
 
 export LANG=C #faster.
 
@@ -265,16 +266,23 @@ ${DEPENDSxx}"
    done
    sync
    
-   #this has to be done after stripping...
-   DB_size="$(du -s -k ${aIMG}XXX | cut -f 1)K"
-   DBENTRY="$DB_pkgname|$DB_nameonly|$DB_version|$DB_pkgrelease|$DB_category|${DB_size}|$DB_path|$DB_fullfilename|$DB_dependencies|$DB_description|oe|$DISTRO_COMPAT_VERSION||"
-   echo "$DBENTRY" >> $PKGLISTS_COMPAT
+   #20240127 separate release from version. ex: 
+   #acl-2.3.1-r6|acl|2.3.1-r6||BuildingBlock|628K|kirkstone|acl-2.3.1-r6-nocona-64.tar.xz|+attr|Utilities for managing POSIX Access Control Lists|oe|kirkstone||
+   #change to:
+   #acl-2.3.1-r6|acl|2.3.1|r6|BuildingBlock|628K|kirkstone|acl-2.3.1-r6-nocona-64.tar.xz|+attr|Utilities for managing POSIX Access Control Lists|oe|kirkstone||
+   DB_version2="$(echo -n "${DB_version}" | sed -e 's%-r[0-9]*$%%')"
+   DB_pkgrelease="$(echo -n "${DB_version}" | sed -e 's%.*-\(r[0-9]*\)$%\1%')"
   
    #20221223 getting this odd dep: +do_prepare_recipe_sysrootn:2
    # also, some just make db file bigger: +glibc +gcc-runtime +base-files +base-passwd +initscripts +update-rc.d +xorgproto
   # 20221224 more: +autoconf-archive +bash-completion +compiler-rt +libstd-rs +shadow*
    DBdepsfixed="$(echo -n "$DB_dependencies" | tr ',' '\n' | grep -vE '^\+do_prepare|^\+glibc$|^\+gcc-runtime$|^\+base-files$|^\+base-passwd$|^\+initscripts$|^\+update-rc\.d$|^\+xorgproto$|^\+autoconf-archive$|^\+bash-completion$|^\+compiler-rt$|^\+libstd-rs$|^\+shadow' | tr '\n' ',' | sed -e 's%,$%%' -e 's%,$%%')"
    DB_dependencies="$DBdepsfixed"
+   
+   #this has to be done after stripping...
+   DB_size="$(du -s -k ${aIMG}XXX | cut -f 1)K"
+   DBENTRY="$DB_pkgname|$DB_nameonly|$DB_version2|$DB_pkgrelease|$DB_category|${DB_size}|$DB_path|$DB_fullfilename|$DB_dependencies|$DB_description|oe|$DISTRO_COMPAT_VERSION||"
+   echo "$DBENTRY" >> $PKGLISTS_COMPAT
   
    sync
    echo ; echo '...done'

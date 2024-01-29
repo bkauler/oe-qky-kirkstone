@@ -3,6 +3,7 @@
 #license GPLv3+
 #20221218 based on 0pre-oe in woofQ.
 #20231107 search for DEPENDS and RDEPENDS in .bbappends files also. DEPENDS_ now DEPENDS:
+#20240127 separate build-number from DB_version
 
 export LANG=C #faster.
 
@@ -253,6 +254,13 @@ do
    fi
   done
   sync
+   
+  #20240127 separate release from version. ex: 
+  #acl-2.3.1-r6|acl|2.3.1-r6||BuildingBlock|628K|kirkstone|acl-2.3.1-r6-nocona-64.tar.xz|+attr|Utilities for managing POSIX Access Control Lists|oe|kirkstone||
+  #change to:
+  #acl-2.3.1-r6|acl|2.3.1|r6|BuildingBlock|628K|kirkstone|acl-2.3.1-r6-nocona-64.tar.xz|+attr|Utilities for managing POSIX Access Control Lists|oe|kirkstone||
+  DB_version2="$(echo -n "${DB_version}" | sed -e 's%-r[0-9]*$%%')"
+  DB_pkgrelease="$(echo -n "${DB_version}" | sed -e 's%.*-\(r[0-9]*\)$%\1%')"
   
   #20221223 getting this odd dep: +do_prepare_recipe_sysrootn:2
   # also, some just make db file bigger: +glibc +gcc-runtime +base-files +base-passwd +initscripts +update-rc.d +xorgproto
@@ -262,7 +270,7 @@ do
   
   #this has to be done after stripping...
   DB_size="$(du -s -k ${aIMG}XXX | cut -f 1)K"
-  DBENTRY="$DB_pkgname|$DB_nameonly|$DB_version|$DB_pkgrelease|$DB_category|${DB_size}|$DB_path|$DB_fullfilename|$DB_dependencies|$DB_description|oe|$DISTRO_COMPAT_VERSION||"
+  DBENTRY="$DB_pkgname|$DB_nameonly|$DB_version2|$DB_pkgrelease|$DB_category|${DB_size}|$DB_path|$DB_fullfilename|$DB_dependencies|$DB_description|oe|$DISTRO_COMPAT_VERSION||"
   echo "$DBENTRY" >> $PKGLISTS_COMPAT
   
   sync
