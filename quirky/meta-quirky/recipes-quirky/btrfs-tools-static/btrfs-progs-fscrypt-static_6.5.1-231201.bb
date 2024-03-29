@@ -40,7 +40,8 @@ inherit autotools-brokensep pkgconfig manpages
 
 CLEANBROKEN = "1"
 
-EXTRA_OECONF = "--enable-largefile --enable-static"
+#need --enable-experimental for fscrypt support
+EXTRA_OECONF = "--enable-largefile --enable-static --enable-experimental"
 
 EXTRA_OECONF:append:libc-musl = " --disable-backtrace "
 EXTRA_PYTHON_CFLAGS = "${DEBUG_PREFIX_MAP}"
