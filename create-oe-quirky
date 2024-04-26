@@ -6,6 +6,7 @@
 #20231030 meta-rust. new build-amd64-ff
 #20231030 replace folder 'oe-quirky' with variable QFOLDER
 #20231207 change build-amd64-ff to build-amd64 (replace previous).
+#20240426 rust 1.75.0, clang 14.0.6
 
 if [ ! -d downloads-oe ];then #sanity check.
  echo "Error, folder downloads-oe does not exist."
@@ -107,12 +108,12 @@ tar -xf downloads-oe/meta-firefox.tar.gz --directory=${BUILDSPATH}/${QFOLDER} --
 #EXTRA_OECONF += '${@bb.utils.contains("TUNE_FEATURES", "crypto", "", "--with-system-nss", d)}'
 sed -i '/nss/d' ${BUILDSPATH}/${QFOLDER}/meta-firefox/recipes-browser/firefox/firefox.inc
 
-#20231207 bump 1.72.0 to 1.73.0
+#20231207 bump 1.72.0 to 1.73.0  20240426 now 1.75.0
 #20221211  20221212 staying with 1.59... 20231030 change tcmode-default.inc...
 ##have got rust 1.65.0 and cargo out of oe-core, delete old 1.59...
 #rm -rf ${BUILDSPATH}/${QFOLDER}/meta/recipes-devtools/cargo
 #rm -rf ${BUILDSPATH}/${QFOLDER}/meta/recipes-devtools/rust
-sed -i -e 's/^RUSTVERSION .*/RUSTVERSION ?= "1.73.0"/' ${BUILDSPATH}/${QFOLDER}/meta/conf/distro/include/tcmode-default.inc
+sed -i -e 's/^RUSTVERSION .*/RUSTVERSION ?= "1.75.0"/' ${BUILDSPATH}/${QFOLDER}/meta/conf/distro/include/tcmode-default.inc
 ##quirky/meta has the update...
 #sync
 
@@ -154,10 +155,11 @@ fi
 BASEPY3="$(basename $FNDPY3)"
 [ ! -e /usr/bin/python3 ] && ln -s $BASEPY3 /usr/bin/python3
 
+#20240426 symlinks not needed, see $DL_DIR in local.conf...
 #download src-pkgs folder...
 mkdir -p ${BUILDSPATH}/downloads
-ln -snfr ${BUILDSPATH}/downloads ${BUILDSPATH}/${QFOLDER}/build-amd64/downloads
-ln -snfr ${BUILDSPATH}/downloads ${BUILDSPATH}/${QFOLDER}/build-amd64-musl/downloads
+#ln -snfr ${BUILDSPATH}/downloads ${BUILDSPATH}/${QFOLDER}/build-amd64/downloads
+#ln -snfr ${BUILDSPATH}/downloads ${BUILDSPATH}/${QFOLDER}/build-amd64-musl/downloads
 
 #fix absolute paths in bblayers.conf...
 PTN1="s%ABSPATH%${BUILDSPATH}%"
@@ -232,13 +234,14 @@ sync
 cd $PROJECTPATH
 if [ ! -d ${BUILDSPATH}/tarballs-libreoffice ];then
  cd $BUILDSPATH
- wget https://distro.ibiblio.org/easyos/source/extra/oe-qky-dunfell/tarballs-libreoffice.tar.gz
+ wget https://distro.ibiblio.org/easyos/source/extra/oe-qky-kirkstone/tarballs-libreoffice.tar.gz
  tar -xf tarballs-libreoffice.tar.gz
  sync
  rm -f tarballs-libreoffice.tar.gz
  cd ${PROJECTPATH}
 fi
 
+#20240426 https://github.com/kraj/meta-clang now 14.0.6 in kirkstone branch
 #20221206
 #clash between these:
 # meta/recipes-devtools/llvm <<provides llvm 13.0.1
@@ -247,7 +250,7 @@ fi
 rm -rf ${BUILDSPATH}/${QFOLDER}/meta/recipes-devtools/llvm
 #and have created meta-quirky/recipes-devtools/clang/clang_%.bbappend
 # to rprovide what llvm did. 20221211 also do this...
-sed -i -e 's/^LLVMVERSION .*/LLVMVERSION ?= "14.0.3"/' ${BUILDSPATH}/${QFOLDER}/meta/conf/distro/include/tcmode-default.inc
+sed -i -e 's/^LLVMVERSION .*/LLVMVERSION ?= "14.0.6"/' ${BUILDSPATH}/${QFOLDER}/meta/conf/distro/include/tcmode-default.inc
 
 #20221211
 #make sure libc headers same as kernel (it was 5.16)
