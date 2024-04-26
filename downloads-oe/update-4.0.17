@@ -1,0 +1,120 @@
+#!/bin/ash
+#executed on April 26, 2024
+
+rm -rf meta-yocto 2>/dev/null
+rm -f meta-yocto.tar.gz
+git clone -b kirkstone git://git.yoctoproject.org/meta-yocto --depth 1
+rm -rf meta-yocto/.git
+dir2tgz meta-yocto
+sync
+
+rm -rf openembedded-core 2>/dev/null
+rm -f openembedded-core.tar.gz
+git clone -b kirkstone git://git.openembedded.org/openembedded-core openembedded-core --depth 1
+rm -rf openembedded-core/.git
+dir2tgz openembedded-core
+sync
+
+rm -rf meta-openembedded 2>/dev/null
+rm -f meta-openembedded.tar.gz
+git clone -b kirkstone git://git.openembedded.org/meta-openembedded meta-openembedded --depth 1
+rm -rf meta-openembedded/.git
+dir2tgz meta-openembedded
+sync
+
+#ref: https://git.openembedded.org/bitbake/
+rm -rf bitbake 2>/dev/null
+rm -f bitbake.tar.gz
+git clone -b '2.0.17' git://git.openembedded.org/bitbake bitbake --depth 1
+rm -rf bitbake/.git
+dir2tgz bitbake
+sync
+
+rm -rf meta-qt5 2>/dev/null
+rm -f meta-qt5.tar.gz
+git clone -b kirkstone https://github.com/meta-qt5/meta-qt5.git meta-qt5 --depth 1
+rm -rf meta-qt5/.git
+dir2tgz meta-qt5
+sync
+
+#there is no kirkstone branch...
+rm -rf meta-qt5-extra 2>/dev/null
+rm -f meta-qt5-extra.tar.gz
+git clone -b master https://github.com/schnitzeltony/meta-qt5-extra.git meta-qt5-extra --depth 1
+rm -rf meta-qt5-extra/.git
+dir2tgz meta-qt5-extra
+sync
+
+#'conan' is required to build audacity...
+#https://github.com/conan-io/meta-conan
+#there is no kirkstone...
+rm -rf meta-conan 2>/dev/null
+rm -f meta-conan.tar.gz
+git clone -b master https://github.com/conan-io/meta-conan.git --depth 1
+rm -rf meta-conan/.git
+dir2tgz meta-conan
+sync
+
+rm -rf meta-java 2>/dev/null
+rm -f meta-java.tar.gz
+git clone -b kirkstone https://git.yoctoproject.org/git/meta-java --depth 1
+rm -rf meta-java/.git
+dir2tgz meta-java
+sync
+
+##there is no kirkstone. last commit 12 months ago. latest is 5.17 kernel.
+#rm -rf meta-kernel 2>/dev/null
+#rm -f meta-kernel.tar.gz
+#git clone -b master https://gitlab.com/openembedded/community/meta-kernel.git --depth 1
+#rm -rf meta-kernel/.git
+#dir2tgz meta-kernel
+#sync
+
+#there is no kirkstone. last update june 9, 2023
+rm -rf meta-office 2>/dev/null
+rm -f meta-office.tar.gz
+git clone -b master https://github.com/schnitzeltony/meta-office.git meta-office --depth 1
+rm -rf meta-office/.git
+dir2tgz meta-office
+sync
+
+#ref: https://github.com/OSSystems/meta-browser
+#there is a kirkstone branch, older version. don't think master will compile.
+rm -rf meta-chromium 2>/dev/null
+rm -f meta-chromium.tar.gz 2>/dev/null
+git clone -b kirkstone https://github.com/OSSystems/meta-browser.git meta-chromium --depth 1
+rm -rf meta-chromium/.git
+rm -rf meta-chromium/meta-firefox
+dir2tgz meta-chromium
+sync
+
+#ref: https://github.com/OldManYellsAtCloud/meta-browser
+rm -rf meta-firefox 2>/dev/null
+rm -f meta-firefox.tar.gz 2>/dev/null
+git clone -b master https://github.com/OldManYellsAtCloud/meta-browser.git meta-firefox --depth 1
+rm -rf meta-firefox/.git
+rm -rf meta-firefox/meta-chromium
+dir2tgz meta-firefox
+sync
+
+#need this rust v1.66.1 or later for firefox...
+rm -rf meta-rust 2>/dev/null
+rm -f meta-rust.tar.gz 2>/dev/null
+git clone -b master https://github.com/meta-rust/meta-rust --depth 1
+rm -rf meta-rust/.git
+dir2tgz meta-rust
+sync
+
+rm -rf meta-clang 2>/dev/null
+rm -f meta-clang.tar.gz
+git clone -b kirkstone https://github.com/kraj/meta-clang.git meta-clang --depth 1
+rm -rf meta-clang/.git
+dir2tgz meta-clang
+sync
+
+rm -rf meta-raspberrypi 2>/dev/null
+rm -f meta-raspberrypi.tar.gz
+git clone -b kirkstone https://git.yoctoproject.org/meta-raspberrypi meta-raspberrypi --depth 1
+rm -rf meta-raspberrypi/.git
+dir2tgz meta-raspberrypi
+sync
