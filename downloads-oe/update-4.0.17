@@ -87,6 +87,11 @@ rm -rf meta-chromium/.git
 rm -rf meta-chromium/meta-firefox
 dir2tgz meta-chromium
 sync
+#...not building this anymore.
+## bitbake-layers show-layers
+#ERROR: Layer 'chromium-browser-layer' depends on layer 'lts-rust-mixin', but this layer is not enabled in your configuration
+# 
+
 
 #ref: https://github.com/OldManYellsAtCloud/meta-browser
 rm -rf meta-firefox 2>/dev/null
@@ -97,7 +102,7 @@ rm -rf meta-firefox/meta-chromium
 dir2tgz meta-firefox
 sync
 
-#need this rust v1.66.1 or later for firefox...
+#need this rust v1.66.1 or later for firefox... now 1.75.0
 rm -rf meta-rust 2>/dev/null
 rm -f meta-rust.tar.gz 2>/dev/null
 git clone -b master https://github.com/meta-rust/meta-rust --depth 1

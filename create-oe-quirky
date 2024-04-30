@@ -6,7 +6,7 @@
 #20231030 meta-rust. new build-amd64-ff
 #20231030 replace folder 'oe-quirky' with variable QFOLDER
 #20231207 change build-amd64-ff to build-amd64 (replace previous).
-#20240426 rust 1.75.0, clang 14.0.6
+#20240426 clang 14.0.6
 
 if [ ! -d downloads-oe ];then #sanity check.
  echo "Error, folder downloads-oe does not exist."
@@ -107,6 +107,23 @@ tar -xf downloads-oe/meta-firefox.tar.gz --directory=${BUILDSPATH}/${QFOLDER} --
 #RDEPENDS:${PN} += "${@bb.utils.contains("TUNE_FEATURES", "crypto", "", "nss-3.93 nspr", d)}"
 #EXTRA_OECONF += '${@bb.utils.contains("TUNE_FEATURES", "crypto", "", "--with-system-nss", d)}'
 sed -i '/nss/d' ${BUILDSPATH}/${QFOLDER}/meta-firefox/recipes-browser/firefox/firefox.inc
+
+#20240427 meta-firefox/recipes-devtools/clang patches not work
+# (they are for the kirkstone clang, but we are using later in meta-clang)...
+sed -i -e 's% kirkstone%%' ${BUILDSPATH}/${QFOLDER}/meta-firefox/recipes-devtools/clang/llvm-project-source.bbappend
+#20240427 firefox error:
+#WARNING: firefox-125.0.2-r7 do_fetch: Failed to fetch URL git://github.com/servo/rust-cssparser;protocol=https;branch=master;name=cssparser;destsuffix=cssparser, attempting MIRRORS if available
+#ERROR: firefox-125.0.2-r7 do_fetch: Fetcher failure: Unable to find revision aaa966d9d6ae70c4b8a62bb5e3a14c068bb7dff0 in branch master even from upstream
+if [ -f ${BUILDSPATH}/${QFOLDER}/meta-firefox/recipes-browser/firefox/firefox_125.0.2.bb ];then
+ sed -i -e 's%branch=master;name=cssparser;%branch=main;name=cssparser;%' ${BUILDSPATH}/${QFOLDER}/meta-firefox/recipes-browser/firefox/firefox_125.0.2.bb
+fi
+#20240427 causes clash with meta-rust...
+if [ -d ${BUILDSPATH}/${QFOLDER}/meta-firefox/recipes-devtools/rust ];then
+ rm -rf ${BUILDSPATH}/${QFOLDER}/meta-firefox/recipes-devtools/rust
+fi
+
+#20240426 chromium no longer compiles in kirkstone, remove:
+mv -f ${BUILDSPATH}/${QFOLDER}/meta-quirky/recipes-browser/chromium/chromium-x11_%.bbappend ${BUILDSPATH}/${QFOLDER}/meta-quirky/recipes-browser/chromium/chromium-x11_%.bbappendHIDE
 
 #20231207 bump 1.72.0 to 1.73.0  20240426 now 1.75.0
 #20221211  20221212 staying with 1.59... 20231030 change tcmode-default.inc...
